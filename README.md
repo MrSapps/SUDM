@@ -1,4 +1,4 @@
-SUDM
+SUDM [![Build Status](https://travis-ci.org/paulsapps/SUDM.svg?branch=master)](https://travis-ci.org/paulsapps/SUDM)
 ====
 
 Simple Universal Decompilation Machine
