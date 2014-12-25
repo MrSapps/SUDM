@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.6)
 
 project(SUDM)
 
+enable_testing()
+
 # The version number
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 1)
@@ -20,20 +22,16 @@ else()
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC")
 endif()
 
-
 include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}/googlemock
     ${CMAKE_CURRENT_SOURCE_DIR}/googlemock/include
-	${CMAKE_CURRENT_SOURCE_DIR}/googletest
-	${CMAKE_CURRENT_SOURCE_DIR}/googletest/include
+	${CMAKE_CURRENT_SOURCE_DIR}/googlemock/gtest/include
+	${CMAKE_CURRENT_SOURCE_DIR}/googlemock/gtest
 )
 
 add_library(gmock STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/googlemock/src/gmock-all.cc
-)
-
-add_library(gtest STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/googletest/src/gtest-all.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/googlemock/gtest/src/gtest-all.cc
 )
 
 add_subdirectory(tests)

@@ -1,11 +1,13 @@
 #include <gmock/gmock.h>
 
-TEST(Test, TravisCi)
+TEST(a, b)
 {
-	ASSERT_EQ(1,0);
+    ASSERT_EQ(1, 0);
 }
 
-int main(char**,int)
+int main(int argc, char** argv)
 {
-	return 0;
+    ::testing::InitGoogleMock(&argc, argv);
+    RUN_ALL_TESTS();
+    return 0;
 }
