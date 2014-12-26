@@ -32,7 +32,7 @@
 /**
  * Structure representing a function.
  */
-struct Function {
+class Function {
 public:
 	ConstInstIterator _startIt; ///< Iterator to of the first instruction in the function, if available.
 	ConstInstIterator _endIt;   ///< Iterator to the instruction immediately after the function, similar to end() on STL containers. If _endIt == _startIt, the function endpoint is assumed to be unknown.

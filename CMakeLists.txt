@@ -17,6 +17,8 @@ endif ()
 if (MSVC)
 	# Build cpp files on all cores
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+	
+	add_definitions("/wd4290")
 else()
 	# Enable C++11, you may need to use -std=c++0x if using an older gcc compiler
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC")
@@ -46,7 +48,6 @@ decompiler/codegen.cpp
 decompiler/codegen.h
 decompiler/control_flow.cpp
 decompiler/control_flow.h
-decompiler/decompiler.cpp
 decompiler/disassembler.cpp
 decompiler/disassembler.h
 decompiler/engine.h
@@ -120,9 +121,25 @@ if (UNIX)
 	add_definitions(-DPOSIX)
 endif()
 
+ADD_LIBRARY(Sudm_Lib STATIC ${source})
 
-add_executable(Sudm 
-${source}
+add_executable(Sudm
+decompiler/decompiler.cpp
+)
+target_link_libraries(Sudm Sudm_Lib ${Boost_LIBRARIES})
+
+add_executable(Sudm_Test2 
+decompiler/test/cfg_test.cpp
+decompiler/test/codegen.cpp
+decompiler/test/disassembler_test.cpp
+decompiler/test/disassembler/pasc.cpp
+decompiler/test/disassembler/pasc.h
+decompiler/test/disassembler/subopcode.cpp
+decompiler/test/disassembler/subopcode.h
 )
 
-target_link_libraries(Sudm ${Boost_LIBRARIES})
+target_link_libraries(Sudm_Test2 Sudm_Lib gmock ${Boost_LIBRARIES})
+
+add_test(NAME Sudm_Test2 COMMAND Sudm_Test2 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+
