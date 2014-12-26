@@ -225,7 +225,9 @@
 
 	#ifndef CONFIG_H
 		/* need this for the SDL_BYTEORDER define */
-		#include <SDL_byteorder.h>
+		//#include <SDL_byteorder.h>
+
+#define SDL_BYTEORDER SDL_LIL_ENDIAN
 
 		#if SDL_BYTEORDER == SDL_LIL_ENDIAN
 		#define SCUMM_LITTLE_ENDIAN
