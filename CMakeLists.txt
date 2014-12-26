@@ -116,11 +116,10 @@ ${CMAKE_CURRENT_SOURCE_DIR}/decompiler
 add_definitions(-DBOOST_ALL_NO_LIB)
 add_definitions(-DBOOST_ALL_DYN_LINK)
 
-
-if (WIN32)
-	
-	#set(Boost_USE_STATIC_LIBS TRUE)
+if (UNIX)
+	add_definitions(-D__GNUC__)
 endif()
+
 
 add_executable(Sudm 
 ${source}
