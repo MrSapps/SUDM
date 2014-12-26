@@ -83,7 +83,7 @@ decompiler/groovie/engine.h
 decompiler/groovie/opcodes.h
 common/algorithm.h
 common/array.h
-common/endian.h
+common/endianness.h
 common/file.cpp
 common/file.h
 common/func.h

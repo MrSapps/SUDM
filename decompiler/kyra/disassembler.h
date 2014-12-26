@@ -23,7 +23,7 @@
 #define DEC_KYRA_DISASM_H
 
 #include "decompiler/disassembler.h"
-#include "common/endian.h"
+#include "common/endianness.h"
 
 typedef uint32 IFF_ID;
 

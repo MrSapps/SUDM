@@ -25,7 +25,7 @@
  */
 
 #include "common/md5.h"
-#include "common/endian.h"
+#include "common/endianness.h"
 
 #include <stdio.h>
 #include <string.h>
