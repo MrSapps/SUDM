@@ -117,7 +117,7 @@ add_definitions(-DBOOST_ALL_NO_LIB)
 add_definitions(-DBOOST_ALL_DYN_LINK)
 
 if (UNIX)
-	add_definitions(-DCONFIG_H)
+	add_definitions(-DPOSIX)
 endif()
 
 
