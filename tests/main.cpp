@@ -34,7 +34,9 @@ TEST(FF7, DisAsm)
     if (out.is_open())
     {
         auto& g = c->getGraph();
-        boost::write_graphviz(out, g, boost::make_label_writer(get(boost::vertex_name, g)), boost::makeArrowheadWriter(get(boost::edge_attribute, g)), GraphProperties(&engine, g));
+        boost::write_graphviz(
+            out, g, boost::make_label_writer(get(boost::vertex_name, g)), 
+            boost::makeArrowheadWriter(get(boost::edge_attribute, g)), GraphProperties(&engine, g));
     }
     out.close();
 

@@ -95,7 +95,14 @@ void FF7::FF7UncondJumpInstruction::processInst(ValueStack &stack, Engine *engin
 
 void FF7::FF7KernelCallInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen)
 {
-
+    std::string strName = "UnknownKernelFunction_" + std::to_string(_opcode);
+    switch (_opcode)
+    {
+    case 0xE5:
+        strName = "SetPalette";
+        break;
+    }
+    codeGen->addOutputLine(strName + "();");
 }
 
 void FF7::FF7NoOutputInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen)
