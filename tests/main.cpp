@@ -26,6 +26,10 @@ TEST(FF7, DisAsm)
 
 
     Graph g = c->analyze();
+
+    engine.postCFG(insts, g);
+
+
     onullstream ns;
     CodeGenerator *cg = engine.getCodeGenerator(std::cout);
 

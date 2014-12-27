@@ -9,12 +9,16 @@ namespace FF7
     class FF7Engine : public Engine
     {
     public:
+        FF7Engine()
+        {
+            setOutputStackEffect(false);
+        }
         Disassembler* getDisassembler(InstVec &insts);
         CodeGenerator* getCodeGenerator(std::ostream &output);
         void postCFG(InstVec &insts, Graph g);
         bool detectMoreFuncs() const;
         void getVariants(std::vector<std::string> &variants) const;
-
+        virtual bool usePureGrouping() const { return true; }
         std::vector<std::string> _textStrings; ///< Container for strings from the TEXT chunk.
     };
 

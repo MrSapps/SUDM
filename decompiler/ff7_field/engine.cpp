@@ -6,6 +6,8 @@
 #include <sstream>
 #include <boost/format.hpp>
 
+#define GET(vertex) (boost::get(boost::vertex_name, g, vertex))
+
 Disassembler* FF7::FF7Engine::getDisassembler(InstVec &insts)
 {
     return new FF7Disassembler(this, insts);
@@ -18,7 +20,19 @@ CodeGenerator* FF7::FF7Engine::getCodeGenerator(std::ostream &output)
 
 void FF7::FF7Engine::postCFG(InstVec &insts, Graph g)
 {
+    VertexRange vr = boost::vertices(g);
 
+    for (VertexIterator v = vr.first; v != vr.second; ++v) {
+
+        GroupPtr gr = GET(*v);
+
+        if ((*gr->_start)->_address == insts.back()->_address) {
+
+            gr->_type = kDoWhileCondGroupType;
+
+        }
+
+    }
 }
 
 bool FF7::FF7Engine::detectMoreFuncs() const

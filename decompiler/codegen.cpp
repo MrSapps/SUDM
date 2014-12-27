@@ -212,6 +212,16 @@ void CodeGenerator::processUncondJumpInst(const InstPtr inst)
                         }
                     }
                 }
+                else
+                {
+                    // Special case where we forced code that ends with an unconditional jump back into itself to be
+                    // a do { } while(true), without doing this we'd get do { } goto do_start;
+                    if (_curGroup->_type == kDoWhileCondGroupType)
+                    {
+                        printJump = false;
+                        addOutputLine("} while(true);", true, false);
+                    }
+                }
             }
             if (printJump) 
             {
