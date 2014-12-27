@@ -46,7 +46,7 @@ public:
 	/**
 	 * Description of the exception.
 	 */
-    virtual const char *what() const override;
+    virtual const char *what() const throw() override;
 };
 
 #endif

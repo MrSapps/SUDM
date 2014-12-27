@@ -26,7 +26,7 @@ UnknownOpcodeException::UnknownOpcodeException(uint32 address, uint8 opcode) {
 	_opcode = opcode;
 }
 
-const char *UnknownOpcodeException::what() const
+const char *UnknownOpcodeException::what() const throw()
 {
 	sprintf(_buf, "Unknown opcode (address: 0x%08x, opcode: 0x%02x)", _address, _opcode);
 	return _buf;
