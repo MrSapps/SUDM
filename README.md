@@ -3,7 +3,8 @@
 
 This project aims to provide a decompiler framework for simple byte code languages that do not have specific structuring instructions (while/for/if).
 
-The idea is what you will implement a front end which translates the instructions to SUDM's internal instruction format. Then SUDM will apply the structing and any required optimizations. Finally you can implement a new backend which writes out the source code, or simply choose an existing backend.
+The idea is what you will implement a disassmebler that groups instructions into bespoke types (conditional jumps, unconditional jumps, load store, etc). Then SUDM will apply the generic structing. 
 
-The initial goal is to support front ends for Final Fantasy 7,8 and 9 "field" script bytecode, and a LUA back end. This means that SUDM's internal instruction set will have no notion of exceptions, although support for this could be added later.
+The initial goal is to support disassmeblers for Final Fantasy 7,8 and 9 "field" script bytecode, and a LUA back end (currently only C output is supported).
 
+This work is heavily based on Michael Madsen's decompiler work for SCUMMVM's decompiler.
