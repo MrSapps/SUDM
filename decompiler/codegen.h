@@ -73,6 +73,8 @@ protected:
 	 * @param inst The instruction to process.
 	 */
 	void processInst(const InstPtr inst);
+    void processUncondJumpInst(const InstPtr inst);
+    void processCondJumpInst(const InstPtr inst);
 
 	/**
 	 * Indents a string according to the current indentation level.

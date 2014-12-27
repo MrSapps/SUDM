@@ -169,82 +169,112 @@ void CodeGenerator::process(GraphVertex v) {
 	}
 }
 
+void CodeGenerator::processUncondJumpInst(const InstPtr inst)
+{
+    switch (_curGroup->_type)
+    {
+    case kBreakGroupType:
+        addOutputLine("break;");
+        break;
+    case kContinueGroupType:
+        addOutputLine("continue;");
+        break;
+    default: // Might be a goto
+    {
+            bool printJump = true;
+            OutEdgeRange r = boost::out_edges(_curVertex, _g);
+            for (OutEdgeIterator e = r.first; e != r.second && printJump; ++e)
+            {
+                Group* next = _curGroup->_next;
+                if (next)
+                {
+                    // Don't output jump to next vertex
+                    if (boost::target(*e, _g) == next->_vertex) 
+                    {
+                        printJump = false;
+                        break;
+                    }
+
+                    // Don't output jump if next vertex starts an else block
+                    if (next->_startElse)
+                    {
+                        printJump = false;
+                        break;
+                    }
+
+                    OutEdgeRange targetR = boost::out_edges(boost::target(*e, _g), _g);
+                    for (OutEdgeIterator targetE = targetR.first; targetE != targetR.second; ++targetE)
+                    {
+                        // Don't output jump to while loop that has jump to next vertex
+                        if (boost::target(*targetE, _g) == next->_vertex)
+                        {
+                            printJump = false;
+                        }
+                    }
+                }
+            }
+            if (printJump) 
+            {
+                std::stringstream s;
+                s << boost::format("goto 0x%X;") % inst->getDestAddress();
+                addOutputLine(s.str());
+            }
+        }
+        break;
+    }
+}
+
+void CodeGenerator::processCondJumpInst(const InstPtr inst)
+{
+    std::stringstream s;
+    switch (_curGroup->_type)
+    {
+    case kIfCondGroupType:
+        if (_curGroup->_startElse && _curGroup->_code.size() == 1)
+        {
+            OutEdgeRange oer = boost::out_edges(_curVertex, _g);
+            bool coalesceElse = false;
+            for (OutEdgeIterator oe = oer.first; oe != oer.second; ++oe)
+            {
+                GroupPtr oGr = GET(boost::target(*oe, _g))->_prev;
+                if (std::find(oGr->_endElse.begin(), oGr->_endElse.end(), _curGroup.get()) != oGr->_endElse.end())
+                {
+                    coalesceElse = true;
+                }
+            }
+            if (coalesceElse)
+            {
+                _curGroup->_code.clear();
+                _curGroup->_coalescedElse = true;
+                s << "} else ";
+            }
+        }
+        s << "if (" << _stack.pop()->negate() << ") {";
+        addOutputLine(s.str(), _curGroup->_coalescedElse, true);
+        break;
+    case kWhileCondGroupType:
+        s << "while (" << _stack.pop()->negate() << ") {";
+        addOutputLine(s.str(), false, true);
+        break;
+    case kDoWhileCondGroupType:
+        s << "} while (" << _stack.pop() << ")";
+        addOutputLine(s.str(), true, false);
+        break;
+    default:
+        break;
+    }
+}
+
 void CodeGenerator::processInst(const InstPtr inst) {
-	inst->processInst(_stack, _engine, this);
-	if (inst->isCondJump()) {
-		std::stringstream s;
-		switch (_curGroup->_type) {
-		case kIfCondGroupType:
-			if (_curGroup->_startElse && _curGroup->_code.size() == 1) {
-				OutEdgeRange oer = boost::out_edges(_curVertex, _g);
-				bool coalesceElse = false;
-				for (OutEdgeIterator oe = oer.first; oe != oer.second; ++oe) {
-					GroupPtr oGr = GET(boost::target(*oe, _g))->_prev;
-					if (std::find(oGr->_endElse.begin(), oGr->_endElse.end(), _curGroup.get()) != oGr->_endElse.end())
-						coalesceElse = true;
-				}
-				if (coalesceElse) {
-					_curGroup->_code.clear();
-					_curGroup->_coalescedElse = true;
-					s << "} else ";
-				}
-			}
-			s << "if (" << _stack.pop()->negate() << ") {";
-			addOutputLine(s.str(), _curGroup->_coalescedElse, true);
-			break;
-		case kWhileCondGroupType:
-			s << "while (" << _stack.pop()->negate() << ") {";
-			addOutputLine(s.str(), false, true);
-			break;
-		case kDoWhileCondGroupType:
-			s << "} while (" << _stack.pop() << ")";
-			addOutputLine(s.str(), true, false);
-			break;
-		default:
-			break;
-		}
-	} else if (inst->isUncondJump()) {
-		switch (_curGroup->_type) {
-		case kBreakGroupType:
-			addOutputLine("break;");
-			break;
-		case kContinueGroupType:
-			addOutputLine("continue;");
-			break;
-		default:
-			{
-				bool printJump = true;
-				OutEdgeRange r = boost::out_edges(_curVertex, _g);
-				for (OutEdgeIterator e = r.first; e != r.second && printJump; ++e) {
-					// Don't output jump to next vertex
-					if (boost::target(*e, _g) == _curGroup->_next->_vertex) {
-						printJump = false;
-						break;
-					}
-
-					// Don't output jump if next vertex starts an else block
-					if (_curGroup->_next->_startElse) {
-						printJump = false;
-						break;
-					}
-
-
-					OutEdgeRange targetR = boost::out_edges(boost::target(*e, _g), _g);
-					for (OutEdgeIterator targetE = targetR.first; targetE != targetR.second; ++targetE) {
-						// Don't output jump to while loop that has jump to next vertex
-						if (boost::target(*targetE, _g) == _curGroup->_next->_vertex)
-							printJump = false;
-					}
-				}
-				if (printJump) {
-					std::stringstream s;
-					s << boost::format("jump 0x%X;") % inst->getDestAddress();
-					addOutputLine(s.str());
-				}
-			}
-			break;
-		}
-	}
+    inst->processInst(_stack, _engine, this);
+    if (inst->isCondJump())
+    {
+        processCondJumpInst(inst);
+    }
+    else if (inst->isUncondJump())
+    {
+        processUncondJumpInst(inst);
+    }
 }
 
 void CodeGenerator::addArg(ValuePtr p) {
