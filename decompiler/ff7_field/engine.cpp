@@ -21,17 +21,16 @@ CodeGenerator* FF7::FF7Engine::getCodeGenerator(std::ostream &output)
 void FF7::FF7Engine::postCFG(InstVec &insts, Graph g)
 {
     VertexRange vr = boost::vertices(g);
-
-    for (VertexIterator v = vr.first; v != vr.second; ++v) {
-
+    for (VertexIterator v = vr.first; v != vr.second; ++v) 
+    {
         GroupPtr gr = GET(*v);
 
-        if ((*gr->_start)->_address == insts.back()->_address) {
-
+        // If this group is the last instruction and its an unconditional jump
+        if ((*gr->_start)->_address == insts.back()->_address && insts.back()->isUncondJump())
+        {
+            // Then assume its an infinite do { } while(true) loop that wraps part of the script
             gr->_type = kDoWhileCondGroupType;
-
         }
-
     }
 }
 
