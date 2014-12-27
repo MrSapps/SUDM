@@ -53,8 +53,17 @@ void FF7::FF7CondJumpInstruction::processInst(ValueStack &stack, Engine *engine,
 
 uint32 FF7::FF7CondJumpInstruction::getDestAddress() const
 {
-    return _address + _params[4]->getUnsigned() + 3; // TODO: Should actually be +4 or 5?
+    return _address + _params[4]->getUnsigned() + 5;
 }
+
+std::ostream& FF7::FF7CondJumpInstruction::print(std::ostream &output) const
+{
+    Instruction::print(output);
+    output << " (False target address: 0x" << std::hex << getDestAddress() << std::dec << ")";
+    return output;
+}
+
+
 
 bool FF7::FF7UncondJumpInstruction::isFuncCall() const
 {
@@ -70,6 +79,14 @@ uint32 FF7::FF7UncondJumpInstruction::getDestAddress() const
 {
 	return _address - _params[0]->getUnsigned();
 }
+
+std::ostream& FF7::FF7UncondJumpInstruction::print(std::ostream &output) const
+{
+    Instruction::print(output);
+    output << " (Jump target address: 0x" << std::hex << getDestAddress() << std::dec << ")";
+    return output;
+}
+
 
 void FF7::FF7UncondJumpInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen)
 {

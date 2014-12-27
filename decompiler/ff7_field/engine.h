@@ -44,6 +44,7 @@ namespace FF7
     public:
         virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
         virtual uint32 getDestAddress() const;
+        virtual std::ostream& print(std::ostream &output) const override;
     };
 
     class FF7UncondJumpInstruction : public UncondJumpInstruction
@@ -55,6 +56,8 @@ namespace FF7
         virtual bool isUncondJump() const;
         virtual uint32 getDestAddress() const;
         virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual std::ostream& print(std::ostream &output) const override;
+
     };
 
 
