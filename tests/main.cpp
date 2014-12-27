@@ -1,4 +1,45 @@
 #include <gmock/gmock.h>
+#include "decompiler/ff7_field/disassembler.h"
+#include "decompiler/ff7_field/engine.h"
+#include "control_flow.h"
+#include "util.h"
+#include "graph.h"
+
+#define GET(vertex) (boost::get(boost::vertex_name, g, vertex))
+
+TEST(FF7, DisAsm)
+{
+    FF7::FF7Engine engine;
+
+
+    InstVec insts;
+    FF7::FF7Disassembler d(&engine, insts);
+    d.open("decompiler/test/ff7.dat");
+    d.disassemble();
+
+    ControlFlow *c = new ControlFlow(insts, &engine);
+    c->createGroups();
+    Graph g = c->analyze();
+    onullstream ns;
+    CodeGenerator *cg = engine.getCodeGenerator(ns);
+    cg->generate(g);
+
+    std::vector<std::string> output;
+
+    VertexIterator v = boost::vertices(g).first;
+    GroupPtr gr = GET(*v);
+    // Find first node
+    while (gr->_prev != NULL)
+        gr = gr->_prev;
+    // Copy out all lines of code
+    while (gr != NULL) {
+        for (std::vector<CodeLine>::iterator it = gr->_code.begin(); it != gr->_code.end(); ++it)
+            output.push_back(it->_line);
+        gr = gr->_next;
+    }
+
+    ASSERT_TRUE(output.empty() == false);
+}
 
 int main(int argc, char** argv)
 {

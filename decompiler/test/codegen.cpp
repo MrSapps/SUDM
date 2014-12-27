@@ -33,32 +33,7 @@
 #include <streambuf>
 #include <ostream>
 #include <gmock/gmock.h>
-
-// Define an ostream which doesn't output anything to avoid clutter
-// Source: http://groups.google.com/group/comp.lang.c++/msg/4a81a74500f9f4d3?hl=en
-template<class cT, class traits = std::char_traits<cT> >
-class basic_nullbuf : public std::basic_streambuf < cT, traits > {
-    typename traits::int_type overflow(typename traits::int_type c)
-    {
-        return traits::not_eof(c);
-    }
-};
-
-template<class cT, class traits = std::char_traits<cT> >
-class basic_onullstream : public std::basic_ostream < cT, traits > {
-public:
-    basic_onullstream() :
-        std::basic_ios<cT, traits>(&m_sbuf),
-        std::basic_ostream<cT, traits>(&m_sbuf)
-    {
-        this->init(&m_sbuf);
-    }
-
-private:
-    basic_nullbuf<cT, traits> m_sbuf;
-};
-
-typedef basic_onullstream<char> onullstream;
+#include "util.h"
 
 std::string removeSpaces(std::string s) {
     size_t found;

@@ -82,6 +82,12 @@ decompiler/groovie/disassembler.h
 decompiler/groovie/engine.cpp
 decompiler/groovie/engine.h
 decompiler/groovie/opcodes.h
+decompiler/ff7_field/disassembler.cpp
+decompiler/ff7_field/disassembler.h
+decompiler/ff7_field/engine.cpp
+decompiler/ff7_field/engine.h
+decompiler/ff7_field/codegen.cpp
+decompiler/ff7_field/codegen.h
 common/algorithm.h
 common/array.h
 common/endianness.h
