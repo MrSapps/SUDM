@@ -26,10 +26,11 @@ void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
     OPCODE(0xE7, "CPPAL", FF7KernelCallInstruction, 0, "BBBB");
     OPCODE(0xE6, "LDPAL", FF7KernelCallInstruction, 0, "BBBB");
 
-    OPCODE(0x87, "MINUS", FF7KernelCallInstruction, 0, "BBB");
-    OPCODE(0x85, "PLUS", FF7NoOutputInstruction, 0, "BBB");
-    OPCODE(0x80, "SETBYTE", FF7KernelCallInstruction, 0, "BBB");
+    OPCODE(0x87, "MINUS", FF7StoreInstruction, 0, "BBB");
+    OPCODE(0x85, "PLUS", FF7StoreInstruction, 0, "BBB");
+    OPCODE(0x80, "SETBYTE", FF7StoreInstruction, 0, "BBB");
 
 
     END_OPCODES;
 }
+

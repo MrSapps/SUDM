@@ -18,6 +18,7 @@ TEST(FF7, DisAsm)
     d.disassemble();
 
     d.dumpDisassembly(std::cout);
+    std::cout << std::endl;
 
     ControlFlow *c = new ControlFlow(insts, &engine);
     c->createGroups();

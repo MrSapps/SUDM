@@ -74,6 +74,10 @@ ValuePtr SimpleDisassembler::readParameter(InstPtr inst, char type) {
 		retval = new IntValue(_f.readUint32BE(), false);
 		_address += 4;
 		break;
+
+    default:
+        std::cerr << "unknown parameter string" << std::endl;
+        break;
 	}
 	return retval;
 }
