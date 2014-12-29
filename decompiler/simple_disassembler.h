@@ -57,20 +57,20 @@ public:
 	SimpleDisassembler(InstVec &insts);
 };
 
-#define INC_ADDR _address++;
-#define ADD_INST(category) _insts.push_back(new category());
-#define LAST_INST (_insts.back())
+#define INC_ADDR this->_address++;
+#define ADD_INST(category) this->_insts.push_back(new category());
+#define LAST_INST (this->_insts.back())
 
 #define START_OPCODES \
-	_address = _addressBase; \
-	while (_f.pos() != (int)_f.size()) { \
+	this->_address = this->_addressBase; \
+	while (this->_f.pos() != (int)this->_f.size()) { \
 		uint32 full_opcode = 0; \
-		uint8 opcode = _f.readByte(); \
+		uint8 opcode = this->_f.readByte(); \
 		std::string opcodePrefix; \
 		switch (opcode) {
 #define END_OPCODES \
 		default: \
-			throw UnknownOpcodeException(_address, opcode);\
+			throw UnknownOpcodeException(this->_address, opcode);\
 		} \
 		INC_ADDR; \
 	}
@@ -84,11 +84,11 @@ public:
 #define OPCODE_BODY(name, category, stackChange, params, codeGenData) \
 		ADD_INST(category); \
 		LAST_INST->_opcode = full_opcode; \
-		LAST_INST->_address = _address; \
+		LAST_INST->_address = this->_address; \
 		LAST_INST->_stackChange = stackChange; \
 		LAST_INST->_name = opcodePrefix + std::string(name); \
 		LAST_INST->_codeGenData = codeGenData; \
-		readParams(LAST_INST, params); \
+		this->readParams(LAST_INST, params); \
 
 #define OPCODE_MD(val, name, category, stackChange, params, codeGenData) \
 	OPCODE_BASE(val)\
@@ -101,15 +101,15 @@ public:
 #define START_SUBOPCODE_WITH_PREFIX(val,prefix) \
 	OPCODE_BASE(val) \
 		opcodePrefix = prefix + std::string("."); \
-		opcode = _f.readByte(); \
+		opcode = this->_f.readByte(); \
 		switch (opcode) {
 #define START_SUBOPCODE(val) \
 	OPCODE_BASE(val) \
-		opcode = _f.readByte(); \
+		opcode = this->_f.readByte(); \
 		switch (opcode) {
 #define END_SUBOPCODE \
 		default: \
-			throw UnknownOpcodeException(_address, opcode);\
+			throw UnknownOpcodeException(this->_address, opcode);\
 		} \
 		INC_ADDR; \
 		OPCODE_END;

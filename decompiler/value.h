@@ -121,7 +121,7 @@ public:
 	 *
 	 * @return The string representation of the value.
 	 */
-	std::string getString() const;
+	virtual std::string getString() const;
 
 	/**
 	 * Duplicates a value.
@@ -282,7 +282,7 @@ public:
  */
 class VarValue : public Value {
 protected:
-	const std::string _varName; ///< The variable name.
+	std::string _varName; ///< The variable name.
 
 public:
 	/**

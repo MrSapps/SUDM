@@ -88,6 +88,12 @@ decompiler/ff7_field/engine.cpp
 decompiler/ff7_field/engine.h
 decompiler/ff7_field/codegen.cpp
 decompiler/ff7_field/codegen.h
+decompiler/ff7_world/disassembler.cpp
+decompiler/ff7_world/disassembler.h
+decompiler/ff7_world/engine.cpp
+decompiler/ff7_world/engine.h
+decompiler/ff7_world/codegen.cpp
+decompiler/ff7_world/codegen.h
 common/algorithm.h
 common/array.h
 common/endianness.h

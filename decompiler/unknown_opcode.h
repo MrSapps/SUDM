@@ -31,7 +31,7 @@
  */
 class UnknownOpcodeException : public std::exception {
 	uint32 _address; ///< Address where the invalid opcode was found.
-	uint8 _opcode;   ///< The value of the invalid opcode.
+	uint32 _opcode;   ///< The value of the invalid opcode.
 	mutable char _buf[255];  ///< Buffer for formatting the error message.
 
 public:
@@ -41,7 +41,7 @@ public:
 	 * @param address Address where the invalid opcode was found.
 	 * @param opcode  The value of the invalid opcode.
 	 */
-	UnknownOpcodeException(uint32 address, uint8 opcode);
+    UnknownOpcodeException(uint32 address, uint32 opcode);
 
 	/**
 	 * Description of the exception.
