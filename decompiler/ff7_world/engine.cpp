@@ -68,8 +68,16 @@ void FF7::FF7SubStackInstruction::processInst(ValueStack &stack, Engine *engine,
         op = "+";
         break;
 
-    case 0x0c0:
+    case 0x80:
+        op = "&&";
+        break;
+
+    case 0xa0:
         op = "||";
+        break;
+
+    case 0xc0:
+        op = "|";
         break;
 
     case 0x15: // neg
@@ -93,8 +101,12 @@ void FF7::FF7SubStackInstruction::processInst(ValueStack &stack, Engine *engine,
         op = "<=";
         break;
 
+    case 0x63:
+        op = ">=";
+        break;
+
     case 0x0b0:
-        op = "&&";
+        op = "&";
         break;
 
     case 0x51:
@@ -208,6 +220,18 @@ void FF7::FF7WorldKernelCallInstruction::processInst(ValueStack &stack, Engine *
             stack.pop()->getString() + ");";
         break;
 
+    case 0x308:
+        strFunc = "SetActiveEntityMeshCoordinates(" +
+            stack.pop()->getString() + ", " +
+            stack.pop()->getString() + ");";
+        break;
+
+    case 0x309:
+        strFunc = "SetActiveEntityMeshCoordinatesInMesh(" +
+            stack.pop()->getString() + ", " +
+            stack.pop()->getString() + ");";
+        break;
+
     case 0x32e:
         strFunc = "WaitForMessageAcknowledge();";
         break;
@@ -237,6 +261,24 @@ void FF7::FF7WorldKernelCallInstruction::processInst(ValueStack &stack, Engine *
             stack.pop()->getString() + ");";
         break;
 
+    case 0x310:
+        strFunc = "SetActivePoint(" +
+            stack.pop()->getString() + ", " +
+            stack.pop()->getString() + ");";
+        break;
+
+    case 0x311:
+        strFunc = "SetLightMeshCoordinates(" +
+            stack.pop()->getString() + ", " +
+            stack.pop()->getString() + ");";
+        break;
+
+    case 0x312:
+        strFunc = "SetLightMeshCoordinatesInMesh(" +
+            stack.pop()->getString() + ", " +
+            stack.pop()->getString() + ");";
+        break;
+
     case 0x31D:
         strFunc = "PlaySoundEffect(" + stack.pop()->getString() + ");";
         break;
@@ -262,12 +304,161 @@ void FF7::FF7WorldKernelCallInstruction::processInst(ValueStack &stack, Engine *
         strFunc = "SetWaitFrames(" + stack.pop()->getString() + ");";
         break;
 
+    case 0x33e:
+        strFunc = "Unknown_AKAO(" + stack.pop()->getString() + ");";
+        break;
+
     case 0x306:
         strFunc = "Wait();";
         break;
 
+    case 0x350:
+        strFunc = "SetMeteorTexture(" + stack.pop()->getString() + ");";
+        break;
+
+    case 0x34b:
+    {
+        std::string type = stack.pop()->getString();
+        switch (std::stoi(type))
+        {
+        case 0:
+            type = "yellow";
+            break;
+
+        case 1:
+            type = "green";
+            break;
+
+        case 2:
+            type = "blue";
+            break;
+
+        case 3:
+            type = "black";
+            break;
+
+        case 4:
+            type = "gold";
+            break;
+        }
+        strFunc = "SetChocoboType(" + type + ");";
+    }
+        break;
+
+    case 0x34c:
+    {
+        std::string type = stack.pop()->getString();
+        switch (std::stoi(type))
+        {
+        case 0:
+            type = "red";
+            break;
+
+        case 1:
+            type = "blue";
+            break;
+
+        // Hack - not really supported, but works
+        case -1:
+            type = "gold";
+            break;
+
+        case -2:
+            type = "black";
+            break;
+        }
+        strFunc = "SetSubmarineColor(" + type + ");";
+    }
+    break;
+
+    case 0x349:
+    {
+        std::string type = stack.pop()->getString();
+        std::string comment = "// ";
+        switch (std::stoi(type))
+        {
+        case 0:
+            comment += "before temple of the ancients,";
+            break;
+
+        case 1:
+            comment += "after temple of the ancients";
+            break;
+
+        case 2:
+            comment += " after ultimate weapon appears,";
+            break;
+
+        case 3:
+            comment += "after mideel";
+            break;
+
+        case 4:
+            comment += "after ultimate weapon killed";
+            break;
+
+        default:
+            comment += "??";
+            break;
+        }
+        strFunc = "SetWorldProgress(" + type + "); "  +comment;
+    }
+        break;
+
+    case 0x300:
+    {
+        std::string type = stack.pop()->getString();
+        std::string comment = "// ";
+        try
+        {
+            switch (std::stoi(type))
+            {
+            case 0: comment += "Cloud"; break;
+            case 1: comment += "Tifa?"; break;
+            case 2: comment += "Cid?"; break;
+            case 3: comment += "Ultimate Weapon"; break;
+            case 4: comment += "Unknown"; break;
+            case 5: comment += "Unknown"; break;
+            case 6: comment += "Unknown"; break;
+            case 7: comment += "Unknown"; break;
+            case 8: comment += "Unknown"; break;
+            case 9: comment += "Unknown"; break;
+            case 10: comment += "Unknown"; break;
+            case 11: comment += "Highwind"; break;
+            case 12: comment += "Unknown"; break;
+            case 13: comment += "Submarine"; break;
+            case 14: comment += "Unknown"; break;
+            case 15: comment += "Unknown"; break;
+            case 16: comment += "Unknown"; break;
+            case 17: comment += "Unknown"; break;
+            case 18: comment += "Unknown"; break;
+            case 19: comment += "Chocobo"; break;
+            case 20: comment += "Unknown"; break;
+            case 21: comment += "Unknown"; break;
+            case 22: comment += "Unknown"; break;
+            case 23: comment += "Unknown"; break;
+            case 24: comment += "Unknown"; break;
+            case 25: comment += "Unknown"; break;
+
+            default:
+                comment += "??";
+                break;
+            }
+        }
+        catch (std::invalid_argument&)
+        {
+
+        }
+        strFunc = "LoadModel(" + type + "); " + comment;
+    }
+        break;
+
     case 0x307:
         strFunc = "SetControlLock(" + stack.pop()->getString() + ");";
+        break;
+
+    case 0x30c:
+        strFunc = "EnterVehicle();";
         break;
 
     default:

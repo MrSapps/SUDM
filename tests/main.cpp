@@ -85,7 +85,7 @@ TEST(FF7World, DisAsm)
         InstVec insts;
 
         auto d = engine.getDisassembler(insts);
-        d->open("decompiler\\ff7_world\\wm0.ev");
+        d->open("decompiler/ff7_world/wm0.ev");
         d->disassemble();
         //d->dumpDisassembly(std::cout);
         std::cout << std::endl;
