@@ -32,28 +32,28 @@ Scumm::v6::Scummv6Disassembler::Scummv6Disassembler(InstVec &insts) : SimpleDisa
 void Scumm::v6::Scummv6Disassembler::doDisassemble() throw(std::exception) {
 	std::string blockName;
 	for (int i = 0; i < 4; i++) {
-		blockName += _f.readChar();
+		blockName += mStream->ReadS8();
 	}
 	if (blockName == "SCRP") {
 		//std::clog << "Input is global script\n";
-		_f.seek(8, SEEK_SET);
+		mStream->Seek(8);
 	} else if (blockName == "LSCR") {
 		//std::clog << "Input is local script\n";
-		_f.seek(9, SEEK_SET);
+		mStream->Seek(9);
 	} else if (blockName == "ENCD") {
 		//std::clog << "Input is room entry script\n";
-		_f.seek(8, SEEK_SET);
+		mStream->Seek(8);
 	} else if (blockName == "EXCD") {
 		//std::clog << "Input is room exit script\n";
-		_f.seek(8, SEEK_SET);
+		mStream->Seek(8);
 	} else if (blockName == "VERB") {
 		//std::clog << "Input is object script\n";
-		_f.seek(8, SEEK_SET);
+		mStream->Seek(8);
 		//std::clog << "Offset table:\n";
-		uint32 verb = _f.readByte();
+        uint32 verb = mStream->ReadU8();
 		while (verb != 0) {
-			/*std::clog << boost::format("%02x - %04x\n") % verb %*/ _f.readUint16LE();
-			verb = _f.readByte();
+			/*std::clog << boost::format("%02x - %04x\n") % verb %*/ mStream->ReadU16();
+			verb = mStream->ReadU8();
 		}
 	} else {
 		std::stringstream s;
@@ -175,7 +175,7 @@ void Scumm::v6::Scummv6Disassembler::doDisassemble() throw(std::exception) {
 			// Semantically, it would probably be more correct to model this as a conditional jump,
 			// but since precious little time remains of GSoC and that might not play very nice with the rest of the code,
 			// this is the simplest way to handle the issue right now. Eventually, it should probably be fixed more properly.
-			_f.seek(3, SEEK_CUR);
+			mStream->Seek(3);
 			_address += 3;
 			OPCODE_END;
 		OPCODE(0x96, "endOverride", KernelCallStackInstruction, 0, "");
@@ -455,20 +455,20 @@ ValuePtr Scumm::v6::Scummv6Disassembler::readParameter(InstPtr inst, char type) 
 	ValuePtr retval = NULL;
 	switch (type) {
 	case 'a':
-		retval = new RelAddressValue(inst->_address + 3, _f.readSint16LE());
+		retval = new RelAddressValue(inst->_address + 3, mStream->ReadS16());
 		_address += 2;
 		break;
 	case 'c': { // Character string
 		byte cmd;
 		bool inStr = false;
 		std::stringstream s;
-		while ((cmd = _f.readByte()) != 0) {
+        while ((cmd = mStream->ReadU8()) != 0) {
 			if (cmd == 0xFF || cmd == 0xFE) {
 				if (inStr) {
 					s << '"';
 					inStr = false;
 				}
-				cmd = _f.readByte();
+				cmd = mStream->ReadU8();
 				switch (cmd) {
 				case 1:
 					s << ":newline:";
@@ -486,35 +486,35 @@ ValuePtr Scumm::v6::Scummv6Disassembler::readParameter(InstPtr inst, char type) 
 				case 5:     // addVerbToStack
 				case 6:     // addNameToStack
 				case 7: {   // addStringToStack
-					uint16 var = _f.readUint16LE();
+					uint16 var = mStream->ReadU16();
 					// TODO: Clean output similar to descumm
 					s << ":addToStack=" << var << ":";
 					_address += 4;
 					}
 					break;
 				case 9:
-					s << ":startanim=" << _f.readUint16LE() << ":";
+					s << ":startanim=" << mStream->ReadU16() << ":";
 					_address += 4;
 					break;
 				case 10:
 					s << ":sound:";
-					_f.seek(14, SEEK_CUR);
+					mStream->Seek(14);
 					_address += 16;
 					break;
 				case 12:
-					s << ":setcolor=" << _f.readUint16LE() << ":";
+					s << ":setcolor=" << mStream->ReadU16() << ":";
 					_address += 4;
 					break;
 				case 13:
-					s << ":unk2=" << _f.readUint16LE() << ":";
+					s << ":unk2=" << mStream->ReadU16() << ":";
 					_address += 4;
 					break;
 				case 14:
-					s << ":setfont=" << _f.readUint16LE() << ":";
+					s << ":setfont=" << mStream->ReadU16() << ":";
 					_address += 4;
 					break;
 				default:
-					s << ":unk" << cmd << "=" << _f.readUint16LE() << ":";
+					s << ":unk" << cmd << "=" << mStream->ReadU16() << ":";
 					_address += 4;
 					break;
 				}

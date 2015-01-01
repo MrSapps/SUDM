@@ -1,7 +1,6 @@
 #pragma once
 
 #include "simple_disassembler.h"
-#include "common/endianness.h"
 
 namespace FF7 
 {
@@ -11,7 +10,7 @@ namespace FF7
     public:
         FF7WorldDisassembler(FF7WorldEngine* engine, InstVec& insts, int scriptNumber);
         ~FF7WorldDisassembler();
-	    void doDisassemble() throw(std::exception);
+	    void doDisassemble() throw(std::exception) override;
     private:
         int mScriptNumber = 0;
     };

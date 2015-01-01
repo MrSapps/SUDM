@@ -63,9 +63,9 @@ public:
 
 #define START_OPCODES \
 	this->_address = this->_addressBase; \
-	while (this->_f.pos() != (int)this->_f.size()) { \
+            	while (this->mStream->Position() != (int)this->mStream->Size()) { \
 		uint32 full_opcode = 0; \
-		uint8 opcode = this->_f.readByte(); \
+		uint8 opcode = this->mStream->ReadU8(); \
 		std::string opcodePrefix; \
 		switch (opcode) {
 #define END_OPCODES \
@@ -101,11 +101,11 @@ public:
 #define START_SUBOPCODE_WITH_PREFIX(val,prefix) \
 	OPCODE_BASE(val) \
 		opcodePrefix = prefix + std::string("."); \
-		opcode = this->_f.readByte(); \
+		opcode = this->mStream->ReadU8(); \
 		switch (opcode) {
 #define START_SUBOPCODE(val) \
 	OPCODE_BASE(val) \
-		opcode = this->_f.readByte(); \
+		opcode = this->mStream->ReadU8(); \
 		switch (opcode) {
 #define END_SUBOPCODE \
 		default: \

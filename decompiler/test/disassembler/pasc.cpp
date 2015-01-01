@@ -134,7 +134,7 @@ ValuePtr PasCDisassembler::readParameter(InstPtr inst, char type) {
 	ValuePtr retval = NULL;
 	switch (type) {
 	case 'a':
-		retval = new AddressValue(_f.readUint32LE());
+        retval = new AddressValue(mStream->ReadU32());
 		_address += 4;
 		break;
 	default: // Defer handling to parent implementation

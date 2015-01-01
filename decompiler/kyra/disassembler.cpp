@@ -276,17 +276,34 @@ Kyra::Kyra2Disassembler::~Kyra2Disassembler() {
 	delete[] _funcs;
 }
 
+#if defined(INVERSE_MKID)
+#define MKID_BE(a) ((uint32) \
+		(((a) >> 24) & 0x000000FF) | \
+		(((a) >>  8) & 0x0000FF00) | \
+		(((a) <<  8) & 0x00FF0000) | \
+		(((a) << 24) & 0xFF000000))
+
+#else
+#  define MKID_BE(a) ((uint32)(a))
+#endif
+
+inline uint16 READ_BE_UINT16(const void *ptr)
+{
+    const byte *b = (const byte *)ptr;
+    return uint16((b[0] << 8) + b[1]);
+}
+
 void Kyra::Kyra2Disassembler::doDisassemble() throw(std::exception) {
 	// Load data
 	IFF_ID id;
-	id = _f.readUint32BE();
+	id = mStream->ReadU32BE();
 	if (id != MKID_BE('FORM')) {
 		std::stringstream s;
 		s << boost::format("Unexpected IFF magic number 0x%08X (expected 0x%08X)!") % id % MKID_BE('FORM');
 		throw std::runtime_error(s.str());
 	}
-	_f.readUint32BE(); // Skip file length
-	_formType = _f.readUint32BE();
+	mStream->ReadU32BE(); // Skip file length
+	_formType = mStream->ReadU32BE();
 	if (_formType != MKID_BE('EMC2')) {
 		std::stringstream s;
 		s << boost::format("Unexpected file type 0x%08X (expected 0x%08X)!") % _formType % MKID_BE('EMC2');
@@ -296,10 +313,17 @@ void Kyra::Kyra2Disassembler::doDisassemble() throw(std::exception) {
 	// Read chunks into memory
 	do {
 		IFFChunk temp;
-		temp._chunkType = _f.readUint32BE();
-		temp._size = _f.readUint32BE();
+		temp._chunkType = mStream->ReadU32BE();
+		temp._size = mStream->ReadU32BE();
 		temp._data = new uint8[temp._size];
-		_f.read_throwsOnError(temp._data, temp._size);
+		
+        for (size_t i = 0; i < temp._size; i++)
+        {
+            temp._data[i] = mStream->ReadU8();
+            // TODO throw on error
+            //mStream.read_throwsOnError(temp._data, temp._size);
+        }
+
 		switch (temp._chunkType) {
 		case MKID_BE('TEXT'):
 			_textChunk = temp;
@@ -317,8 +341,8 @@ void Kyra::Kyra2Disassembler::doDisassemble() throw(std::exception) {
 			throw std::runtime_error(s.str());
 		}
 		if (temp._size % 2 != 0) // Skip padding byte
-			_f.readByte();
-	} while (_f.pos() != (int)_f.size());
+			mStream->ReadU8();
+	} while (mStream->Position() != mStream->Size());
 
 	if (_ordrChunk._data == NULL)
 		throw std::runtime_error("Missing ORDR chunk");

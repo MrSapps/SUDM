@@ -26,7 +26,7 @@
 #include <vector>
 
 #include "instruction.h"
-#include "common/file.h"
+#include "common/binaryreader.h"
 #include "unknown_opcode_exception.h"
 #include "objectFactory.h"
 
@@ -35,7 +35,7 @@
  */
 class Disassembler {
 protected:
-	Common::File _f;                              ///< Used to perform file I/O.
+	std::unique_ptr<BinaryReader> mStream;                         ///< Used to perform file I/O.
 	InstVec &_insts;                              ///< Container for disassembled instructions.
 	uint32 _addressBase;                          ///< Base address where the script starts.
 
@@ -67,7 +67,7 @@ public:
 	 *
 	 * @param filename The file to disassemble.
 	 */
-	void open(const char *filename);
+	virtual void open(const char *filename);
 
 	/**
 	 * Request disassembled instructions.

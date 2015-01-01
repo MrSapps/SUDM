@@ -92,13 +92,10 @@ GroovieDisassembler::GroovieDisassembler(InstVec &insts, const GroovieOpcode *op
 
 InstPtr GroovieDisassembler::readInstruction() {
 	// Read the next opcode
-	byte opcode;
-	try {
-		opcode = _f.readByte();
-	} catch (Common::FileException e) {
-		return NULL;
-	}
-	if (_f.eos())
+	byte opcode = mStream->ReadU8();
+
+    // TODO: might miss the final byte?
+	if (mStream->Position() == mStream->Size())
 		return NULL;
 
 	return createInstruction(opcode);
@@ -176,11 +173,11 @@ ValuePtr GroovieDisassembler::readParameter(InstPtr inst, char type) {
 	ValuePtr retval = NULL;
 	switch (type) {
 	case '1': // 8 bits
-		retval = new IntValue(_f.readByte(), false);
+		retval = new IntValue(mStream->ReadU8(), false);
 		_address++;
 		break;
 	case '2': // 16 bits
-		retval = new IntValue(_f.readUint16LE(), false);
+		retval = new IntValue(mStream->ReadU16(), false);
 		_address += 2;
 		break;
 	case '3': // 8 or 16 bits
@@ -190,11 +187,11 @@ ValuePtr GroovieDisassembler::readParameter(InstPtr inst, char type) {
 			retval = readParameter(inst, '2');
 		break;
 	case '4': // 32 bits
-		retval = new IntValue(_f.readUint32LE(), false);
+		retval = new IntValue(mStream->ReadU32(), false);
 		_address += 4;
 		break;
 	case '@': // Address
-		retval = new AddressValue(_f.readUint16LE());
+		retval = new AddressValue(mStream->ReadU32());
 		_address += 2;
 		if (retval->getUnsigned() > _maxTargetAddress)
 			_maxTargetAddress = retval->getUnsigned();
@@ -219,7 +216,7 @@ ValuePtr GroovieDisassembler::readParameter(InstPtr inst, char type) {
 
 ValuePtr GroovieDisassembler::readParameterIndexed(bool allow7C, bool limitVal, bool limitVar) {
 	ValuePtr result;
-	uint8 data = _f.readByte();
+	uint8 data = mStream->ReadU8();
 	_address++;
 
 	if (limitVal) {
@@ -243,7 +240,7 @@ ValuePtr GroovieDisassembler::readParameterIndexed(bool allow7C, bool limitVal, 
 		// Index an array:
 		// M[data - 0x61]
 
-		data = _f.readByte();
+		data = mStream->ReadU8();
 		_address++;
 		if (limitVar) {
 			_firstBit = (data & 0x80) == 0x80;
@@ -273,7 +270,7 @@ ValuePtr GroovieDisassembler::readParameterScriptName() {
 	std::string result = "";
 	byte c;
 	_address++;
-	while ((c = _f.readByte())) {
+	while ((c = mStream->ReadU8())) {
 		result += (char)c;
 		_address++;
 	}
@@ -288,7 +285,7 @@ ValuePtr GroovieDisassembler::readParameterVideoName() {
 	std::string stringLiteral = "";
 	byte data;
 	_address++;
-	while ((data = _f.readByte())) {
+	while ((data = mStream->ReadU8())) {
 		if (data == 0x7C || data == 0x23) {
 			// Check if it breaks a previous string literal
 			if (!stringLiteral.empty()) {
@@ -303,7 +300,7 @@ ValuePtr GroovieDisassembler::readParameterVideoName() {
 				idxs.push_back(readParameterIndexed(false, false, false));
 			} else if (data == 0x23) {
 				// Indexing an unidimensional array
-				data = _f.readByte();
+				data = mStream->ReadU8();
 				_address++;
 				idxs.push_back(new IntValue(data - 0x61, false));
 			}
@@ -330,7 +327,7 @@ ValuePtr GroovieDisassembler::readParameterVideoName() {
 
 void GroovieDisassembler::doDisassemble() throw (UnknownOpcodeException) {
 	// Prepare to read the input script
-	_f.seek(0, SEEK_SET);
+	mStream->Seek(0);
 
 	// Reset the status
 	_addressBase = 0;

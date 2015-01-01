@@ -1,7 +1,6 @@
 #pragma once
 
 #include "simple_disassembler.h"
-#include "common/endianness.h"
 
 namespace FF7 
 {
@@ -11,7 +10,7 @@ namespace FF7
     public:
         FF7Disassembler(FF7Engine* engine, InstVec& insts);
         ~FF7Disassembler();
-	    void doDisassemble() throw(std::exception);
+	    virtual void doDisassemble() throw(std::exception) override;
     };
 
 } 

@@ -58,8 +58,8 @@ void FF7::FF7WorldDisassembler::doDisassemble() throw(std::exception)
     for (int i = 0; i < 256; i++)
     {
         wmScriptData tmp;
-        tmp.mType = this->_f.readUint16LE();
-        tmp.mInstructionPointer = this->_f.readUint16LE();
+        tmp.mType = this->mStream->ReadU16();
+        tmp.mInstructionPointer = this->mStream->ReadU16();
         mData.emplace_back(tmp);
     }
 
@@ -69,15 +69,15 @@ void FF7::FF7WorldDisassembler::doDisassemble() throw(std::exception)
     {
         wmScriptData data = mData[i];
 
-        this->_f.seek((256 * sizeof(int)) + (data.mInstructionPointer*sizeof(uint16)), 0);
-        this->_address = this->_f.pos();
+        this->mStream->Seek((256 * sizeof(int)) + (data.mInstructionPointer*sizeof(uint16)));
+        this->_address = this->mStream->Position();
 
         bool end = false;
         //    while (this->_f.pos() != (int)this->_f.size())
         for (;;)
         {
             uint32 full_opcode = 0;
-            uint16 opcode = this->_f.readUint16LE();
+            uint16 opcode = this->mStream->ReadU16();
             std::string opcodePrefix;
             if (end)
             {
@@ -122,7 +122,7 @@ void FF7::FF7WorldDisassembler::doDisassemble() throw(std::exception)
                     OPCODE(0x11c, "push word from bank 0", FF7WorldLoadBankInstruction, 2, "w");
                     OPCODE(0x114, "push bit from bank 0", FF7WorldLoadBankInstruction, 2, "w");
                     OPCODE(0x11b, "push special", FF7WorldLoadBankInstruction, 2, "w");
-                    OPCODE(0x11f, "push special", FF7WorldLoadInstruction, 2, "W");
+                    OPCODE(0x11f, "push special", FF7WorldLoadInstruction, 2, "w");
                     OPCODE(0x117, "push special", FF7WorldLoadBankInstruction, 2, "w");
            
                     OPCODE(0x0e0, "write bank", FF7WorldStoreInstruction, 0, "");

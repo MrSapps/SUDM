@@ -26,7 +26,7 @@ Disassembler::Disassembler(InstVec &insts) : _insts(insts) {
 }
 
 void Disassembler::open(const char *filename) {
-	_f.open(filename, "rb");
+    mStream = std::make_unique<BinaryReader>(BinaryReader::ReadAll(filename));
 }
 
 void Disassembler::doDumpDisassembly(std::ostream &output) {
@@ -38,7 +38,7 @@ void Disassembler::doDumpDisassembly(std::ostream &output) {
 
 void Disassembler::disassemble() {
 	if (_insts.empty()) {
-		_f.seek(0, SEEK_SET);
+        mStream->Seek(0);
 		doDisassemble();
 	}
 }

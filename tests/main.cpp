@@ -75,7 +75,7 @@ TEST(FF7Field, DisAsm)
     ASSERT_TRUE(output.empty() == false);
 }
 
-TEST(FF7World, DISABLED_DisAsm)
+TEST(FF7World, DisAsm)
 {
     for (int i = 0; i < 256; i++)
     {

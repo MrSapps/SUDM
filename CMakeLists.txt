@@ -99,15 +99,13 @@ decompiler/ff7_world/engine.h
 decompiler/ff7_world/codegen.cpp
 decompiler/ff7_world/codegen.h
 common/algorithm.h
-common/endianness.h
-common/file.cpp
-common/file.h
-common/func.h
 common/noncopyable.h
 common/scummsys.h
 common/str.cpp
 common/str.h
 common/util.h
+common/binaryreader.h
+common/lzs.h
 )
 
 find_package(Boost COMPONENTS program_options filesystem thread date_time system chrono REQUIRED)
