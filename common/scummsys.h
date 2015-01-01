@@ -198,7 +198,7 @@
 
 #elif defined(_MSC_VER)
 
-	#define scumm_stricmp stricmp
+	#define scumm_stricmp _stricmp
 	#define scumm_strnicmp _strnicmp
 	#define snprintf _snprintf
 

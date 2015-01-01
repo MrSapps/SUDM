@@ -25,10 +25,7 @@
  */
 
 #include "common/str.h"
-#include "common/hash-str.h"
 #include "common/util.h"
-
-#include "common/memorypool.h"
 
 #include <stdarg.h>
 
@@ -39,26 +36,20 @@
 
 namespace Common {
 
-MemoryPool *g_refCountPool = 0;	// FIXME: This is never freed right now
-
 static uint32 computeCapacity(uint32 len) {
 	// By default, for the capacity we use the next multiple of 32
 	return ((len + 32 - 1) & ~0x1F);
 }
 
-String::String(const char *str) : _size(0), _str(_storage) {
-	if (str == 0) {
-		_storage[0] = 0;
-		_size = 0;
-	} else
-		initWithCStr(str, strlen(str));
+String::String(const char *str)  {
+	initWithCStr(str, strlen(str));
 }
 
-String::String(const char *str, uint32 len) : _size(0), _str(_storage) {
+String::String(const char *str, uint32 len) {
 	initWithCStr(str, len);
 }
 
-String::String(const char *beginP, const char *endP) : _size(0), _str(_storage) {
+String::String(const char *beginP, const char *endP) {
 	assert(endP >= beginP);
 	initWithCStr(beginP, endP - beginP);
 }
@@ -66,234 +57,58 @@ String::String(const char *beginP, const char *endP) : _size(0), _str(_storage) 
 void String::initWithCStr(const char *str, uint32 len) {
 	assert(str);
 
-	// Init _storage member explicitly (ie. without calling its constructor)
-	// for GCC 2.95.x compatibility (see also tracker item #1602879).
-	_storage[0] = 0;
-
-	_size = len;
-
-	if (len >= _builtinCapacity) {
-		// Not enough internal storage, so allocate more
-		_extern._capacity = computeCapacity(len+1);
-		_extern._refCount = 0;
-		_str = new char[_extern._capacity];
-		assert(_str != 0);
-	}
-
-	// Copy the string into the storage area
-	memmove(_str, str, len);
-	_str[len] = 0;
+    _str = std::string(str, len);
 }
 
 String::String(const String &str)
- : _size(str._size) {
-	if (str.isStorageIntern()) {
-		// String in internal storage: just copy it
-		memcpy(_storage, str._storage, _builtinCapacity);
-		_str = _storage;
-	} else {
-		// String in external storage: use refcount mechanism
-		str.incRefCount();
-		_extern._refCount = str._extern._refCount;
-		_extern._capacity = str._extern._capacity;
-		_str = str._str;
-	}
-	assert(_str != 0);
+{
+    _str = str._str;
 }
 
 String::String(char c)
-: _size(0), _str(_storage) {
-
-	_storage[0] = c;
-	_storage[1] = 0;
-
-	// TODO/FIXME: There is no reason for the following check -- we *do*
-	// allow strings to contain 0 bytes!
-	_size = (c == 0) ? 0 : 1;
+{
+    _str += c;
 }
 
-String::~String() {
-	decRefCount(_extern._refCount);
-}
+String::~String() 
+{
 
-void String::makeUnique() {
-	ensureCapacity(_size, true);
-}
-
-/**
- * Ensure that enough storage is available to store at least new_size
- * characters plus a null byte. In addition, if we currently share
- * the storage with another string, unshare it, so that we can safely
- * write to the storage.
- */
-void String::ensureCapacity(uint32 new_size, bool keep_old) {
-	bool isShared;
-	uint32 curCapacity, newCapacity;
-	char *newStorage;
-	int *oldRefCount = _extern._refCount;
-
-	if (isStorageIntern()) {
-		isShared = false;
-		curCapacity = _builtinCapacity;
-	} else {
-		isShared = (oldRefCount && *oldRefCount > 1);
-		curCapacity = _extern._capacity;
-	}
-
-	// Special case: If there is enough space, and we do not share
-	// the storage, then there is nothing to do.
-	if (!isShared && new_size < curCapacity)
-		return;
-
-	if (isShared && new_size < _builtinCapacity) {
-		// We share the storage, but there is enough internal storage: Use that.
-		newStorage = _storage;
-		newCapacity = _builtinCapacity;
-	} else {
-		// We need to allocate storage on the heap!
-
-		// Compute a suitable new capacity limit
-		newCapacity = MAX(curCapacity * 2, computeCapacity(new_size+1));
-
-		// Allocate new storage
-		newStorage = new char[newCapacity];
-		assert(newStorage);
-	}
-
-	// Copy old data if needed, elsewise reset the new storage.
-	if (keep_old) {
-		assert(_size < newCapacity);
-		memcpy(newStorage, _str, _size + 1);
-	} else {
-		_size = 0;
-		newStorage[0] = 0;
-	}
-
-	// Release hold on the old storage ...
-	decRefCount(oldRefCount);
-
-	// ... in favor of the new storage
-	_str = newStorage;
-
-	if (!isStorageIntern()) {
-		// Set the ref count & capacity if we use an external storage.
-		// It is important to do this *after* copying any old content,
-		// else we would override data that has not yet been copied!
-		_extern._refCount = 0;
-		_extern._capacity = newCapacity;
-	}
-}
-
-void String::incRefCount() const {
-	assert(!isStorageIntern());
-	if (_extern._refCount == 0) {
-		if (g_refCountPool == 0) {
-			g_refCountPool = new MemoryPool(sizeof(int));
-			assert(g_refCountPool);
-		}
-
-		_extern._refCount = (int *)g_refCountPool->allocChunk();
-		*_extern._refCount = 2;
-	} else {
-		++(*_extern._refCount);
-	}
-}
-
-void String::decRefCount(int *oldRefCount) {
-	if (isStorageIntern())
-		return;
-
-	if (oldRefCount) {
-		--(*oldRefCount);
-	}
-	if (!oldRefCount || *oldRefCount <= 0) {
-		// The ref count reached zero, so we free the string storage
-		// and the ref count storage.
-		if (oldRefCount) {
-			assert(g_refCountPool);
-			g_refCountPool->freeChunk(oldRefCount);
-		}
-		delete[] _str;
-
-		// Even though _str points to a freed memory block now,
-		// we do not change its value, because any code that calls
-		// decRefCount will have to do this afterwards anyway.
-	}
 }
 
 String& String::operator  =(const char *str) {
-	uint32 len = strlen(str);
-	ensureCapacity(len, false);
-	_size = len;
-	memmove(_str, str, len + 1);
+    _str = std::string(str);
 	return *this;
 }
 
 String &String::operator  =(const String &str) {
-	if (&str == this)
-		return *this;
+    if (&str == this)
+        return *this;
 
-	if (str.isStorageIntern()) {
-		decRefCount(_extern._refCount);
-		_size = str._size;
-		_str = _storage;
-		memcpy(_str, str._str, _size + 1);
-	} else {
-		str.incRefCount();
-		decRefCount(_extern._refCount);
+    _str = str._str;
 
-		_extern._refCount = str._extern._refCount;
-		_extern._capacity = str._extern._capacity;
-		_size = str._size;
-		_str = str._str;
-	}
-
-	return *this;
+    return *this;
 }
 
 String& String::operator  =(char c) {
-	decRefCount(_extern._refCount);
-	_str = _storage;
-	_size = 1;
-	_str[0] = c;
-	_str[1] = 0;
+    _str.clear();
+    _str += c;
 	return *this;
 }
 
 String &String::operator +=(const char *str) {
-	if (_str <= str && str <= _str + _size)
-		return operator+=(Common::String(str));
-
-	int len = strlen(str);
-	if (len > 0) {
-		ensureCapacity(_size + len, true);
-
-		memcpy(_str + _size, str, len + 1);
-		_size += len;
-	}
+    _str += std::string(str);
 	return *this;
 }
 
 String &String::operator +=(const String &str) {
 	if (&str == this)
 		return operator+=(Common::String(str));
-
-	int len = str._size;
-	if (len > 0) {
-		ensureCapacity(_size + len, true);
-
-		memcpy(_str + _size, str._str, len + 1);
-		_size += len;
-	}
+    _str += str._str;
 	return *this;
 }
 
 String &String::operator +=(char c) {
-	ensureCapacity(_size + 1, true);
-
-	_str[_size++] = c;
-	_str[_size] = 0;
-
+    _str += c;
 	return *this;
 }
 
@@ -322,9 +137,9 @@ bool String::hasSuffix(const char *x) const {
 	assert(x != 0);
 	// Compare x with the end of _str.
 	const uint32 x_size = strlen(x);
-	if (x_size > _size)
+	if (x_size > _str.size())
 		return false;
-	const char *y = c_str() + _size - x_size;
+    const char *y = c_str() + _str.size() - x_size;
 	while (*x && *x == *y) {
 		++x;
 		++y;
@@ -356,128 +171,43 @@ bool String::matchString(const String &pat, bool ignoreCase, bool pathMode) cons
 }
 
 void String::deleteLastChar() {
-	if (_size > 0)
-		deleteChar(_size - 1);
+	if (_str.size() > 0)
+        deleteChar(_str.size() - 1);
 }
 
 void String::deleteChar(uint32 p) {
-	assert(p < _size);
+    assert(p < _str.size());
 
-	makeUnique();
-	while (p++ < _size)
-		_str[p-1] = _str[p];
-	_size--;
+    _str.pop_back();
 }
 
 void String::clear() {
-	decRefCount(_extern._refCount);
-
-	_size = 0;
-	_str = _storage;
-	_storage[0] = 0;
+    _str.clear();
 }
 
 void String::setChar(char c, uint32 p) {
-	assert(p <= _size);
-
-	makeUnique();
+    assert(p <= _str.size());
 	_str[p] = c;
 }
 
 void String::insertChar(char c, uint32 p) {
-	assert(p <= _size);
+    assert(p <= _str.size());
 
-	ensureCapacity(_size + 1, true);
-	_size++;
-	for (uint32 i = _size; i > p; --i)
+    _str += c;
+	for (auto i = _str.size(); i > p; --i)
 		_str[i] = _str[i-1];
 	_str[p] = c;
 }
 
 void String::toLowercase() {
-	makeUnique();
-	for (uint32 i = 0; i < _size; ++i)
+    for (auto i = 0u; i < _str.size(); ++i)
 		_str[i] = tolower(_str[i]);
 }
 
 void String::toUppercase() {
-	makeUnique();
-	for (uint32 i = 0; i < _size; ++i)
+	for (auto i = 0u; i < _str.size(); ++i)
 		_str[i] = toupper(_str[i]);
 }
-
-void String::trim() {
-	if (_size == 0)
-		return;
-
-	makeUnique();
-
-	// Trim trailing whitespace
-	while (_size >= 1 && isspace(_str[_size-1]))
-		_size--;
-	_str[_size] = 0;
-
-	// Trim leading whitespace
-	char *t = _str;
-	while (isspace(*t))
-		t++;
-
-	if (t != _str) {
-		_size -= t - _str;
-		memmove(_str, t, _size + 1);
-	}
-}
-
-uint String::hash() const {
-	return hashit(c_str());
-}
-
-// static
-String String::printf(const char *fmt, ...) {
-	String output;
-	assert(output.isStorageIntern());
-
-	va_list va;
-	va_start(va, fmt);
-	int len = vsnprintf(output._str, _builtinCapacity, fmt, va);
-	va_end(va);
-
-	if (len == -1) {
-		// MSVC doesn't return the size the full string would take up.
-		// Try increasing the size of the string until it fits.
-
-		// We assume MSVC failed to output the correct, null-terminated string
-		// if the return value is either -1 or size.
-		int size = _builtinCapacity;
-		do {
-			size *= 2;
-			output.ensureCapacity(size-1, false);
-			assert(!output.isStorageIntern());
-			size = output._extern._capacity;
-
-			va_start(va, fmt);
-			len = vsnprintf(output._str, size, fmt, va);
-			va_end(va);
-		} while (len == -1 || len >= size);
-		output._size = len;
-	} else if (len < (int)_builtinCapacity) {
-		// vsnprintf succeeded
-		output._size = len;
-	} else {
-		// vsnprintf didn't have enough space, so grow buffer
-		output.ensureCapacity(len, false);
-		va_start(va, fmt);
-		int len2 = vsnprintf(output._str, len+1, fmt, va);
-		va_end(va);
-		assert(len == len2);
-		output._size = len2;
-	}
-
-	return output;
-}
-
-
-#pragma mark -
 
 bool String::operator ==(const String &x) const {
 	return equals(x);
@@ -513,8 +243,6 @@ bool String::operator >= (const String &x) const {
 	return compareTo(x) >= 0;
 }
 
-#pragma mark -
-
 bool operator == (const char* y, const String &x) {
 	return (x == y);
 }
@@ -522,8 +250,6 @@ bool operator == (const char* y, const String &x) {
 bool operator != (const char* y, const String &x) {
 	return x != y;
 }
-
-#pragma mark -
 
 bool String::equals(const String &x) const {
 	return (0 == compareTo(x));
@@ -560,8 +286,6 @@ int String::compareToIgnoreCase(const char *x) const {
 	assert(x != 0);
 	return scumm_stricmp(c_str(), x);
 }
-
-#pragma mark -
 
 String operator +(const String &x, const String &y) {
 	String temp(x);

@@ -32,224 +32,29 @@
 #include <algorithm>
 #include <sys/stat.h>   // for stat()
 #include <sys/types.h>
-#ifndef _MSC_VER
-#include <unistd.h>	// for unlink()
-#else
 
-// Add a definition for S_IFDIR for MSVC
-#ifndef S_ISDIR
-#ifndef S_IFDIR
-#ifndef _S_IFDIR
-#define S_IFDIR		(-1)
-#else
-#define S_IFDIR		_S_IFDIR
-#endif
-#endif
-#define S_ISDIR(m)	(((m)&S_IFDIR)==S_IFDIR)
-#endif
-
-#endif
 
 namespace Common {
-
-// Filenname implementation
-Filename::Filename() {
-}
-Filename::Filename(const char *path) : _path(path) {
-	// If this is a directory append '/' at the end if needed.
-	if (!_path.empty() && _path[_path.size() - 1] != '/' && _path[_path.size() - 1] != '\\' && isDirectory(_path.c_str()))
-		_path += '/';
-}
-Filename::Filename(std::string path) : _path(path) {
-	// If this is a directory append '/' at the end if needed.
-	if (!_path.empty() && _path[_path.size() - 1] != '/' && _path[_path.size() - 1] != '\\' && isDirectory(_path.c_str()))
-		_path += '/';
-}
-
-Filename::Filename(const Filename& filename) : _path(filename._path) {
-}
-
-Filename& Filename::operator=(const Filename& filename) {
-	_path = filename._path;
-	return *this;
-}
-
-void Filename::setFullPath(const std::string &path) {
-	_path = path;
-	// If this is a directory append '/' at the end if needed.
-	if (!_path.empty() && _path[_path.size() - 1] != '/' && _path[_path.size() - 1] != '\\' && isDirectory(_path.c_str()))
-		_path += '/';
-}
-
-void Filename::setFullName(const std::string &newname) {
-	_path = getPath() + newname;
-}
-
-void Filename::addExtension(const std::string &ext) {
-	_path += ext;
-}
-
-void Filename::setExtension(const std::string &ext) {
-	// FIXME: quick and dirty hack. But then so is this whole class...
-	std::string path = getPath();
-	std::string name = getName();
-	_path = path + name + ext;
-}
-
-bool Filename::equals(const Filename &other) const {
-#ifdef _WIN32
-	// On Windows paths are case-insensitive
-	return scumm_stricmp(_path.c_str(), other._path.c_str()) == 0;
-#else
-	return _path == other._path;
-#endif
-}
-
-bool Filename::empty() const {
-	return _path.empty();
-}
-
-bool Filename::directory() const {
-	return getFullName().size() == 0;
-}
-
-bool Filename::exists() const {
-	// This fails if we don't have permission to read the file
-	// but in most cases, that's the same thing for us.
-	FILE *f = fopen(_path.c_str(), "r");
-	if (!f) {
-		std::string fixedPath = fixPathCase(_path);
-		f = fopen(_path.c_str(), "r");
-	}
-	if (f) {
-		fclose(f);
-		return true;
-	}
-	return false;
-}
-
-bool Filename::hasExtension(std::string ext) const {
-	size_t dot = _path.rfind('.');
-	if (dot == std::string::npos)
-		return false;
-
-	// Check that dot position is less than /, since some
-	// directories contain ., like /home/.data/file
-	size_t slash = _path.rfind('/');
-	if (slash != std::string::npos)
-		if (slash > dot)
-			return false;
-
-	slash = _path.rfind('\\');
-	if (slash != std::string::npos)
-		if (slash > dot)
-			return false;
-
-	// We compare extensions, skip any dots
-	if (_path[dot] == '.')
-		dot++;
-	if (ext[0] == '.')
-		ext = ext.substr(1);
-
-	std::string tmp = _path.substr(dot);
-	// On Windows paths are case-insensitive
-	return scumm_stricmp(tmp.c_str(), ext.c_str()) == 0;
-}
-
-std::string Filename::getFullPath() const {
-	return _path;
-}
-
-std::string Filename::getFullName() const {
-	size_t slash = _path.rfind('/');
-	if (slash == std::string::npos)
-		slash = _path.rfind('\\');
-
-	if (slash == std::string::npos)
-		return _path;
-
-	return _path.substr(slash + 1);
-}
-
-std::string Filename::getName() const {
-	size_t slash = _path.rfind('/');
-	size_t dot = _path.rfind('.');
-	if (slash == std::string::npos)
-		slash = _path.rfind('\\');
-
-	if (dot == std::string::npos)
-		dot = _path.size();
-
-	if (slash == std::string::npos)
-		return _path.substr(0, dot);
-
-	if (dot < slash)
-		dot = _path.size();
-
-	return _path.substr(slash + 1, dot - slash - 1);
-}
-
-std::string Filename::getExtension() const {
-	size_t slash = _path.rfind('/');
-	size_t dot = _path.rfind('.');
-	if (slash == std::string::npos)
-		slash = _path.rfind('\\');
-
-	if (slash == std::string::npos)
-		slash = 0;
-
-	if (dot == std::string::npos)
-		return "";
-
-	if (dot < slash)
-		return "";
-
-	return _path.substr(dot + 1);
-}
-
-std::string Filename::getPath() const {
-	size_t slash = _path.rfind('/');
-	if (slash == std::string::npos)
-		slash = _path.rfind('\\');
-
-	if (slash == std::string::npos)
-		return "";
-
-	return _path.substr(0, slash + 1);
-}
 
 // File interface
 // While this does massive duplication of the code above, it's required to make sure that
 // unconverted tools are backwards-compatible
-
 File::File() {
 	_file = NULL;
 	_mode = FILEMODE_READ;
-	_xormode = 0;
-}
-
-File::File(const Filename &filepath, const char *mode) {
-	_file = NULL;
-	_mode = FILEMODE_READ;
-	_xormode = 0;
-
-	open(filepath, mode);
 }
 
 File::~File() {
 	close();
 }
 
-void File::open(const Filename &filepath, const char *mode) {
+void File::open(const std::string& filepath, const char *mode) {
 
 	// Clean up previously opened file
 	close();
 
-	_file = fopen(filepath.getFullPath().c_str(), mode);
-	if (!_file) {
-		std::string fixedPath = fixPathCase(filepath.getFullPath());
-		_file = fopen(fixedPath.c_str(), mode);
-	}
+	_file = fopen(filepath.c_str(), mode);
+    _name = filepath;
 
 	FileMode m = FILEMODE_READ;
 	do {
@@ -263,11 +68,8 @@ void File::open(const Filename &filepath, const char *mode) {
 	} while (*++mode);
 	_mode = m;
 
-	_name = filepath;
-	_xormode = 0;
-
 	if (!_file)
-		throw FileException("Could not open file " + filepath.getFullPath());
+        throw FileException("Could not open file " + filepath);
 }
 
 void File::close() {
@@ -276,20 +78,16 @@ void File::close() {
 	_file = NULL;
 }
 
-void File::setXorMode(uint8 xormode) {
-	_xormode = xormode;
-}
 
 int File::readChar() {
 	if (!_file)
 		throw FileException("File is not open");
 	if ((_mode & FILEMODE_READ) == 0)
-		throw FileException("Tried to read from file opened in write mode (" + _name.getFullPath() + ")");
+		throw FileException("Tried to read from file opened in write mode (" + _name + ")");
 
 	int u8 = fgetc(_file);
 	if (u8 == EOF)
-		throw FileException("Read beyond the end of file (" + _name.getFullPath() + ")");
-	u8 ^= _xormode;
+		throw FileException("Read beyond the end of file (" + _name + ")");
 	return u8;
 }
 
@@ -365,14 +163,14 @@ int32 File::readSint32LE() {
 void File::read_throwsOnError(void *dataPtr, size_t dataSize) {
 	size_t data_read = read_noThrow(dataPtr, dataSize);
 	if (data_read != dataSize)
-		throw FileException("Read beyond the end of file (" + _name.getFullPath() + ")");
+		throw FileException("Read beyond the end of file (" + _name + ")");
 }
 
 size_t File::read_noThrow(void *dataPtr, size_t dataSize) {
 	if (!_file)
 		throw FileException("File is not open");
 	if ((_mode & FILEMODE_READ) == 0)
-		throw FileException("Tried to read from file opened in write mode (" + _name.getFullPath() + ")");
+		throw FileException("Tried to read from file opened in write mode (" + _name + ")");
 
 	return fread(dataPtr, 1, dataSize, _file);
 }
@@ -381,7 +179,7 @@ std::string File::readString() {
 	if (!_file)
 		throw FileException("File is not open");
 	if ((_mode & FILEMODE_READ) == 0)
-		throw FileException("Tried to read from file opened in write mode (" + _name.getFullPath() + ")");
+		throw FileException("Tried to read from file opened in write mode (" + _name + ")");
 
 	std::string s;
 	try {
@@ -400,7 +198,7 @@ std::string File::readString(size_t len) {
 	if (!_file)
 		throw FileException("File is not open");
 	if ((_mode & FILEMODE_READ) == 0)
-		throw FileException("Tried to read from file opened in write mode (" + _name.getFullPath() + ")");
+		throw FileException("Tried to read from file opened in write mode (" + _name + ")");
 
 	std::string s('\0', len);
 	std::string::iterator is = s.begin();
@@ -417,7 +215,7 @@ void File::scanString(char *result) {
 	if (!_file)
 		throw FileException("File is not open");
 	if ((_mode & FILEMODE_READ) == 0)
-		throw FileException("Tried to write to file opened in read mode (" + _name.getFullPath() + ")");
+		throw FileException("Tried to write to file opened in read mode (" + _name + ")");
 
 	fscanf(_file, "%s", result);
 }
@@ -426,12 +224,10 @@ void File::writeChar(char i) {
 	if (!_file)
 		throw FileException("File is not open");
 	if ((_mode & FILEMODE_WRITE) == 0)
-		throw FileException("Tried to write to a file opened in read mode (" + _name.getFullPath() + ")");
-
-	i ^= _xormode;
+		throw FileException("Tried to write to a file opened in read mode (" + _name + ")");
 
 	if (fwrite(&i, 1, 1, _file) != 1)
-		throw FileException("Could not write to file (" + _name.getFullPath() + ")");
+		throw FileException("Could not write to file (" + _name + ")");
 }
 
 void File::writeByte(uint8 b) {
@@ -466,29 +262,13 @@ size_t File::write(const void *dataPtr, size_t dataSize) {
 	if (!_file)
 		throw FileException("File is not open");
 	if ((_mode & FILEMODE_WRITE) == 0)
-		throw FileException("Tried to write to file opened in read mode (" + _name.getFullPath() + ")");
-
-	assert(_xormode == 0);	// FIXME: This method does not work in XOR mode (and probably shouldn't)
+		throw FileException("Tried to write to file opened in read mode (" + _name + ")");
 
 	size_t data_read = fwrite(dataPtr, 1, dataSize, _file);
 	if (data_read != dataSize)
-		throw FileException("Could not write to file (" + _name.getFullPath() + ")");
+		throw FileException("Could not write to file (" + _name + ")");
 
 	return data_read;
-}
-
-void File::print(const char *format, ...) {
-	if (!_file)
-		throw FileException("File is not open");
-	if ((_mode & FILEMODE_WRITE) == 0)
-		throw FileException("Tried to write to file opened in read mode (" + _name.getFullPath() + ")");
-
-
-	va_list va;
-
-	va_start(va, format);
-	vfprintf(_file, format, va);
-	va_end(va);
 }
 
 void File::seek(long offset, int origin) {
@@ -496,7 +276,7 @@ void File::seek(long offset, int origin) {
 		throw FileException("File is not open");
 
 	if (fseek(_file, offset, origin) != 0)
-		throw FileException("Could not seek in file (" + _name.getFullPath() + ")");
+		throw FileException("Could not seek in file (" + _name + ")");
 }
 
 void File::rewind() {
@@ -528,75 +308,6 @@ uint32 File::size() const {
 	return sz;
 }
 
-int removeFile(const char *path) {
-	return unlink(path);
-}
-
-bool isDirectory(const char *path) {
-	struct stat st;
-	if (stat(path, &st) == 0) {
-		return S_ISDIR(st.st_mode);
-	}
-	// Try to fix the case
-	std::string fixedPath = fixPathCase(path);
-	return stat(fixedPath.c_str(), &st) == 0 && S_ISDIR(st.st_mode);
-}
-	
-std::string fixPathCase(const std::string& originalPath) {
-	std::string result = originalPath;
-	std::deque<std::string> parts;
-	struct stat st;
-
-	// Remove the last part of the path until we get to a path that exists
-	while (stat(result.c_str(), &st) != 0) {
-		size_t slash = result.rfind('/', result.size() - 2);
-		if (slash == std::string::npos)
-			slash = result.rfind('\\', result.size() - 2);
-		if (slash == std::string::npos) {
-			parts.push_back(result);
-			result.clear();
-			break;
-		} else {
-			parts.push_back(result.substr(slash + 1));
-			result.erase(slash + 1);
-			if (slash == 0)
-				break;
-		}
-	}
-
-	// Reconstruct the path by changing the case
-	while (!parts.empty()) {
-		std::string directory = parts.back();
-		// Try first original case, then all lower case and finally all upper case
-		std::string path = result + directory;
-		if (stat(path.c_str(), &st) == 0) {
-			result = path;
-		} else {
-			std::transform(directory.begin(), directory.end(), directory.begin(), ::tolower);
-			path = result + directory;
-			if (stat(path.c_str(), &st) == 0) {
-				result = path;
-			} else {
-				std::transform(directory.begin(), directory.end(), directory.begin(), ::toupper);
-				path = result + directory;
-				if (stat(path.c_str(), &st) == 0) {
-					result = path;
-				} else {
-					// Does not exists whatever the case used.
-					// Add back all the remaining parts and return.
-					while (!parts.empty()) {
-						result += parts.back();
-						parts.pop_back();
-					}
-					return result;
-				}
-			}
-		}
-		parts.pop_back();
-	}
-
-	return result;
-}
 
 } // End of namespace Common
 

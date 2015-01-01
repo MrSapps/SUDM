@@ -27,7 +27,7 @@
 
 #include "instruction.h"
 #include "common/file.h"
-#include "unknown_opcode.h"
+#include "unknown_opcode_exception.h"
 #include "objectFactory.h"
 
 /**
@@ -60,7 +60,7 @@ public:
 	 * @param insts Reference to the vector in which disassembled instructions should be placed.
 	 */
 	Disassembler(InstVec &insts);
-	virtual ~Disassembler() {}
+    virtual ~Disassembler() = default;
 
 	/**
 	 * Open a file for disassembly.

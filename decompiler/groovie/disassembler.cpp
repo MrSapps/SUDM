@@ -106,7 +106,7 @@ InstPtr GroovieDisassembler::readInstruction() {
 
 InstPtr GroovieDisassembler::createInstruction(byte opcode) {
 	// Extract the first bit
-	_firstBit = opcode & 0x80;
+	_firstBit = (opcode & 0x80) == 0x80;
 	opcode &= 0x7F;
 
 	// Verify it's a valid opcode
@@ -223,7 +223,7 @@ ValuePtr GroovieDisassembler::readParameterIndexed(bool allow7C, bool limitVal, 
 	_address++;
 
 	if (limitVal) {
-		_firstBit = data & 0x80;
+		_firstBit = (data & 0x80) == 0x80;
 		data &= 0x7F;
 	}
 
@@ -246,7 +246,7 @@ ValuePtr GroovieDisassembler::readParameterIndexed(bool allow7C, bool limitVal, 
 		data = _f.readByte();
 		_address++;
 		if (limitVar) {
-			_firstBit = data & 0x80;
+			_firstBit = (data & 0x80) == 0x80;
 			data &= 0x7F;
 		}
 

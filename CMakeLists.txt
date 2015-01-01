@@ -18,6 +18,10 @@ if (MSVC)
 	# Build cpp files on all cores
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 	
+	# can't use the "secure" versions as they're Windows specific
+	add_definitions("/D\"_CRT_SECURE_NO_WARNINGS\"")
+	add_definitions("/D\"_SCL_SECURE_NO_WARNINGS\"")
+
 	add_definitions("/wd4290")
 else()
 	# Enable C++11, you may need to use -std=c++0x if using an older gcc compiler
@@ -60,8 +64,8 @@ decompiler/refcounted.h
 decompiler/simple_disassembler.cpp
 decompiler/simple_disassembler.h
 decompiler/stack.h
-decompiler/unknown_opcode.cpp
-decompiler/unknown_opcode.h
+decompiler/unknown_opcode_exception.cpp
+decompiler/unknown_opcode_exception.h
 decompiler/value.cpp
 decompiler/value.h
 decompiler/wrongtype.h
@@ -95,25 +99,14 @@ decompiler/ff7_world/engine.h
 decompiler/ff7_world/codegen.cpp
 decompiler/ff7_world/codegen.h
 common/algorithm.h
-common/array.h
 common/endianness.h
 common/file.cpp
 common/file.h
 common/func.h
-common/hashmap.cpp
-common/hashmap.h
-common/hash-str.h
-common/md5.cpp
-common/md5.h
-common/memorypool.cpp
-common/memorypool.h
 common/noncopyable.h
-common/pack-end.h
-common/pack-start.h
 common/scummsys.h
 common/str.cpp
 common/str.h
-common/util.cpp
 common/util.h
 )
 

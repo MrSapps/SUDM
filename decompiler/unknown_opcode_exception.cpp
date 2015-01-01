@@ -19,7 +19,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "unknown_opcode.h"
+#include "unknown_opcode_exception.h"
 
 UnknownOpcodeException::UnknownOpcodeException(uint32 address, uint32 opcode) {
 	_address = address;

@@ -44,112 +44,6 @@ public:
 	FileException(std::string error, int retcode = -1) : ToolException(error, retcode) {}
 };
 
-/**
- * A file path, can be queried for different parts
- * and the parts can be modified separately.
- */
-class Filename {
-public:
-	std::string _path;
-
-	Filename();
-	Filename(std::string path);
-	Filename(const char *path);
-	Filename(const Filename &path);
-	Filename& operator=(const Filename &fn);
-
-	inline bool operator==(const Filename &fn){
-		return equals(fn);
-	}
-
-	/**
-	 * Change the entire path including directory, volume and actual filname.
-	 *
-	 * @param path The new path.
-	 */
-	void setFullPath(const std::string &path);
-
-	/**
-	 * Sets the name of the file referred to, does not change the directory referred to.
-	 *
-	 * @param name New filename.
-	 */
-	void setFullName(const std::string &name);
-
-	/**
-	 * Adds an extension to the filename (does not replace any current extension).
-	 *
-	 * @param ext Extension to add.
-	 */
-	void addExtension(const std::string &ext);
-
-	/**
-	 * Sets the extension of the filename, replacing any current one, or adding one if there isn't any.
-	 *
-	 * @param ext The new extension of the filename.
-	 */
-	void setExtension(const std::string &ext);
-
-	/**
-	 * Returns true if the file has that extension.
-	 *
-	 * @param ext Extension to check for, only last extension is checked.
-	 * @return True if the filename has that extension.
-	 */
-	bool hasExtension(std::string ext) const;
-
-	/**
-	 * Has the filename been set to anything.
-	 */
-	bool empty() const;
-
-	/**
-	 * Returns true if the file exists, does NOT work for directories.
-	 */
-	bool exists() const;
-
-	/**
-	 * Returns true if the file is a directory, which is if the path ends with '/'.
-	 *
-	 * @return true if the path looks like a directory.
-	 */
-	bool directory() const;
-
-	/**
-	 * True if the filenames are different (relative and absolute paths will NOT compare equally).
-	 *
-	 * @param other The filename to compare to.
-	 * @return True if they are equal.
-	 */
-	bool equals(const Filename &other) const;
-
-
-	/**
-	 * Returns the entire path.
-	 */
-	std::string getFullPath() const;
-
-	/**
-	 * Returns the filename (ie. strips all directories from the path).
-	 */
-	std::string getFullName() const;
-
-	/**
-	 * Returns the name of the file, excluding extension and directories.
-	 * Note that in the case of multiple extensions, only the last extension is stripped.
-	 */
-	std::string getName() const;
-
-	/**
-	 * Get the extension of the filename, only the last extension in case of many.
-	 */
-	std::string getExtension() const;
-
-	/**
-	 * Returns the path of the filename, the name and extension of the file is stripped.
-	 */
-	std::string getPath() const;
-};
 
 /**
  * Possible modes for opening files
@@ -168,15 +62,6 @@ enum FileMode {
 class File : public NonCopyable {
 public:
 	/**
-	 * Opens the given file path as an in/out stream, depending on the
-	 * second argument.
-	 *
-	 * @param filename	file to open
-	 * @param mode		mode to open the file in
-	 */
-	File(const Filename &filename, const char *mode);
-
-	/**
 	 * Create an empty file, used for two-step construction.
 	 */
 	File();
@@ -189,7 +74,7 @@ public:
 	 * @param filename	file to open
 	 * @param mode		mode to open the file in
 	 */
-	void open(const Filename &filename, const char *mode);
+	void open(const std::string& filename, const char *mode);
 
 	/**
 	 * Closes the file, if it's open.
@@ -200,15 +85,6 @@ public:
 	 * Check whether the file is open.
 	 */
 	bool isOpen() const { return _file != 0; }
-
-	/**
-	 * Sets the xor mode of the file, bytes written / read to the file
-	 * will be XORed with this value. This value is *not* reset when
-	 * opening a new file.
-	 * Only works for write* and read* operation, not for the array
-	 * "read" and "write" methods
-	 */
-	void setXorMode(uint8 xormode);
 
 	/**
 	 * Reads a single character (equivalent of fgetc).
@@ -343,11 +219,6 @@ public:
 	size_t write(const void *dataPtr, size_t dataSize);
 
 	/**
-	 * Works the same as fprintf.
-	 */
-	void print(const char *format, ...);
-
-	/**
 	 * Seek to the specified position in the stream.
 	 *
 	 * @param offset how many bytes to jump
@@ -382,41 +253,17 @@ public:
 	 */
 	uint32 size() const;
 
-	// FIXME: Remove this method eventually
-	FILE *getFileHandle() { return _file; }
 
 protected:
 	/** The mode the file was opened in. */
 	FileMode _mode;
 	/** Internal reference to the file. */
 	FILE *_file;
-	/** The name of the file, used for better error messages. */
-	Filename _name;
-	/** xor with this value while reading/writing (default 0), does not work for "read"/"write", only for byte operations. */
-	uint8 _xormode;
+
+    std::string _name;
 };
 
 
-/**
- * Remove the specified file.
- * Currently this simply call unlink() internally,
- * but by using this wrapper we have an easier time
- * staying compatible with Windows.
- */
-int removeFile(const char *path);
-
-/**
- * Test if the specified path is a directory.
- * This is just a wrapper around stat/S_ISDIR.
- */
-bool isDirectory(const char *path);
-
-/**
- * Transform the given path into an existing path if possible
- * by changing the case of each path element to either the
- * original case, all lower case or all upper case.
- */
-std::string fixPathCase(const std::string& originalPath);
 
 } // End of namespace Common
 

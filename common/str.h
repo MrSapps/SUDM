@@ -28,7 +28,7 @@
 #define COMMON_STRING_H
 
 #include "common/scummsys.h"
-#include "common/array.h"
+#include <string>
 
 namespace Common {
 
@@ -37,63 +37,18 @@ namespace Common {
  * and overloads several operators in a 'natural' fashion, mimicking
  * the std::string class. Even provides simple iterators.
  *
- * This class tries to avoid allocating lots of small blocks on the heap,
- * since that is inefficient on several platforms supported by ScummVM.
- * Instead, small strings are stored 'inside' the string object (i.e. on
- * the stack, for stack allocated objects), and only for strings exceeding
- * a certain length do we allocate a buffer on the heap.
  */
 class String {
 protected:
 	/**
-	 * The size of the internal storage. Increasing this means less heap
-	 * allocations are needed, at the cost of more stack memory usage,
-	 * and of course lots of wasted memory. Empirically, 90% or more of
-	 * all String instances are less than 32 chars long. If a platform
-	 * is very short on stack space, it would be possible to lower this.
-	 * A value of 24 still seems acceptable, though considerably worse,
-	 * while 16 seems to be the lowest you want to go... Anything lower
-	 * than 8 makes no sense, since that's the size of member _extern
-	 * (on 32 bit machines; 12 bytes on systems with 64bit pointers).
-	 */
-	static const uint32 _builtinCapacity = 32 - sizeof(uint32) - sizeof(char*);
-
-	/**
-	 * Length of the string. Stored to avoid having to call strlen
-	 * a lot. Yes, we limit ourselves to strings shorter than 4GB --
-	 * on purpose :-).
-	 */
-	uint32		_size;
-
-	/**
 	 * Pointer to the actual string storage. Either points to _storage,
 	 * or to a block allocated on the heap via malloc.
 	 */
-	char		*_str;
-
-
-	union {
-		/**
-		 * Internal string storage.
-		 */
-		char _storage[_builtinCapacity];
-		/**
-		 * External string storage data -- the refcounter, and the
-		 * capacity of the string _str points to.
-		 */
-		struct {
-			mutable int *_refCount;
-			uint32		_capacity;
-		} _extern;
-	};
-
-	inline bool isStorageIntern() const {
-		return _str == _storage;
-	}
+	std::string		_str;
 
 public:
 	/** Construct a new empty string. */
-	String() : _size(0), _str(_storage) { _storage[0] = 0; }
+    String() = default;
 
 	/** Construct a new string from the given NULL-terminated C string. */
 	String(const char *str);
@@ -175,14 +130,14 @@ public:
 	bool matchString(const String &pat, bool ignoreCase = false, bool pathMode = false) const;
 
 
-	inline const char *c_str() const		{ return _str; }
-	inline uint size() const				{ return _size; }
+	inline const char *c_str() const		{ return _str.c_str(); }
+	inline uint size() const				{ return uint(_str.size()); }
 
-	inline bool empty() const	{ return (_size == 0); }
-	char lastChar() const	{ return (_size > 0) ? _str[_size-1] : 0; }
+	inline bool empty() const	{ return (_str.empty() == 0); }
+	char lastChar() const	{ return (_str.size() > 0) ? _str[_str.size()-1] : 0; }
 
 	char operator[](int idx) const {
-		assert(_str && idx >= 0 && idx < (int)_size);
+		assert(idx >= 0 && idx < (int)_str.size());
 		return _str[idx];
 	}
 
@@ -207,25 +162,12 @@ public:
 	/** Convert all characters in the string to uppercase. */
 	void toUppercase();
 
-	/**
-	 * Removes trailing and leading whitespaces. Uses isspace() to decide
-	 * what is whitespace and what not.
-	 */
-	void trim();
-
-	uint hash() const;
-
-	/**
-	 * Printf-like function. Returns a formatted String.
-	 */
-	static Common::String printf(const char *fmt, ...) GCC_PRINTF(1,2);
-
 public:
 	typedef char *        iterator;
 	typedef const char *  const_iterator;
 
 	iterator		begin() {
-		return _str;
+		return &_str[0];
 	}
 
 	iterator		end() {
@@ -233,7 +175,7 @@ public:
 	}
 
 	const_iterator	begin() const {
-		return _str;
+		return &_str[0];
 	}
 
 	const_iterator	end() const {
@@ -241,10 +183,6 @@ public:
 	}
 
 protected:
-	void makeUnique();
-	void ensureCapacity(uint32 new_size, bool keep_old);
-	void incRefCount() const;
-	void decRefCount(int *oldRefCount);
 	void initWithCStr(const char *str, uint32 len);
 };
 
@@ -319,9 +257,6 @@ Common::String normalizePath(const Common::String &path, const char sep);
  * @return true if str matches the pattern, false otherwise.
  */
 bool matchString(const char *str, const char *pat, bool ignoreCase = false, bool pathMode = false);
-
-
-typedef Array<String> StringList;
 
 }	// End of namespace Common
 

@@ -75,7 +75,7 @@ TEST(FF7Field, DisAsm)
     ASSERT_TRUE(output.empty() == false);
 }
 
-TEST(FF7World, DisAsm)
+TEST(FF7World, DISABLED_DisAsm)
 {
     for (int i = 0; i < 256; i++)
     {
@@ -83,13 +83,18 @@ TEST(FF7World, DisAsm)
 
 
         InstVec insts;
+        std::cout << std::endl;
+
+        std::cout << std::endl;
+
+        std::cout << "SCRIPT(" << i << ")" << std::endl;
+
 
         auto d = engine.getDisassembler(insts);
         d->open("decompiler/ff7_world/wm0.ev");
         d->disassemble();
-        //d->dumpDisassembly(std::cout);
+        d->dumpDisassembly(std::cout);
         std::cout << std::endl;
-
 
 
         ControlFlow *c = new ControlFlow(insts, &engine);
