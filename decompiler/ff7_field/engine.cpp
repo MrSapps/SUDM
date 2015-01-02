@@ -187,6 +187,12 @@ bool FF7::FF7UncondJumpInstruction::isUncondJump() const
 
 uint32 FF7::FF7UncondJumpInstruction::getDestAddress() const
 {
+    if (_opcode == 0x10)
+    {
+        // Forward jump
+        return _address + _params[0]->getUnsigned()+1;
+    }
+    // Backwards jump
 	return _address - _params[0]->getUnsigned();
 }
 

@@ -109,7 +109,7 @@ public:
 		switch (opcode) {
 #define END_SUBOPCODE \
 		default: \
-			throw UnknownOpcodeException(this->_address, opcode);\
+			throw UnknownSubOpcodeException(this->_address, opcode);\
 		} \
 		INC_ADDR; \
 		OPCODE_END;

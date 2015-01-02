@@ -19,7 +19,7 @@ TEST(FF7Field, DisAsm)
 
     InstVec insts;
     FF7::FF7Disassembler d(&engine, insts);
-    d.open("decompiler/test/ff7.dat");
+    d.open("decompiler/test/md1_2.dat");
     d.disassemble();
 
     d.dumpDisassembly(std::cout);
@@ -75,7 +75,7 @@ TEST(FF7Field, DisAsm)
     ASSERT_TRUE(output.empty() == false);
 }
 
-TEST(FF7World, DisAsm)
+TEST(FF7World, DISABLED_DisAsm)
 {
     for (int i = 0; i < 256; i++)
     {

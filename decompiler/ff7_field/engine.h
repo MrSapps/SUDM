@@ -18,7 +18,7 @@ namespace FF7
         void postCFG(InstVec &insts, Graph g);
         bool detectMoreFuncs() const;
         void getVariants(std::vector<std::string> &variants) const;
-        virtual bool usePureGrouping() const { return true; }
+        virtual bool usePureGrouping() const { return false; }
         std::vector<std::string> _textStrings; ///< Container for strings from the TEXT chunk.
     };
 

@@ -47,6 +47,22 @@ public:
 	 * Description of the exception.
 	 */
     virtual const char *what() const throw() override;
+
+private:
+    virtual const char* Type() const { return "Opcode"; }
+};
+
+class UnknownSubOpcodeException : public UnknownOpcodeException
+{
+public:
+    UnknownSubOpcodeException(uint32 address, uint32 opcode)
+        : UnknownOpcodeException(address, opcode)
+    {
+
+    }
+private:
+    virtual const char* Type() const override { return "SubOpcode"; }
+
 };
 
 #endif
