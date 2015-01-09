@@ -26,7 +26,6 @@
 #include <iostream>
 #include <set>
 #include <boost/format.hpp>
-#include <memory>
 
 #define GET(vertex) (boost::get(boost::vertex_name, _g, vertex))
 #define GET_EDGE(edge) (boost::get(boost::edge_attribute, _g, edge))

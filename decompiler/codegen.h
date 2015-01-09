@@ -26,6 +26,7 @@
 #include <utility>
 
 #include <boost/intrusive_ptr.hpp>
+#include <memory>
 
 #ifndef DEC_CODEGEN_H
 #define DEC_CODEGEN_H
