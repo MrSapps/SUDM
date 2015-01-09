@@ -44,7 +44,7 @@ public:
 
     unsigned int Position()
     {
-        return unsigned int(mStream.tellg());
+        return static_cast<unsigned int>(mStream.tellg());
     }
 
     unsigned int ReadU32()
