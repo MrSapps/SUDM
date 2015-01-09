@@ -43,7 +43,7 @@ std::string CodeGenerator::indentString(std::string s) {
 CodeGenerator::CodeGenerator(Engine *engine, std::ostream &output, ArgOrder binOrder, ArgOrder callOrder) : _output(output), _binOrder(binOrder), _callOrder(callOrder) {
 	_engine = engine;
 	_indentLevel = 0;
-    mTargetLang = std::make_unique<CTargetLanguage>();
+    mTargetLang.reset(new CTargetLanguage);
 }
 
 typedef std::pair<GraphVertex, ValueStack> DFSEntry;

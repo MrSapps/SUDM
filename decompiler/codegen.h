@@ -1,3 +1,5 @@
+#pragma once
+
 /* ScummVM Tools
  *
  * ScummVM Tools is the legal property of its developers, whose
@@ -28,8 +30,6 @@
 #include <boost/intrusive_ptr.hpp>
 #include <memory>
 
-#ifndef DEC_CODEGEN_H
-#define DEC_CODEGEN_H
 
 class Engine;
 
@@ -218,5 +218,3 @@ public:
 	virtual void processSpecialMetadata(const InstPtr inst, char c, int pos);
 
 };
-
-#endif
