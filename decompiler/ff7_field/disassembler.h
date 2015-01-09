@@ -4,6 +4,7 @@
 #include <array>
 
 class BinaryReader;
+class Function;
 
 namespace FF7 
 {
@@ -16,6 +17,11 @@ namespace FF7
         virtual void open(const char *filename) override;
 	    virtual void doDisassemble() throw(std::exception) override;
     private:
+        void ReadOpCodes(size_t endPos);
+        std::unique_ptr<Function> StartFunction(size_t entityNumber, size_t scriptIndex);
+
+        FF7Engine* mEngine;
+
         uint32 mHeaderEndPos = 0;
         void ReadHeader(BinaryReader& reader)
         {
@@ -56,8 +62,7 @@ namespace FF7
 
             // Entity script entry points, or more explicitly, subroutine offsets
             std::vector<std::array<uint16, 32>> mEntityScripts; // Count is mNumberOfEntities
-            uint16 mDialogCount;
-
+          
             void Read(BinaryReader& r)
             {
                 mMagic = r.ReadU16();

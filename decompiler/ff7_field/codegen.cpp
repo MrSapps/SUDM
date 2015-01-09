@@ -3,7 +3,7 @@
 
 std::string FF7::FF7CodeGenerator::constructFuncSignature(const Function &func)
 {
-    return "";
+    return "void " + func._name + "() { ";
 }
 
 const InstPtr FF7::FF7CodeGenerator::findFirstCall()

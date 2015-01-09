@@ -219,6 +219,7 @@ void FF7::FF7KernelCallInstruction::processInst(ValueStack &stack, Engine *engin
         break;
 
     case 0x24:
+        //codeGen->writeKernelCall("Wait", _params[0]->getUnsigned());
         strName = "Wait(" + std::to_string(_params[0]->getUnsigned()) + ");";
         break;
 

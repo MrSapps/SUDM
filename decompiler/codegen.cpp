@@ -43,6 +43,7 @@ std::string CodeGenerator::indentString(std::string s) {
 CodeGenerator::CodeGenerator(Engine *engine, std::ostream &output, ArgOrder binOrder, ArgOrder callOrder) : _output(output), _binOrder(binOrder), _callOrder(callOrder) {
 	_engine = engine;
 	_indentLevel = 0;
+    mTargetLang = std::make_unique<CTargetLanguage>();
 }
 
 typedef std::pair<GraphVertex, ValueStack> DFSEntry;
@@ -143,7 +144,7 @@ void CodeGenerator::process(GraphVertex v) {
 
 		switch (inGroup->_type) {
 		case kDoWhileCondGroupType:
-			addOutputLine("do {", false, true);
+            addOutputLine(mTargetLang->DoLoopHeader(), false, true);
 			break;
 		case kIfCondGroupType:
 			if (!_curGroup->_startElse)
@@ -174,10 +175,10 @@ void CodeGenerator::processUncondJumpInst(const InstPtr inst)
     switch (_curGroup->_type)
     {
     case kBreakGroupType:
-        addOutputLine("break;");
+        addOutputLine(mTargetLang->LoopBreak());
         break;
     case kContinueGroupType:
-        addOutputLine("continue;");
+        addOutputLine(mTargetLang->LoopContinue());
         break;
     default: // Might be a goto
     {
@@ -219,15 +220,13 @@ void CodeGenerator::processUncondJumpInst(const InstPtr inst)
                     if (_curGroup->_type == kDoWhileCondGroupType)
                     {
                         printJump = false;
-                        addOutputLine("} while(true);", true, false);
+                        addOutputLine(mTargetLang->DoLoopFooter(true) + "true" + mTargetLang->DoLoopFooter(false), true, false);
                     }
                 }
             }
             if (printJump) 
             {
-                std::stringstream s;
-                s << boost::format("goto 0x%X;") % inst->getDestAddress();
-                addOutputLine(s.str());
+                addOutputLine(mTargetLang->Goto(inst->getDestAddress()));
             }
         }
         break;

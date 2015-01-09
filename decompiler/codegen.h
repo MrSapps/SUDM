@@ -44,6 +44,72 @@ enum ArgOrder {
 	kLIFOArgOrder  ///< First argument is pushed to stack last.
 };
 
+class ITargetLanaguge
+{
+public:
+    virtual ~ITargetLanaguge() = default;
+    virtual std::string LoopBreak() = 0;
+    virtual std::string LoopContinue() = 0;
+    virtual std::string Goto(uint32 target) = 0;
+    virtual std::string DoLoopHeader() = 0;
+    virtual std::string DoLoopFooter(bool beforeExpr) = 0;
+    virtual std::string If(bool beforeExpr) = 0;
+    virtual std::string WhileHeader(bool beforeExpr) = 0;
+};
+
+class CTargetLanguage : public ITargetLanaguge
+{
+public:
+    virtual std::string LoopBreak() override
+    {
+        return "break;";
+    }
+
+    virtual std::string LoopContinue() override
+    {
+        return "continue";
+    }
+
+    virtual std::string Goto(uint32 target) override
+    {
+        std::stringstream s;
+        s << boost::format("goto label_0x%X;") % target;
+        return s.str();
+    }
+
+    virtual std::string DoLoopHeader() override
+    {
+        return "do {";
+    }
+
+    virtual std::string DoLoopFooter(bool beforeExpr) override
+    {
+        if (beforeExpr)
+        {
+            return " } while (";
+        }
+        return ");";
+    }
+
+    virtual std::string If(bool beforeExpr) override
+    {
+        if (beforeExpr)
+        {
+            return "if (";
+        }
+        return ") {";
+    }
+
+    virtual std::string WhileHeader(bool beforeExpr) override
+    {
+        if (beforeExpr)
+        {
+            return "while (";
+        }
+        return ") {";
+    }
+};
+
 /**
  * Base class for code generators.
  */
@@ -64,6 +130,7 @@ protected:
 	ValueStack _stack;      ///< The stack currently being processed.
 	uint _indentLevel;      ///< Indentation level.
 	GraphVertex _curVertex; ///< Graph vertex currently being processed.
+    std::unique_ptr<ITargetLanaguge> mTargetLang;
 
 	/**
 	 * Processes an instruction. Called by process() for each instruction.
