@@ -36,11 +36,6 @@
 
 namespace Common {
 
-static uint32 computeCapacity(uint32 len) {
-	// By default, for the capacity we use the next multiple of 32
-	return ((len + 32 - 1) & ~0x1F);
-}
-
 String::String(const char *str)  {
 	initWithCStr(str, strlen(str));
 }
@@ -178,7 +173,7 @@ void String::deleteLastChar() {
 void String::deleteChar(uint32 p) {
     assert(p < _str.size());
 
-    _str.pop_back();
+    _str.erase(_str.end() - 1);
 }
 
 void String::clear() {
