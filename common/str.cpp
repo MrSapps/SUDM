@@ -165,17 +165,6 @@ bool String::matchString(const String &pat, bool ignoreCase, bool pathMode) cons
 	return Common::matchString(c_str(), pat.c_str(), ignoreCase, pathMode);
 }
 
-void String::deleteLastChar() {
-	if (_str.size() > 0)
-        deleteChar(_str.size() - 1);
-}
-
-void String::deleteChar(uint32 p) {
-    assert(p < _str.size());
-
-    _str.erase(_str.end() - 1);
-}
-
 void String::clear() {
     _str.clear();
 }

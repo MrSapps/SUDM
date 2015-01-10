@@ -68,7 +68,7 @@ public:
 
     virtual std::string LoopContinue() override
     {
-        return "continue";
+        return "continue;";
     }
 
     virtual std::string Goto(uint32 target) override
