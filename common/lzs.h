@@ -9,7 +9,7 @@ namespace Lzs
             abort();
         }
 
-        const unsigned int inputBufferSize = unsigned int(compressed.size());
+        const unsigned int inputBufferSize = static_cast<unsigned int>(compressed.size());
         const unsigned int input_length =
             (((compressed[0] & 0xFF) << 0) |
             ((compressed[1] & 0xFF) << 8) |
