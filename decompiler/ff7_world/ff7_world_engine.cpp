@@ -1,6 +1,6 @@
-#include "engine.h"
-#include "disassembler.h"
-#include "codegen.h" 
+#include "ff7_world_engine.h"
+#include "ff7_world_disassembler.h"
+#include "ff7_world_codegen.h" 
 
 #include <iostream>
 #include <sstream>

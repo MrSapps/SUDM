@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "codegen.h"
-#include "engine.h"
+#include "decompiler_codegen.h"
+#include "decompiler_engine.h"
 
 #include <algorithm>
 #include <iostream>

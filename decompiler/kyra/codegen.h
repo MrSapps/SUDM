@@ -22,7 +22,7 @@
 #ifndef DEC_KYRA_CODEGEN_H
 #define DEC_KYRA_CODEGEN_H
 
-#include "../codegen.h"
+#include "../decompiler_codegen.h"
 
 namespace Kyra {
 

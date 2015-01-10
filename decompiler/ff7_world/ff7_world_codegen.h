@@ -1,13 +1,13 @@
 #pragma  once
 
-#include "../codegen.h"
+#include "decompiler_codegen.h"
 
 namespace FF7
 {
-    class FF7CodeGenerator : public CodeGenerator
+    class FF7WorldCodeGenerator : public CodeGenerator
     {
     public:
-        FF7CodeGenerator(Engine *engine, std::ostream &output) 
+        FF7WorldCodeGenerator(Engine *engine, std::ostream &output)
             : CodeGenerator(engine, output, kFIFOArgOrder, kLIFOArgOrder)
         {
 

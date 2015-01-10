@@ -1,5 +1,6 @@
-#include "disassembler.h"
-#include "engine.h"
+#include "ff7_world_disassembler.h"
+#include "ff7_world_engine.h"
+#include "decompiler_engine.h"
 #include <boost/format.hpp>
 
 FF7::FF7WorldDisassembler::FF7WorldDisassembler(FF7WorldEngine *engine, InstVec &insts, int scriptNumber)

@@ -22,7 +22,7 @@
 #ifndef SCUMM_V6_ENGINE_H
 #define SCUMM_V6_ENGINE_H
 
-#include "../engine.h"
+#include "../decompiler_engine.h"
 #include "../instruction.h"
 #include "../value.h"
 

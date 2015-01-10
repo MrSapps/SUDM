@@ -22,7 +22,7 @@
 #ifndef SCUMM_V6_CODEGEN_H
 #define SCUMM_V6_CODEGEN_H
 
-#include "../codegen.h"
+#include "../decompiler_codegen.h"
 
 namespace Scumm {
 

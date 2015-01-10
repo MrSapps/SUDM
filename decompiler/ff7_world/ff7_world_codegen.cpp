@@ -1,5 +1,5 @@
-#include "codegen.h"
-#include "engine.h"
+#include "ff7_world_codegen.h"
+#include "ff7_world_engine.h"
 
 std::string FF7::FF7WorldCodeGenerator::constructFuncSignature(const Function &func)
 {

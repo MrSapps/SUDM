@@ -1,5 +1,6 @@
-#include "disassembler.h"
-#include "engine.h"
+#include "ff7_field_disassembler.h"
+#include "ff7_field_engine.h"
+#include "decompiler_engine.h"
 #include <boost/format.hpp>
 #include "lzs.h"
 #include "make_unique.h"

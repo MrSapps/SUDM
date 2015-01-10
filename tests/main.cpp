@@ -1,10 +1,10 @@
 #include <gmock/gmock.h>
 
-#include "decompiler/ff7_field/disassembler.h"
-#include "decompiler/ff7_field/engine.h"
+#include "decompiler/ff7_field/ff7_field_disassembler.h"
+#include "decompiler/ff7_field/ff7_field_engine.h"
 
-#include "decompiler/ff7_world/disassembler.h"
-#include "decompiler/ff7_world/engine.h"
+#include "decompiler/ff7_world/ff7_world_disassembler.h"
+#include "decompiler/ff7_world/ff7_world_engine.h"
 
 #include "control_flow.h"
 #include "util.h"

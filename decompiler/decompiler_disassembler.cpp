@@ -19,7 +19,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "disassembler.h"
+#include "decompiler_disassembler.h"
 #include "make_unique.h"
 
 Disassembler::Disassembler(InstVec &insts) : _insts(insts) {

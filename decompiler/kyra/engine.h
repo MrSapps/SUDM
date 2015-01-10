@@ -22,7 +22,7 @@
 #ifndef KYRA_ENGINE_H
 #define KYRA_ENGINE_H
 
-#include "decompiler/engine.h"
+#include "decompiler/decompiler_engine.h"
 
 #include <string>
 #include <vector>

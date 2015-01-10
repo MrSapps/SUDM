@@ -20,7 +20,7 @@
  */
 
 #include "decompiler/control_flow.h"
-#include "decompiler/disassembler.h"
+#include "decompiler/decompiler_disassembler.h"
 #include "decompiler/graph.h"
 #include "decompiler/scummv6/engine.h"
 #include "decompiler/kyra/engine.h"

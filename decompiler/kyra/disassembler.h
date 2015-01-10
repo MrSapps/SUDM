@@ -22,7 +22,7 @@
 #ifndef DEC_KYRA_DISASM_H
 #define DEC_KYRA_DISASM_H
 
-#include "decompiler/disassembler.h"
+#include "decompiler/decompiler_disassembler.h"
 
 typedef uint32 IFF_ID;
 

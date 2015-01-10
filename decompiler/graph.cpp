@@ -20,7 +20,7 @@
  */
 
 #include "graph.h"
-#include "engine.h"
+#include "decompiler_engine.h"
 
 void GraphProperties::operator()(std::ostream& out) const {
 	out << "node [shape=record]" << std::endl;

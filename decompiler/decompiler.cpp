@@ -21,8 +21,8 @@
 
 #include "objectFactory.h"
 
-#include "disassembler.h"
-#include "engine.h"
+#include "decompiler_disassembler.h"
+#include "decompiler_engine.h"
 #include "instruction.h"
 
 #include "control_flow.h"

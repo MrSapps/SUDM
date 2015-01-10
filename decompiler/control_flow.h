@@ -23,7 +23,7 @@
 #define DEC_CONTROL_FLOW_H
 
 #include "graph.h"
-#include "engine.h"
+#include "decompiler_engine.h"
 
 /**
  * Class for doing code flow analysis.

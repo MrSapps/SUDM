@@ -22,7 +22,7 @@
 #ifndef DEC_SIMPLE_DISASSEMBLER_H
 #define DEC_SIMPLE_DISASSEMBLER_H
 
-#include "disassembler.h"
+#include "decompiler_disassembler.h"
 
 /**
  * Simple disassembler acting as a base for instruction sets only consisting of simple instructions (opcode params...).
