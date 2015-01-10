@@ -26,6 +26,7 @@
 #include <iostream>
 #include <set>
 #include <boost/format.hpp>
+#include "make_unique.h"
 
 #define GET(vertex) (boost::get(boost::vertex_name, _g, vertex))
 #define GET_EDGE(edge) (boost::get(boost::edge_attribute, _g, edge))
@@ -43,7 +44,7 @@ std::string CodeGenerator::indentString(std::string s) {
 CodeGenerator::CodeGenerator(Engine *engine, std::ostream &output, ArgOrder binOrder, ArgOrder callOrder) : _output(output), _binOrder(binOrder), _callOrder(callOrder) {
 	_engine = engine;
 	_indentLevel = 0;
-    mTargetLang.reset(new CTargetLanguage);
+    mTargetLang = std::make_unique<CTargetLanguage>();
 }
 
 typedef std::pair<GraphVertex, ValueStack> DFSEntry;

@@ -20,6 +20,7 @@
  */
 
 #include "disassembler.h"
+#include "make_unique.h"
 
 Disassembler::Disassembler(InstVec &insts) : _insts(insts) {
 	_addressBase = 0;

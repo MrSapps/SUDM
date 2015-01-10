@@ -130,6 +130,7 @@ common/str.h
 common/util.h
 common/binaryreader.h
 common/lzs.h
+common/make_unique.h
 )
 
 find_package(Boost COMPONENTS program_options filesystem thread date_time system chrono REQUIRED)
