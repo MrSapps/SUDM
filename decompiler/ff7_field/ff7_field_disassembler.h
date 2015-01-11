@@ -8,7 +8,7 @@ class Function;
 
 namespace FF7 
 {
-    enum class eOpcodes : uint8
+    enum class eOpcodes : uint32
     {
         RET = 0x0,
         REQ = 0x01,
