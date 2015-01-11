@@ -34,6 +34,9 @@ protected:
 	const ValueList _values;
 
 public:
+    ValuesArrayValue(const ValuesArrayValue&) = delete;
+    ValuesArrayValue& operator = (const ValuesArrayValue&) = delete;
+
 	/**
 	 * Constructor for ValuesArrayValue.
 	 *
@@ -60,7 +63,7 @@ class GroovieJumpInstruction : public Instruction {
 public:
 	bool isJump() const { return true; }
 	uint32 getDestAddress() const;
-	void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) {}
+	void processInst(ValueStack&, Engine*, CodeGenerator*) {}
 };
 
 uint32 GroovieJumpInstruction::getDestAddress() const {

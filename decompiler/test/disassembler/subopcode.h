@@ -32,7 +32,7 @@ public:
 
 class SubOpcodeFakeInstruction : public Instruction {
 public:
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) {}
+	virtual void processInst(ValueStack&, Engine*, CodeGenerator*) {}
 };
 
 #endif

@@ -35,7 +35,7 @@ CodeGenerator *Kyra::Kyra2Engine::getCodeGenerator(std::ostream &output) {
 	return new Kyra2CodeGenerator(this, output);
 }
 
-void Kyra::Kyra2Engine::postCFG(InstVec &insts, Graph g) {
+void Kyra::Kyra2Engine::postCFG(InstVec&, Graph g) {
 	// Add metadata to functions
 	for (FuncMap::iterator it = _functions.begin(); it != _functions.end(); ++it) {
 		std::stringstream s;
@@ -64,7 +64,7 @@ void Kyra::Kyra2Engine::getVariants(std::vector<std::string> &variants) const {
 	variants.push_back("kyra2-talkie");
 }
 
-void Kyra::Kyra2LoadInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) {
+void Kyra::Kyra2LoadInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator *codeGen) {
 	Kyra2CodeGenerator *cg = (Kyra2CodeGenerator *)codeGen;
 	switch (_opcode) {
 	case 2:
@@ -100,7 +100,7 @@ void Kyra::Kyra2LoadInstruction::processInst(ValueStack &stack, Engine *engine, 
 	}
 }
 
-void Kyra::Kyra2StoreInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) {
+void Kyra::Kyra2StoreInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator *codeGen) {
 	Kyra2CodeGenerator *cg = (Kyra2CodeGenerator *)codeGen;
 	switch (_opcode) {
 	case 1:
@@ -142,7 +142,7 @@ void Kyra::Kyra2StoreInstruction::processInst(ValueStack &stack, Engine *engine,
 	}
 }
 
-void Kyra::Kyra2StackInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) {
+void Kyra::Kyra2StackInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator*) {
 	if (_opcode == 12) {
 		for (int i = _params[0]->getSigned(); i != 0; --i) {
 			if (!stack.empty())
@@ -157,7 +157,7 @@ void Kyra::Kyra2StackInstruction::processInst(ValueStack &stack, Engine *engine,
 	}
 }
 
-void Kyra::Kyra2CondJumpInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) {
+void Kyra::Kyra2CondJumpInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator*) {
 	stack.push(stack.pop()->negate());
 }
 
@@ -199,7 +199,7 @@ void Kyra::Kyra2UncondJumpInstruction::processInst(ValueStack &stack, Engine *en
 	}
 }
 
-void Kyra::Kyra2KernelCallInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) {
+void Kyra::Kyra2KernelCallInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator *codeGen) {
 	Kyra2CodeGenerator *cg = (Kyra2CodeGenerator *)codeGen;
 	cg->_argList.clear();
 	bool returnsValue = (_codeGenData.find("r") == 0);
@@ -220,5 +220,5 @@ void Kyra::Kyra2KernelCallInstruction::processInst(ValueStack &stack, Engine *en
 	}
 }
 
-void Kyra::Kyra2NoOutputInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) {
+void Kyra::Kyra2NoOutputInstruction::processInst(ValueStack&, Engine*, CodeGenerator*) {
 }

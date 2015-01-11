@@ -116,7 +116,7 @@ uint32 IntValue::getUnsigned() throw(WrongTypeException) {
 	return (uint32)_val;
 }
 
-ValuePtr IntValue::dup(std::ostream &output) {
+ValuePtr IntValue::dup(std::ostream&) {
 	return new IntValue(_val, _isSigned);
 }
 
@@ -136,7 +136,7 @@ int32 AddressValue::getSigned() throw(WrongTypeException) {
 	throw WrongTypeException();
 }
 
-ValuePtr AddressValue::dup(std::ostream &output) {
+ValuePtr AddressValue::dup(std::ostream&) {
 	return new AddressValue(_val);
 }
 
@@ -152,7 +152,7 @@ uint32 RelAddressValue::getUnsigned() throw(WrongTypeException) {
 	return _baseaddr + _val;
 }
 
-ValuePtr RelAddressValue::dup(std::ostream &output) {
+ValuePtr RelAddressValue::dup(std::ostream&) {
 	return new RelAddressValue(_baseaddr, _val);
 }
 
@@ -162,7 +162,7 @@ std::ostream &RelAddressValue::print(std::ostream &output) const {
 	return output << boost::format("+0x%X") % _val;
 }
 
-ValuePtr DupValue::dup(std::ostream &output) {
+ValuePtr DupValue::dup(std::ostream&) {
 	return this;
 }
 

@@ -77,7 +77,7 @@ public:
 
 #define OPCODE_BASE(val) \
 	case val: \
-		full_opcode = (full_opcode << 8) + val;
+		full_opcode = (full_opcode << 8) + static_cast<uint32>(val);
 
 #define OPCODE_END break;
 

@@ -27,7 +27,7 @@ namespace Lzs
 
 
         unsigned int input_offset = 4;
-        int output_offset = 0;
+        unsigned int output_offset = 0;
         unsigned char control_byte = 0;
         unsigned char control_bit = 0;
 

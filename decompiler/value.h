@@ -169,6 +169,9 @@ protected:
 	const bool _isSigned; ///< True if the value is signed, false if it's not.
 
 public:
+    IntValue(const IntValue&) = delete;
+    IntValue& operator = (const IntValue&) = delete;
+
 	/**
 	 * Constructor for IntValue.
 	 *
@@ -200,6 +203,9 @@ public:
  */
 class AddressValue : public IntValue {
 public:
+    AddressValue(const AddressValue&) = delete;
+    AddressValue& operator = (const AddressValue&) = delete;
+
 	/**
 	 * Constructor for AddressValue.
 	 *
@@ -223,6 +229,9 @@ protected:
 	const uint32 _baseaddr; ///< The base address for the offset.
 
 public:
+    RelAddressValue(const RelAddressValue&) = delete;
+    RelAddressValue& operator = (const RelAddressValue&) = delete;
+
 	/**
 	 * Constructor for AddressValue.
 	 *
@@ -247,6 +256,9 @@ protected:
 	const int _idx; ///< Index to distinguish multiple duplicated entries.
 
 public:
+    DupValue(const DupValue&) = delete;
+    DupValue& operator = (const DupValue&) = delete;
+
 	/**
 	 * Constructor for DupEntry.
 	 *
@@ -267,6 +279,9 @@ protected:
 	const std::string _str; ///< The string value.
 
 public:
+    StringValue(const StringValue&) = delete;
+    StringValue& operator = (const StringValue&) = delete;
+
 	/**
 	 * Constructor for StringValue.
 	 *
@@ -303,6 +318,9 @@ protected:
 	const ValueList _idxs; ///< std::deque of values representing the indexes used (left-to-right).
 
 public:
+    ArrayValue(const ArrayValue&) = delete;
+    ArrayValue& operator = (const ArrayValue&) = delete;
+
 	/**
 	 * Constructor for ArrayValue.
 	 *
@@ -324,6 +342,9 @@ protected:
 	const std::string _op; ///< The operator for this value.
 
 public:
+    BinaryOpValue(const BinaryOpValue&) = delete;
+    BinaryOpValue& operator = (const BinaryOpValue&) = delete;
+
 	/**
 	 * Constructor for BinaryOpValue.
 	 *
@@ -351,6 +372,9 @@ protected:
 	const bool _isPostfix;   ///< Whether or not the operator should be postfixed to the operand.
 
 public:
+    UnaryOpValue(const UnaryOpValue&) = delete;
+    UnaryOpValue& operator = (const UnaryOpValue&) = delete;
+
 	/**
 	 * Constructor for UnaryOpValue.
 	 *
@@ -371,6 +395,9 @@ public:
  */
 class NegatedValue : public UnaryOpValue {
 public:
+    NegatedValue(const NegatedValue&) = delete;
+    NegatedValue& operator = (const NegatedValue&) = delete;
+
 	/**
 	 * Constructor for NegatedValue.
 	 *
@@ -389,6 +416,9 @@ protected:
 	const ValueList _args;       ///< std::deque of values representing the arguments used (stored left-to-right).
 
 public:
+    CallValue(const CallValue&) = delete;
+    CallValue& operator = (const CallValue&) = delete;
+
 	/**
 	 * Constructor for CallValue.
 	 *

@@ -135,7 +135,7 @@ void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
                     if (streamPos != endPos)
                     {
                         // Main entry point is the current pos
-                        scriptEntryPoint = streamPos;
+                        scriptEntryPoint = static_cast<uint16>(streamPos);
                         auto mainFunc = StartFunction(entityNumber, scriptIndex);
                         mainFunc->_name += "_main";
 
@@ -168,36 +168,31 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
         std::string opcodePrefix;
         switch (opcode)
         {
-            OPCODE(0x10, "JMPF", FF7UncondJumpInstruction, 0, "B");
-            OPCODE(0x12, "JMPB", FF7UncondJumpInstruction, 0, "B");
-            OPCODE(0x16, "IFSW", FF7CondJumpInstruction, 0, "BwsBB");
-            OPCODE(0x14, "IFUB", FF7CondJumpInstruction, 0, "BBBBB");
-
+            OPCODE(eOpcodes::JMPF, "JMPF", FF7UncondJumpInstruction, 0, "B");
+            OPCODE(eOpcodes::JMPB, "JMPB", FF7UncondJumpInstruction, 0, "B");
+            OPCODE(eOpcodes::IFSW, "IFSW", FF7CondJumpInstruction, 0, "BwsBB");
+            OPCODE(eOpcodes::IFUB, "IFUB", FF7CondJumpInstruction, 0, "BBBBB");
+            OPCODE(eOpcodes::RET, "RET", FF7KernelCallInstruction, 0, "");
             /*
-            OPCODE_BASE(0x28) // KAWAI
-            opcode = this->mStream->ReadU8(); // Annoyingly has the length here
-            opcode = this->mStream->ReadU8();
-            switch (opcode) {
-            OPCODE(0x6e, "6eUnknown", FF7KernelCallInstruction, 0, "");
+            OPCODE_BASE(eOpcodes::KAWAI)
+                opcode = this->mStream->ReadU8(); // Annoyingly has the length here
+                opcode = this->mStream->ReadU8();
+                switch (opcode) {
+                OPCODE(0x6e, "6eUnknown", FF7KernelCallInstruction, 0, "");
             END_SUBOPCODE
             */
-
-            START_SUBOPCODE(0x0f) // SPECIAL
-            OPCODE(0xF5, "ARROW", FF7KernelCallInstruction, 0, "B");
-            //OPCODE(0x24, "24Unknown", FF7KernelCallInstruction, 0, "");
+            START_SUBOPCODE(eOpcodes::SPECIAL)
+                OPCODE(0xF5, "ARROW", FF7KernelCallInstruction, 0, "B");
+                //OPCODE(0x24, "24Unknown", FF7KernelCallInstruction, 0, "");
             END_SUBOPCODE
-            
-            OPCODE(0xC3, "OFST", FF7KernelCallInstruction, 0, "BBBBsssw");
-            OPCODE(0x89, "MUL", FF7KernelCallInstruction, 0, "BBB");
+            OPCODE(eOpcodes::OFST, "OFST", FF7KernelCallInstruction, 0, "BBBBsssw");
+            OPCODE(eOpcodes::MUL, "MUL", FF7KernelCallInstruction, 0, "BBB");
             OPCODE(0xAF, "ANIM!1", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0xDE, "TURNW", FF7KernelCallInstruction, 0, "");
-
             OPCODE(0xBA, "ANIM!2", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0xAE, "ANIME2", FF7KernelCallInstruction, 0, "BB");
-
-            OPCODE(0x2D, "BGSCR", FF7KernelCallInstruction, 0, "BBss");
-
-            OPCODE(0xB4, "TURNGEN", FF7KernelCallInstruction, 0, "BBBBB");
+            OPCODE(eOpcodes::BGSCR, "BGSCR", FF7KernelCallInstruction, 0, "BBss");
+            OPCODE(eOpcodes::TURNGEN, "TURNGEN", FF7KernelCallInstruction, 0, "BBBBB");
             OPCODE(0xE8, "RTPAL", FF7KernelCallInstruction, 0, "BBBBBB"); // ?
             OPCODE(0xAB, "TURA", FF7KernelCallInstruction, 0, "Bs"); // one s shorter than the docs?
             OPCODE(0xAC, "ANIMW", FF7KernelCallInstruction, 0, "");
@@ -218,7 +213,6 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(0xBB, "CANIM2", FF7KernelCallInstruction, 0, "BBBB");
             OPCODE(0xAD, "CMOVE", FF7KernelCallInstruction, 0, "Bss");
             OPCODE(0x25, "NFADE", FF7KernelCallInstruction, 0, "BBBBBBBB");
-
             OPCODE(0x2E, "WCLS", FF7KernelCallInstruction, 0, "B");
             OPCODE(0xEC, "LDPLS", FF7KernelCallInstruction, 0, "BBBB");
             OPCODE(0x99, "RANDOM", FF7KernelCallInstruction, 0, "BB");
@@ -227,24 +221,17 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(0x6C, "FADEW", FF7KernelCallInstruction, 0, "");
             OPCODE(0x0b, "SPTYE", FF7KernelCallInstruction, 0, "BBBBB");
             OPCODE(0x0a, "GTPYE", FF7KernelCallInstruction, 0, "BBBBB");
-
             OPCODE(0x81, "SETWORD", FF7KernelCallInstruction, 0, "BBs");
             OPCODE(0x02, "REQSW", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0x03, "REQEW", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0x04, "PREQ", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0x05, "PRQSW", FF7KernelCallInstruction, 0, "BB");
-
             OPCODE(0x42, "MPRA2", FF7KernelCallInstruction, 0, "BBBw");
-
             OPCODE(0xef, "ADPAL2", FF7KernelCallInstruction, 0, "BBBBBBBBB");
             OPCODE(0xe9, "ADPAL", FF7KernelCallInstruction, 0, "BBBBBBBBB");
             OPCODE(0xEA, "MPPAL2", FF7KernelCallInstruction, 0, "BBBBBBBBB");
-
             OPCODE(0x6b, "FADE", FF7KernelCallInstruction, 0, "BBBBBBBB");
             OPCODE(0x09, "SPLIT", FF7KernelCallInstruction, 0, "BBBssBssBB");
-
-            //  OPCODE(0x2a, "PMOVA", FF7KernelCallInstruction, 0, "B");
-
             OPCODE(0x95, "INC", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0x97, "DEC", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0xeb, "STPLS", FF7KernelCallInstruction, 0, "BBBB");
@@ -263,9 +250,7 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(0x3E, "MHMMX", FF7KernelCallInstruction, 0, "");
             OPCODE(0xA4, "VISI", FF7KernelCallInstruction, 0, "B");
             OPCODE(0x01, "REQ", ReturnInstruction, 0, "BB");
-            OPCODE(0x00, "RET", FF7KernelCallInstruction, 0, "");
             OPCODE(0xE5, "STPAL", FF7KernelCallInstruction, 0, "BBBB");
-
             OPCODE(0x24, "WAIT", FF7KernelCallInstruction, 0, "w");
             OPCODE(0xE7, "CPPAL", FF7KernelCallInstruction, 0, "BBBB");
             OPCODE(0xE6, "LDPAL", FF7KernelCallInstruction, 0, "BBBB");

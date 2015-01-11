@@ -29,7 +29,7 @@ const InstPtr FF7::FF7CodeGenerator::findLastCall()
     return *_curGroup->_end;
 }
 
-void FF7::FF7CodeGenerator::processSpecialMetadata(const InstPtr inst, char c, int pos)
+void FF7::FF7CodeGenerator::processSpecialMetadata(const InstPtr inst, char, int)
 {
 
 }

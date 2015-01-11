@@ -31,7 +31,7 @@
 #define GET(vertex) (boost::get(boost::vertex_name, _g, vertex))
 #define GET_EDGE(edge) (boost::get(boost::edge_attribute, _g, edge))
 
-std::string CodeGenerator::constructFuncSignature(const Function &func) {
+std::string CodeGenerator::constructFuncSignature(const Function &) {
 	return "";
 }
 
@@ -234,6 +234,43 @@ void CodeGenerator::processUncondJumpInst(const InstPtr inst)
     }
 }
 
+void CodeGenerator::writeFunctionCall(std::string functionName, std::string paramsFormat, const std::vector<ValuePtr>& params)
+{
+    //mTargetLang->FunctionCallArgumentSeperator();
+
+    std::string strFuncCall = functionName + mTargetLang->FunctionCallBegin();
+    const char* str = paramsFormat.c_str();
+    int paramIndex = 0;
+    while (*str)
+    {
+        switch (*str)
+        {
+        case 'n':
+            strFuncCall += std::to_string(params[paramIndex]->getUnsigned());
+            break;
+
+        case 'f':
+            strFuncCall += std::to_string(params[paramIndex]->getUnsigned());
+            break;
+
+        default:
+            throw std::runtime_error("Unknown param type");
+            break;
+        }
+        paramIndex++;
+        str++;
+        if (*str)
+        {
+            // There is another param
+            strFuncCall += mTargetLang->FunctionCallArgumentSeperator() + " ";
+        }
+    }
+    strFuncCall += mTargetLang->FunctionCallEnd();
+
+    addOutputLine(strFuncCall);
+
+}
+
 void CodeGenerator::processCondJumpInst(const InstPtr inst)
 {
     std::stringstream s;
@@ -294,7 +331,7 @@ void CodeGenerator::addArg(ValuePtr p) {
 		_argList.push_back(p);
 }
 
-void CodeGenerator::processSpecialMetadata(const InstPtr inst, char c, int pos) {
+void CodeGenerator::processSpecialMetadata(const InstPtr inst, char c, int) {
 	switch (c) {
 	case 'p':
 		addArg(_stack.pop());

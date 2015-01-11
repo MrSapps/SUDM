@@ -91,7 +91,7 @@ public:
 	 * @param insts Reference to the std::vector to place the Instructions in.
 	 * @param g Graph generated from the CFG analysis.
 	 */
-	virtual void postCFG(InstVec &insts, Graph g) { }
+	virtual void postCFG(InstVec&, Graph) { }
 
 	/**
 	 * Whether or not code flow analysis is supported for this engine.
@@ -124,7 +124,7 @@ public:
 	 *
 	 * @param variants Vector to add the supported variants to.
 	 */
-	virtual void getVariants(std::vector<std::string> &variants) const { };
+	virtual void getVariants(std::vector<std::string>&) const { };
 
 	std::string _variant; ///< Engine variant to use for the script.
 

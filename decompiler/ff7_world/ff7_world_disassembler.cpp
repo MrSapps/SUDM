@@ -3,7 +3,7 @@
 #include "decompiler_engine.h"
 #include <boost/format.hpp>
 
-FF7::FF7WorldDisassembler::FF7WorldDisassembler(FF7WorldEngine *engine, InstVec &insts, int scriptNumber)
+FF7::FF7WorldDisassembler::FF7WorldDisassembler(FF7WorldEngine*, InstVec &insts, int scriptNumber)
     : SimpleDisassembler(insts), mScriptNumber(scriptNumber)
 {
 

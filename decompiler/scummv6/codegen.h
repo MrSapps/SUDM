@@ -36,6 +36,9 @@ protected:
 	const ValueList _items; ///< The list items.
 
 public:
+    ListValue(const ListValue&) = delete;
+    ListValue& operator = (const ListValue&) = delete;
+
 	/**
 	 * Constructor for ListValue.
 	 *

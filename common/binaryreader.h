@@ -22,7 +22,6 @@ public:
         {
             throw std::runtime_error("Can't open file");
         }
-        return std::vector<unsigned char>();
     }
 
     BinaryReader(std::vector<unsigned char>&& data)

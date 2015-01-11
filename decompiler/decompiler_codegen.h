@@ -56,6 +56,9 @@ public:
     virtual std::string DoLoopFooter(bool beforeExpr) = 0;
     virtual std::string If(bool beforeExpr) = 0;
     virtual std::string WhileHeader(bool beforeExpr) = 0;
+    virtual std::string FunctionCallArgumentSeperator() = 0;
+    virtual std::string FunctionCallBegin() = 0;
+    virtual std::string FunctionCallEnd() = 0;
 };
 
 class CTargetLanguage : public ITargetLanaguge
@@ -109,6 +112,21 @@ public:
         }
         return ") {";
     }
+
+    virtual std::string FunctionCallArgumentSeperator() override
+    {
+        return ",";
+    }
+    
+    virtual std::string FunctionCallBegin() override
+    {
+        return "(";
+    }
+    
+    virtual std::string FunctionCallEnd() override
+    {
+        return ");";
+    }
 };
 
 /**
@@ -160,6 +178,8 @@ protected:
 	virtual std::string constructFuncSignature(const Function &func);
 
 public:
+    void writeFunctionCall(std::string functionName, std::string paramsFormat, const std::vector<ValuePtr>& params);
+
 	const ArgOrder _binOrder;  ///< Order of operands for binary operations.
 	const ArgOrder _callOrder; ///< Order of operands for call arguments.
 	ValueList _argList;        ///< Storage for lists of arguments to be built when processing function calls.

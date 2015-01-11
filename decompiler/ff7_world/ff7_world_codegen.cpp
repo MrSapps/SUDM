@@ -1,7 +1,7 @@
 #include "ff7_world_codegen.h"
 #include "ff7_world_engine.h"
 
-std::string FF7::FF7WorldCodeGenerator::constructFuncSignature(const Function &func)
+std::string FF7::FF7WorldCodeGenerator::constructFuncSignature(const Function&)
 {
     return "";
 }
@@ -29,7 +29,7 @@ const InstPtr FF7::FF7WorldCodeGenerator::findLastCall()
     return *_curGroup->_end;
 }
 
-void FF7::FF7WorldCodeGenerator::processSpecialMetadata(const InstPtr inst, char c, int pos)
+void FF7::FF7WorldCodeGenerator::processSpecialMetadata(const InstPtr inst, char, int)
 {
 
 }

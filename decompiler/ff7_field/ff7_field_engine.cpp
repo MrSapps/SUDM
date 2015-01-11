@@ -49,21 +49,21 @@ bool FF7::FF7Engine::detectMoreFuncs() const
 	return false;
 }
 
-void FF7::FF7Engine::getVariants(std::vector<std::string> &variants) const
+void FF7::FF7Engine::getVariants(std::vector<std::string>&) const
 {
 
 }
 
-void FF7::FF7LoadInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen)
+void FF7::FF7LoadInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
 {
 
 }
 
-void FF7::FF7StoreInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen)
+void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *codeGen)
 {
     switch (_opcode)
     {
-    case 0x80: // set byte
+    case eOpcodes::SETBYTE: // set byte
         codeGen->addOutputLine("var_"
             + std::to_string(_params[0]->getUnsigned())
             + "_" +
@@ -72,7 +72,7 @@ void FF7::FF7StoreInstruction::processInst(ValueStack &stack, Engine *engine, Co
             + std::to_string(_params[2]->getUnsigned()) + ";");
         break;
 
-    case 0x87:
+    case eOpcodes::MINUS:
         codeGen->addOutputLine(
             "var_" +
             _params[0]->getString() + "_" +
@@ -80,7 +80,7 @@ void FF7::FF7StoreInstruction::processInst(ValueStack &stack, Engine *engine, Co
             _params[2]->getString() );
         break;
 
-    case 0x85:
+    case eOpcodes::PLUS:
         codeGen->addOutputLine(
         "var_" +
             _params[0]->getString() + "_" +
@@ -94,12 +94,12 @@ void FF7::FF7StoreInstruction::processInst(ValueStack &stack, Engine *engine, Co
     }
 }
 
-void FF7::FF7StackInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen)
+void FF7::FF7StackInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
 {
 
 }
 
-void FF7::FF7CondJumpInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen)
+void FF7::FF7CondJumpInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator*)
 {
     std::string op;
     switch (_params[3]->getUnsigned())
@@ -187,12 +187,13 @@ bool FF7::FF7UncondJumpInstruction::isUncondJump() const
 
 uint32 FF7::FF7UncondJumpInstruction::getDestAddress() const
 {
-    if (_opcode == 0x10)
+    if (static_cast<eOpcodes>(_opcode) == eOpcodes::JMPF)
     {
         // Forward jump
         return _address + _params[0]->getUnsigned()+1;
     }
-    // Backwards jump
+   
+    // Backwards jump,  eOpcodes::JMPBL
 	return _address - _params[0]->getUnsigned();
 }
 
@@ -204,53 +205,138 @@ std::ostream& FF7::FF7UncondJumpInstruction::print(std::ostream &output) const
 }
 
 
-void FF7::FF7UncondJumpInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen)
+void FF7::FF7UncondJumpInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
 {
 
 }
 
-void FF7::FF7KernelCallInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen)
+void FF7::FF7KernelCallInstruction::processInst(ValueStack&, Engine*, CodeGenerator *codeGen)
 {
-    std::string strName;
     switch (_opcode)
     {
-    case 0x0:
-        strName = "return;";
+    case eOpcodes::RET:
+        codeGen->writeFunctionCall("return", "", _params);
         break;
 
-    case 0x24:
-        //codeGen->writeKernelCall("Wait", _params[0]->getUnsigned());
-        strName = "Wait(" + std::to_string(_params[0]->getUnsigned()) + ");";
+    case eOpcodes::WAIT:
+        codeGen->writeFunctionCall("wait", "f", _params);
         break;
 
-    case 0xE5:
-        strName = "SetPalette(" + 
-            std::to_string(_params[0]->getUnsigned()) + "," +
-            std::to_string(_params[1]->getUnsigned()) + "," +
-            std::to_string(_params[2]->getUnsigned()) + "," +
-            std::to_string(_params[3]->getUnsigned()) +  ");";
+    case eOpcodes::STPAL:
+        codeGen->writeFunctionCall("setPalette", "nnnn", _params);
         break;
 
-    case 0xEA:
-        strName = "MulitplyPallete();";
+    case eOpcodes::MPPAL2:
+        codeGen->writeFunctionCall("mulitplyPallete", "", _params);
         break;
 
-    case 0xE7:
-        strName = "CopyPallete();";
+    case eOpcodes::CPPAL:
+        codeGen->writeFunctionCall("copyPallete", "", _params);
         break;
 
-    case 0xE6:
-        strName = "LoadPallete();";
+    case eOpcodes::LDPAL:
+        codeGen->writeFunctionCall("loadPallete", "", _params);
+        break;
+
+    case eOpcodes::REQEW:
+        codeGen->writeFunctionCall("callScriptBlocking", "", _params);
+        break;
+
+    case eOpcodes::BGCLR:
+        codeGen->writeFunctionCall("backgroundClear", "nn", _params);
+        break;
+
+    case eOpcodes::BGOFF:
+        codeGen->writeFunctionCall("backgroundOff", "", _params);
+        break;
+
+    case eOpcodes::BGON:
+        codeGen->writeFunctionCall("backgroundOn", "", _params);
+        break;
+
+    case eOpcodes::MOD:
+        codeGen->writeFunctionCall("Mod", "nn", _params); // TODO: Shouldn't be a kernel call
+        break;
+
+    case eOpcodes::INC:
+        codeGen->writeFunctionCall("Inc", "nn", _params); // TODO: Shouldn't be a kernel call
+        break;
+
+    case eOpcodes::DEC:
+        codeGen->writeFunctionCall("Dec", "nn", _params); // TODO: Shouldn't be a kernel call
+        break;
+
+    case eOpcodes::RANDOM:
+        codeGen->writeFunctionCall("Rand", "nn", _params);
+        break;
+
+    case eOpcodes::opCodeCHAR:
+        codeGen->writeFunctionCall("Char", "n", _params);
+        break;
+
+    case eOpcodes::PC:
+        codeGen->writeFunctionCall("setPlayableChar", "n", _params);
+        break;
+
+    case eOpcodes::XYZI:
+        codeGen->writeFunctionCall("placeObject", "nnnnn", _params);
+        break;
+
+    case eOpcodes::SOLID:
+        codeGen->writeFunctionCall("setSolid", "n", _params);
+        break;
+
+    case eOpcodes::TALKON:
+        codeGen->writeFunctionCall("setTalkable", "n", _params);
+        break;
+
+    case eOpcodes::VISI:
+        codeGen->writeFunctionCall("setVisible", "n", _params);
+        break;
+
+    case eOpcodes::MSPED:
+        codeGen->writeFunctionCall("setMoveSpeed", "nn", _params);
+        break;
+
+    case eOpcodes::MOVE:
+        codeGen->writeFunctionCall("move", "nnn", _params);
+        break;
+
+    case eOpcodes::SETWORD:
+        codeGen->writeFunctionCall("setWord", "nnn", _params);
+        break;
+
+    case eOpcodes::ANIME1:
+        codeGen->writeFunctionCall("playBlockingAnimation", "nn", _params);
+        break;
+
+    case eOpcodes::DFANM:
+        codeGen->writeFunctionCall("playAnimationLoop", "nn", _params);
+        break;
+
+    case eOpcodes::DIR:
+        codeGen->writeFunctionCall("turnToEntity", "nn", _params);
+        break;
+
+    case eOpcodes::STPLS:
+        codeGen->writeFunctionCall("STPLS", "", _params);
+        break;
+
+    case eOpcodes::ADPAL:
+        codeGen->writeFunctionCall("ADPAL", "", _params);
+        break;
+
+    case eOpcodes::LDPLS:
+        codeGen->writeFunctionCall("LDPLS", "", _params);
         break;
 
     default:
-        strName = "UnknownKernelFunction_" + std::to_string(_opcode);
+        codeGen->addOutputLine("UnknownKernelFunction_" + std::to_string(_opcode) + "();");
         break;
     }
-    codeGen->addOutputLine(strName);
 }
 
-void FF7::FF7NoOutputInstruction::processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen)
+void FF7::FF7NoOutputInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
 {
 
 }

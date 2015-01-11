@@ -132,6 +132,9 @@ private:
 	bool validateElseBlock(GroupPtr ifGroup, GroupPtr start, GroupPtr end);
 
 public:
+    ControlFlow(const ControlFlow&) = delete;
+    ControlFlow& operator = (const ControlFlow&) = delete;
+
 	/**
 	 * Gets the current control flow graph.
 	 *

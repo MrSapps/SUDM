@@ -308,9 +308,9 @@ public:
 		do {
 			std::stringstream stream;
 			stream << *inst;
-			if (BOOST_VERSION >= 104500)
+#if (BOOST_VERSION >= 104500)
 				output << stream.str();
-			else {
+#else
 				std::string s = stream.str();
 				for (std::string::iterator it = s.begin(); it != s.end(); ++it)
 					if (*it == '"')
@@ -323,7 +323,7 @@ public:
 						output << "\\}";
 					else
 						output << *it;
-			}
+#endif
 			output << "\\n";
 		} while (inst++ != group->_end);
 		output << "}";
@@ -342,6 +342,10 @@ private:
 	const Graph &_g; ///< Const reference to the graph for the script.
 
 public:
+    // TODO: This is copied by the write graphiz method, make copying explicit (since we don't own _engine)
+    //GraphProperties(const GraphProperties&) = delete;
+    //GraphProperties& operator = (const GraphProperties&) = delete;
+
 	/**
 	 * Constructor for GraphProperties.
 	 *

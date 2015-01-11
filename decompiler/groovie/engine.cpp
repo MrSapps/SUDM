@@ -37,7 +37,7 @@ Disassembler *GroovieEngine::getDisassembler(InstVec &insts) {
 	return new GroovieDisassembler(insts, getOpcodes());
 }
 
-CodeGenerator *GroovieEngine::getCodeGenerator(std::ostream &output) {
+CodeGenerator *GroovieEngine::getCodeGenerator(std::ostream&) {
 	return NULL;
 }
 
