@@ -1,4 +1,10 @@
-## Simple Universal Decompilation Machine [![Build Status](https://travis-ci.org/paulsapps/SUDM.svg?branch=master)](https://travis-ci.org/paulsapps/SUDM) [![Coverage Status](https://img.shields.io/coveralls/paulsapps/SUDM.svg)](https://coveralls.io/r/paulsapps/SUDM)
+## Simple Universal Decompilation Machine
+
+[![Build Status](https://travis-ci.org/paulsapps/SUDM.svg?branch=master)](https://travis-ci.org/paulsapps/SUDM) 
+[![Coverage Status](https://img.shields.io/coveralls/paulsapps/SUDM.svg)](https://coveralls.io/r/paulsapps/SUDM)
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/3895/badge.svg)](https://scan.coverity.com/projects/3895)
+
+
 ====
 
 This project aims to provide a decompiler framework for simple byte code languages that do not have specific structuring instructions (while/for/if).
