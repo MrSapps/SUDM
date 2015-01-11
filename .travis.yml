@@ -1,5 +1,21 @@
 language: cpp
 
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "A4JeyJ/faUkHRFCwKD/l7I6/zY4Jzs9SFxrRxxcvqFCawisCZDK3myw1ZMSEFp6bNBC1onWrEbBp7wgQ3aW5bf+xVtNaHvxvGvwOQMY8enFsTfgZ8YA4WTBwqeaFa6tUOC4/u7cQwTK2vlNZxpbATIOJhseOSi0ExD+8igyi4WU="
+
+addons:
+  coverity_scan:
+    project:
+      name: "paulsapps/SUDM"
+      description: "Build submitted via Travis CI"
+    notification_email: coverityscan@paulsapps.com
+    build_command_prepend: "mkdir build; cd build"
+    build_command: "cmake ..; make -j4"
+    branch_pattern: coverity_scan
+
 compiler:
   - clang
   - gcc
@@ -24,9 +40,9 @@ before_script:
   - $CXX --version
   - mkdir build
   - cd build
-  - cmake ..
-
+  
 script: 
-  - make -j2
-  - ctest --output-on-failure
+  - cmake ..
+  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make -j2; fi
+  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then ctest --output-on-failure; fi
 
