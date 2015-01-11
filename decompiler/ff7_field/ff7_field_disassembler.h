@@ -44,7 +44,7 @@ namespace FF7
         };
 
         std::array<uint32, 7> mSections;
-        uint32 GetEndOfScriptOffset(size_t entityIndex, size_t scriptIndex);
+        uint32 GetEndOfScriptOffset(uint16 curEntryPoint, size_t entityIndex, size_t scriptIndex);
 
         struct ScriptHeader
         {

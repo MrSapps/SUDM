@@ -23,30 +23,33 @@ void FF7::FF7Disassembler::open(const char *filename)
 }
 
 
-uint32 FF7::FF7Disassembler::GetEndOfScriptOffset(size_t entityIndex, size_t scriptIndex)
+uint32 FF7::FF7Disassembler::GetEndOfScriptOffset(uint16 curEntryPoint, size_t entityIndex, size_t scriptIndex)
 {
-    if (scriptIndex + 1 >= 32)
+    uint16 nextEntryPoint = curEntryPoint;
+    do
     {
-        if (entityIndex + 1 >= mHeader.mEntityScripts.size())
+        if (scriptIndex + 1 >= 32)
         {
-            // This is the very last script, so use the end of its data which is the offset to strings
-            return mHeader.mOffsetToStrings;
+            if (entityIndex + 1 >= mHeader.mEntityScripts.size())
+            {
+                // This is the very last script, so use the end of its data which is the offset to strings
+                return mHeader.mOffsetToStrings;
+            }
+            else
+            {
+                // Wrap around to the next entity
+                entityIndex++;
+                scriptIndex = 0;
+            }
         }
         else
         {
-            // Wrap around to the next entity
-            entityIndex++;
-            scriptIndex = 0;
+            // Get the next script in the same entity
+            scriptIndex++;
         }
-    }
-    else
-    {
-        // Get the next script in the same entity
-        scriptIndex++;
-    }
-
-    return mHeader.mEntityScripts[entityIndex][scriptIndex];
-
+        nextEntryPoint = mHeader.mEntityScripts[entityIndex][scriptIndex];
+    } while (nextEntryPoint == curEntryPoint);
+    return nextEntryPoint;
 }
 
 std::unique_ptr<Function> FF7::FF7Disassembler::StartFunction(size_t entityNumber, size_t scriptIndex)
@@ -83,10 +86,19 @@ void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
     // Loop through the scripts for each entity
     for (size_t entityNumber = 0; entityNumber < mHeader.mEntityScripts.size(); entityNumber++)
     {
+        std::set<uint16> parsedScripts;
         for (size_t scriptIndex = 0; scriptIndex < mHeader.mEntityScripts[entityNumber].size(); scriptIndex++)
         {
             uint16 scriptEntryPoint = mHeader.mEntityScripts[entityNumber][scriptIndex];
-            const uint32 nextScriptEntryPoint = GetEndOfScriptOffset(entityNumber, scriptIndex);
+            if (parsedScripts.find(scriptEntryPoint) != std::end(parsedScripts))
+            {
+                // If we've already parsed this scripts entry point, then don't do it again as it means
+                // two scripts have the same entry which only seems to be true for "empty" scripts
+                continue;
+            }
+            parsedScripts.insert(scriptEntryPoint);
+
+            const uint32 nextScriptEntryPoint = GetEndOfScriptOffset(scriptEntryPoint, entityNumber, scriptIndex);
             const uint32 scriptSize = nextScriptEntryPoint - scriptEntryPoint;
             if (scriptSize > 0)
             {
@@ -168,14 +180,37 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             switch (opcode) {
             OPCODE(0x6e, "6eUnknown", FF7KernelCallInstruction, 0, "");
             END_SUBOPCODE
-
+            */
 
             START_SUBOPCODE(0x0f) // SPECIAL
             OPCODE(0xF5, "ARROW", FF7KernelCallInstruction, 0, "B");
-            OPCODE(0x24, "24Unknown", FF7KernelCallInstruction, 0, "");
+            //OPCODE(0x24, "24Unknown", FF7KernelCallInstruction, 0, "");
             END_SUBOPCODE
-            */
+            
+            OPCODE(0xC3, "OFST", FF7KernelCallInstruction, 0, "BBBBsssw");
+            OPCODE(0x89, "MUL", FF7KernelCallInstruction, 0, "BBB");
+            OPCODE(0xAF, "ANIM!1", FF7KernelCallInstruction, 0, "BB");
+            OPCODE(0xDE, "TURNW", FF7KernelCallInstruction, 0, "");
 
+            OPCODE(0xBA, "ANIM!2", FF7KernelCallInstruction, 0, "BB");
+            OPCODE(0xAE, "ANIME2", FF7KernelCallInstruction, 0, "BB");
+
+            OPCODE(0x2D, "BGSCR", FF7KernelCallInstruction, 0, "BBss");
+
+            OPCODE(0xB4, "TURNGEN", FF7KernelCallInstruction, 0, "BBBBB");
+            OPCODE(0xE8, "RTPAL", FF7KernelCallInstruction, 0, "BBBBBB"); // ?
+            OPCODE(0xAB, "TURA", FF7KernelCallInstruction, 0, "Bs"); // one s shorter than the docs?
+            OPCODE(0xAC, "ANIMW", FF7KernelCallInstruction, 0, "");
+            OPCODE(0xB1, "CANM!1", FF7KernelCallInstruction, 0, "BBBB");
+            OPCODE(0xBC, "CANM!2", FF7KernelCallInstruction, 0, "BBBB");
+            OPCODE(0x60, "MAPJUMP", FF7KernelCallInstruction, 0, "swwwB");
+            OPCODE(0xF2, "AKAO", FF7KernelCallInstruction, 0, "BBBBBwwww");
+            OPCODE(0x5E, "SHAKE", FF7KernelCallInstruction, 0, "BBBBBBB");
+            OPCODE(0x40, "MESSAGE", FF7KernelCallInstruction, 0, "BB");
+            OPCODE(0x50, "WINDOW", FF7KernelCallInstruction, 0, "Bwwww");
+            OPCODE(0xf1, "SOUND", FF7KernelCallInstruction, 0, "BwB");
+            OPCODE(0x4a, "MENU2", FF7KernelCallInstruction, 0, "B");
+            OPCODE(0x33, "UC", FF7KernelCallInstruction, 0, "B");
             OPCODE(0x2C, "BGPDH", FF7KernelCallInstruction, 0, "BBw");
             OPCODE(0xE4, "BGCLR", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0xE0, "BGON", FF7KernelCallInstruction, 0, "BBB");
