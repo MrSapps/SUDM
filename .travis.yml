@@ -39,7 +39,7 @@ before_install:
   - if [ "$CXX" == "clang++" ]; then export CXX="clang++-3.4"; fi
   - if [ "$CXX" == "g++" ]; then sudo apt-get install ruby1.9.1 ruby1.9.1-dev; fi
   - if [ "$CXX" == "g++" ]; then sudo apt-get install rubygems1.9.1 irb1.9.1 ri1.9.1; fi
-  - if [ "$CXX" == "g++" ]; then sudo gem install coveralls-lcov; fi
+  - if [ "$CXX" == "g++" ]; then rvmsudo  gem install coveralls-lcov; fi
   - if [ "$CXX" == "g++" ]; then sudo apt-get install lcov; fi
   - if [ "$CXX" == "g++" ]; then wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.11.orig.tar.gz; fi
   - if [ "$CXX" == "g++" ]; then tar xf lcov_1.11.orig.tar.gz; fi
