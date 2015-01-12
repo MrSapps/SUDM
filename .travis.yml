@@ -4,7 +4,7 @@ env:
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
-   - secure: "nzovxhO7TMrOgidOqA4Ovfb2Dw2w/pvzGVyj2NWaVv/Ivm8q/eGgmz2KOBpandsh7PdScCmgs/BCPpd4L3AmMzCLu8zf2zy+UA6U4Idu01zfe91zwae1RchEjM1RfDfRNCCZhsfH3WgxPf8cS+UP8PEhwNXan3lyV/nPB/E6duM="
+   - secure: "lghlU1aUAqVgvg3FppIW3iNXJSGLRbOe1Ppow4USeyCQfzSRdZeGi59Nf+WKDl3ED4afN5m09vuCGtrmlRMXrbnCaL0PpL+iHjPbHHgGIhfpGsyiFfyYvnRAUefjF68IeNd7H9S+40RgM6zwg8LZ2bXcBCcB+onfTIBN1MOn6cA="
    - secure: "lbql5U+YxidgVE9xyyL78hhkYMI1TfVfl1JYsV8zLwhiEF7hvi2cKYzJEuQjzc4nlAzKXP2iBrCzy5aE4mh/0P7wnHMGuD4l/ixdAlz+QQedK0siw3G9lt8j7Fsn/IucRhFu0k8kwltQsHtq2+E5eCsAqJkwxNPX0xshuV2x6Mk="
 
 addons:
@@ -19,7 +19,6 @@ addons:
 
 compiler:
   - clang
-  - gcc
   
 before_install:
   - sudo add-apt-repository ppa:boost-latest/ppa -y
