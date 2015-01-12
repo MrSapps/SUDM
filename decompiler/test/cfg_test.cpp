@@ -668,9 +668,3 @@ TEST(CFG, DISABLED_testFunctionDetection) {
     delete c;
     delete engine;
 }
-
-int main(int argc, char** argv)
-{
-    ::testing::InitGoogleMock(&argc, argv);
-    return RUN_ALL_TESTS();
-}
