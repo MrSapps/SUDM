@@ -49,6 +49,9 @@ else()
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused-function  -Wunused-label  -Wunused-parameter")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused-value  -Wunused-variable  -Wvariadic-macros")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wvolatile-register-var  -Wwrite-strings")
+		
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0") # debug, no optimisation
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage") # enabling coverage
 	endif()
 endif()
 
