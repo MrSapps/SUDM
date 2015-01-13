@@ -59,7 +59,7 @@ static std::string GetVarName(uint32 bank, uint32 addr, bool isWrite)
     else if (bank == 1 || bank == 2 || bank == 3 || bank == 13 || bank == 15)
     {
         // TODO: Get the textual name of the var such as tifaLovePoints
-        return isWrite ? "game:variable_set(" : "game:variable_get(" + std::to_string(bank) + "_" + std::to_string(addr) + ")";
+        return isWrite ? "game:variable_set(" + std::to_string(bank) + "_" + std::to_string(addr) + ")" : "game:variable_get(" + std::to_string(bank) + "_" + std::to_string(addr) + ")";
     }
     else if (bank == 5)
     {
@@ -80,41 +80,41 @@ void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *
 {
     switch (_opcode)
     {
-    case eOpcodes::SETBYTE: // set byte
-    {
-        const uint32 srcBank = _params[1]->getUnsigned();
-        const uint32 srcAddrOrValue = _params[3]->getUnsigned();
-        auto s = GetVarName(srcBank, srcAddrOrValue, false);
+    case eOpcodes::SETBYTE:
+        {
+            const uint32 srcBank = _params[1]->getUnsigned();
+            const uint32 srcAddrOrValue = _params[3]->getUnsigned();
+            auto s = GetVarName(srcBank, srcAddrOrValue, false);
 
-        const uint32 dstBank = _params[0]->getUnsigned();
-        const uint32 dstAddr = _params[2]->getUnsigned();
-        auto d = GetVarName(dstBank, dstAddr, true);
+            const uint32 dstBank = _params[0]->getUnsigned();
+            const uint32 dstAddr = _params[2]->getUnsigned();
+            auto d = GetVarName(dstBank, dstAddr, true);
 
-        codeGen->addOutputLine(s + " = " + d + ";");
-    }
+            codeGen->addOutputLine(s + " = " + d + ";");
+        }
         break;
 
     case eOpcodes::MOD:
-    {
-        const uint32 srcBank = _params[1]->getUnsigned();
-        const uint32 srcAddrOrValue = 0;
-        auto s = GetVarName(srcBank, srcAddrOrValue, false);
+        {
+            const uint32 srcBank = _params[1]->getUnsigned();
+            const uint32 srcAddrOrValue = _params[2]->getUnsigned(); 
+            auto s = GetVarName(srcBank, srcAddrOrValue, false);
 
-        const uint32 dstBank = _params[0]->getUnsigned();
-        const uint32 dstAddr = _params[2]->getUnsigned();
-        auto d = GetVarName(dstBank, dstAddr, true);
+            const uint32 dstBank = _params[0]->getUnsigned(); 
+            const uint32 dstAddr = _params[3]->getUnsigned();
+            auto d = GetVarName(dstBank, dstAddr, true);
 
-        codeGen->addOutputLine(s + " = " + d + " % " + std::to_string(_params[3]->getUnsigned()) + ";");
-    }
+            codeGen->addOutputLine(s + " = " + s + " % " + d + ";");
+        }
         break;
 
     case eOpcodes::RANDOM:
-    {
-        const uint32 dstBank = _params[0]->getUnsigned();
-        const uint32 dstAddr = _params[1]->getUnsigned();
-        auto d = GetVarName(dstBank, dstAddr, true);
-        codeGen->addOutputLine(d + " = rand(); ");
-    }
+        {
+            const uint32 dstBank = _params[0]->getUnsigned();
+            const uint32 dstAddr = _params[1]->getUnsigned();
+            auto d = GetVarName(dstBank, dstAddr, true);
+            codeGen->addOutputLine(d + " = rand(); ");
+        }
         break;
 
     case eOpcodes::MINUS:
