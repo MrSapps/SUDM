@@ -9,6 +9,7 @@
 #include "control_flow.h"
 #include "util.h"
 #include "graph.h"
+#include "make_unique.h"
 
 #define GET(vertex) (boost::get(boost::vertex_name, g, vertex))
 
