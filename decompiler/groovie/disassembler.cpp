@@ -167,14 +167,15 @@ InstPtr GroovieDisassembler::createInstruction(byte opcode) {
 
 void GroovieDisassembler::readParams(InstPtr inst, const char *typeString) {
 	while (*typeString) {
-		inst->_params.push_back(readParameter(inst, *typeString));
+		inst->_params.push_back(readParameter(inst, boost::string_ref(typeString,1)));
 		typeString++;
 	}
 }
 
-ValuePtr GroovieDisassembler::readParameter(InstPtr inst, char type) {
+ValuePtr GroovieDisassembler::readParameter(InstPtr inst, boost::string_ref type) {
 	ValuePtr retval = NULL;
-	switch (type) {
+    assert(type.length() == 1);
+	switch (type.at(0)) {
 	case '1': // 8 bits
 		retval = new IntValue(mStream->ReadU8(), false);
 		_address++;
@@ -185,9 +186,9 @@ ValuePtr GroovieDisassembler::readParameter(InstPtr inst, char type) {
 		break;
 	case '3': // 8 or 16 bits
 		if (_firstBit)
-			retval = readParameter(inst, '1');
+			retval = readParameter(inst, boost::string_ref("1"));
 		else
-			retval = readParameter(inst, '2');
+			retval = readParameter(inst, boost::string_ref("2"));
 		break;
 	case '4': // 32 bits
 		retval = new IntValue(mStream->ReadU32(), false);

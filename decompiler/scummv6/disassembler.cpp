@@ -451,9 +451,10 @@ void Scumm::v6::Scummv6Disassembler::fixStackEffect(InstIterator &it, int popBef
 	(*it)->_stackChange -= (*it2)->_params[0]->getSigned() + 1;
 }
 
-ValuePtr Scumm::v6::Scummv6Disassembler::readParameter(InstPtr inst, char type) {
+ValuePtr Scumm::v6::Scummv6Disassembler::readParameter(InstPtr inst, boost::string_ref type) {
 	ValuePtr retval = NULL;
-	switch (type) {
+    assert(type.length() == 1);
+	switch (type.at(0)) {
 	case 'a':
 		retval = new RelAddressValue(inst->_address + 3, mStream->ReadS16());
 		_address += 2;

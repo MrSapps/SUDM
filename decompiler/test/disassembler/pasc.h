@@ -27,13 +27,13 @@
 class PasCDisassembler : public SimpleDisassembler {
 public:
 	PasCDisassembler(InstVec &insts);
-	void doDisassemble() throw(std::exception);
-	ValuePtr readParameter(InstPtr inst, char type);
+	virtual void doDisassemble() throw(std::exception) override;
+	virtual ValuePtr readParameter(InstPtr inst, boost::string_ref type) override;
 };
 
 class PasCFakeInstruction : public Instruction {
 public:
-	virtual void processInst(ValueStack&, Engine*, CodeGenerator*) {}
+	virtual void processInst(ValueStack&, Engine*, CodeGenerator*) override {}
 };
 
 #endif

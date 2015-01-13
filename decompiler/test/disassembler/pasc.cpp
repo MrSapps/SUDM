@@ -130,16 +130,18 @@ void PasCDisassembler::doDisassemble() throw(std::exception) {
 	END_OPCODES;
 }
 
-ValuePtr PasCDisassembler::readParameter(InstPtr inst, char type) {
-	ValuePtr retval = NULL;
-	switch (type) {
-	case 'a':
+ValuePtr PasCDisassembler::readParameter(InstPtr inst, boost::string_ref type)
+{
+    ValuePtr retval = NULL;
+    if (type == "a")
+    {
         retval = new AddressValue(mStream->ReadU32());
-		_address += 4;
-		break;
-	default: // Defer handling to parent implementation
-		retval = SimpleDisassembler::readParameter(inst, type);
-		break;
-	}
-	return retval;
+        _address += 4;
+    }
+    else
+    {
+        // Defer handling to parent implementation
+        retval = SimpleDisassembler::readParameter(inst, type);
+    }
+    return retval;
 }

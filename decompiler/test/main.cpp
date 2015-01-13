@@ -25,7 +25,7 @@ TEST(FF7Field, DisAsm)
     d.dumpDisassembly(std::cout);
     std::cout << std::endl;
 
-    ControlFlow *c = new ControlFlow(insts, &engine);
+    std::unique_ptr<ControlFlow> c = std::make_unique<ControlFlow>(insts, &engine);
     c->createGroups();
 
 

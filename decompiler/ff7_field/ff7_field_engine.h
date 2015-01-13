@@ -13,12 +13,12 @@ namespace FF7
         {
             setOutputStackEffect(false);
         }
-        Disassembler* getDisassembler(InstVec &insts);
-        CodeGenerator* getCodeGenerator(std::ostream &output);
-        void postCFG(InstVec &insts, Graph g);
-        bool detectMoreFuncs() const;
-        void getVariants(std::vector<std::string> &variants) const;
-        virtual bool usePureGrouping() const { return false; }
+        Disassembler* getDisassembler(InstVec &insts) override;
+        CodeGenerator* getCodeGenerator(std::ostream &output) override;
+        void postCFG(InstVec &insts, Graph g) override;
+        bool detectMoreFuncs() const override;
+        void getVariants(std::vector<std::string> &variants) const override;
+        virtual bool usePureGrouping() const override { return false; }
         std::vector<std::string> _textStrings; ///< Container for strings from the TEXT chunk.
     };
 
@@ -26,21 +26,21 @@ namespace FF7
     class FF7LoadInstruction : public LoadInstruction 
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
 
     class FF7StoreInstruction : public StoreInstruction
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
 
     class FF7StackInstruction : public StackInstruction 
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
     class FF7CondJumpInstruction : public CondJumpInstruction

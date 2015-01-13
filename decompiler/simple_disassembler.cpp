@@ -21,67 +21,108 @@
 
 #include "simple_disassembler.h"
 
-SimpleDisassembler::SimpleDisassembler(InstVec &insts) : Disassembler(insts) {
+SimpleDisassembler::SimpleDisassembler(InstVec &insts) 
+    : Disassembler(insts) 
+{
+
 }
 
-void SimpleDisassembler::readParams(InstPtr inst, const char *typeString) {
-	while (*typeString) {
-		inst->_params.push_back(readParameter(inst, *typeString));
-		typeString++;
-	}
+static inline unsigned int Nib1(unsigned int v)
+{
+    return (v & 0xF);
 }
 
-ValuePtr SimpleDisassembler::readParameter(InstPtr inst, char type) {
-	ValuePtr retval = NULL;
-	switch (type) {
-	case 'b': // signed byte
+static inline unsigned int Nib2(unsigned int v)
+{
+    return (v >> 4) & 0xF;
+}
+
+
+void SimpleDisassembler::readParams(InstPtr inst, const char *typeString)
+{
+    // Handle [] blocks as working on an individual element (i.e a BYTE,WORD etc)
+    // this syntax allows picking of nibbles and bit fields into their own parameters.
+
+    while (*typeString)
+    {
+        boost::string_ref typeStr = boost::string_ref(typeString, 1);
+        if (typeStr == "N") // Read nibbles 
+        {
+            const uint8 byte = mStream->ReadU8();
+
+            inst->_params.push_back(new IntValue(Nib1(byte), false));
+            inst->_params.push_back(new IntValue(Nib2(byte), false));
+            _address++;
+        }
+        else
+        {
+            inst->_params.push_back(readParameter(inst, typeStr));
+        }
+        typeString++;
+    }
+}
+
+ValuePtr SimpleDisassembler::readParameter(InstPtr inst, boost::string_ref type) {
+    ValuePtr retval = NULL;
+
+    if (type == "b") // signed byte
+    {
         retval = new IntValue(mStream->ReadS8(), true);
         _address++;
-		break;
-	case 'B': // unsigned byte
+    }
+    else if (type == "B") // unsigned byte
+    {
         retval = new IntValue((uint32)mStream->ReadU8(), false);
-		_address++;
-		break;
-	case 's': // 16-bit signed integer (short), little-endian
+        _address++;
+    }
+    else if (type == "s") // 16-bit signed integer (short), little-endian
+    {
         retval = new IntValue(mStream->ReadS16(), true);
-		_address += 2;
-		break;
-	case 'S': // 16-bit signed integer (short), big-endian
+        _address += 2;
+    }
+    else if (type == "S") // 16-bit signed integer (short), big-endian
+    {
         abort();
         retval = new IntValue(mStream->ReadS16BE(), true);
-		_address += 2;
-		break;
-	case 'w': // 16-bit unsigned integer (word), little-endian
+        _address += 2;
+    }
+    else if (type == "w") // 16-bit unsigned integer (word), little-endian
+    {
         retval = new IntValue((uint32)mStream->ReadU16(), false);
-		_address += 2;
-		break;
-	case 'W': // 16-bit unsigned integer (word), big-endian
+        _address += 2;
+    }
+    else if (type == "W") // 16-bit unsigned integer (word), big-endian
+    {
         abort();
         retval = new IntValue((uint32)mStream->ReadU16BE(), false);
-		_address += 2;
-		break;
-	case 'i': // 32-bit signed integer (int), little-endian
+        _address += 2;
+    }
+    else if (type == "i") // 32-bit signed integer (int), little-endian
+    {
         retval = new IntValue(mStream->ReadS32(), true);
-		_address += 4;
-		break;
-	case 'I': // 32-bit signed integer (int), big-endian
+        _address += 4;
+    }
+    else if (type == "I") // 32-bit signed integer (int), big-endian
+    {
         abort();
         retval = new IntValue(mStream->ReadS32BE(), true);
-		_address += 4;
-		break;
-	case 'd': // 32-bit unsigned integer (dword), little-endian
+        _address += 4;
+    }
+    else if (type == "d") // 32-bit unsigned integer (dword), little-endian
+    {
         retval = new IntValue(mStream->ReadU32(), false);
-		_address += 4;
-		break;
-	case 'D': // 32-bit unsigned integer (dword), big-endian
+        _address += 4;
+    }
+    else if (type == "D") // 32-bit unsigned integer (dword), big-endian
+    {
         abort();
         retval = new IntValue(mStream->ReadU32BE(), false);
-		_address += 4;
-		break;
-
-    default:
-        std::cerr << "unknown parameter string" << std::endl;
-        break;
-	}
-	return retval;
+        _address += 4;
+    }
+    else
+    {
+        throw UnknownOpcodeParameterException(type);
+    }
+    return retval;
 }
+

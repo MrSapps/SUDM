@@ -23,13 +23,39 @@
 #define DEC_UNKNOWN_OPCODE_H
 
 #include <exception>
-
+#include <string>
 #include "common/scummsys.h"
+#include <boost/utility/string_ref.hpp>
+
+class InternalDecompilerError : public std::exception
+{
+public:
+
+};
+
+class UnknownOpcodeParameterException : public InternalDecompilerError
+{
+public:
+    UnknownOpcodeParameterException(boost::string_ref param)
+    {
+        mWhat = "unknown opcode parameter string: " + param.to_string();
+    }
+
+    virtual const char *what() const throw() override
+    {
+        return mWhat.c_str();
+    }
+
+private:
+    std::string mWhat;
+};
+
 
 /**
  * Exception representing an unknown opcode.
  */
-class UnknownOpcodeException : public std::exception {
+class UnknownOpcodeException : public InternalDecompilerError
+{
 	uint32 _address; ///< Address where the invalid opcode was found.
 	uint32 _opcode;   ///< The value of the invalid opcode.
 	mutable char _buf[255];  ///< Buffer for formatting the error message.

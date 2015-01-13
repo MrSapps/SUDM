@@ -339,12 +339,23 @@ class Engine;
 struct GraphProperties {
 private:
 	Engine *_engine; ///< Pointer to the engine containing function information for the script.
-	const Graph &_g; ///< Const reference to the graph for the script.
+	const Graph* _g; ///<  Pointer to the to the graph for the script.
 
 public:
-    // TODO: This is copied by the write graphiz method, make copying explicit (since we don't own _engine)
-    //GraphProperties(const GraphProperties&) = delete;
-    //GraphProperties& operator = (const GraphProperties&) = delete;
+    GraphProperties(const GraphProperties& rhs)
+    {
+        *this = rhs;
+    }
+
+    GraphProperties& operator = (const GraphProperties& rhs)
+    {
+        if (this != &rhs)
+        {
+            _engine = rhs._engine;
+            _g = rhs._g;
+        }
+        return *this;
+    }
 
 	/**
 	 * Constructor for GraphProperties.
@@ -352,7 +363,7 @@ public:
 	 * @param engine Pointer to the engine containing function information for the script.
 	 * @param g Const reference to the graph for the script.
 	 */
-	GraphProperties(Engine *engine, const Graph &g) : _engine(engine), _g(g) {
+	GraphProperties(Engine *engine, const Graph &g) : _engine(engine), _g(&g) {
 	}
 
 	/**

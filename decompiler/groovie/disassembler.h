@@ -23,6 +23,7 @@
 #define GROOVIE_DISASSEMBLER_H
 
 #include "decompiler/decompiler_disassembler.h"
+#include <boost/utility/string_ref.hpp>
 
 namespace Groovie {
 
@@ -42,7 +43,7 @@ protected:
 	InstPtr readInstruction();
 	InstPtr createInstruction(byte opcode);
 	void readParams(InstPtr inst, const char *typeString);
-	ValuePtr readParameter(InstPtr inst, char type);
+	ValuePtr readParameter(InstPtr inst, boost::string_ref type);
 
 	ValuePtr readParameterIndexed(bool allow7C, bool limitVal, bool limitVar);
 	ValuePtr readParameterArray();

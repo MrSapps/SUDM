@@ -25,7 +25,7 @@
 void GraphProperties::operator()(std::ostream& out) const {
 	out << "node [shape=record]" << std::endl;
 	for (FuncMap::iterator fn = _engine->_functions.begin(); fn != _engine->_functions.end(); ++fn) {
-		int index = (boost::get(boost::vertex_index, _g, fn->second._v));
+		int index = (boost::get(boost::vertex_index, *_g, fn->second._v));
 		out << "XXX" << index << " [shape=none, label=\"\", height=0]" << std::endl;
 		out << "XXX" << index << " -> " << index << std::endl;
 	}

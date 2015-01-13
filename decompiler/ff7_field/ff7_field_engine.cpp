@@ -8,16 +8,6 @@
 
 #define GET(vertex) (boost::get(boost::vertex_name, g, vertex))
 
-unsigned int Nib1(unsigned int v)
-{
-    return (v & 0xF);
-}
-
-unsigned int Nib2(unsigned int v)
-{
-    return (v >> 4) & 0xF;
-}
-
 Disassembler* FF7::FF7Engine::getDisassembler(InstVec &insts)
 {
     return new FF7Disassembler(this, insts);
@@ -59,17 +49,72 @@ void FF7::FF7LoadInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
 
 }
 
+static std::string GetVarName(uint32 bank, uint32 addr, bool isWrite)
+{
+    if (bank == 0)
+    {
+        // Just a number
+        return std::to_string(addr);
+    }
+    else if (bank == 1 || bank == 2 || bank == 3 || bank == 13 || bank == 15)
+    {
+        // TODO: Get the textual name of the var such as tifaLovePoints
+        return isWrite ? "game:variable_set(" : "game:variable_get(" + std::to_string(bank) + "_" + std::to_string(addr) + ")";
+    }
+    else if (bank == 5)
+    {
+        return "temp5_" + std::to_string(addr);
+    }
+    else if (bank == 6)
+    {
+        return "temp6_" + std::to_string(addr);
+    }
+    else
+    {
+        throw InternalDecompilerError();
+    }
+
+}
+
 void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *codeGen)
 {
     switch (_opcode)
     {
     case eOpcodes::SETBYTE: // set byte
-        codeGen->addOutputLine("var_"
-            + std::to_string(_params[0]->getUnsigned())
-            + "_" +
-            std::to_string(_params[1]->getUnsigned())
-            + "="
-            + std::to_string(_params[2]->getUnsigned()) + ";");
+    {
+        const uint32 srcBank = _params[1]->getUnsigned();
+        const uint32 srcAddrOrValue = _params[3]->getUnsigned();
+        auto s = GetVarName(srcBank, srcAddrOrValue, false);
+
+        const uint32 dstBank = _params[0]->getUnsigned();
+        const uint32 dstAddr = _params[2]->getUnsigned();
+        auto d = GetVarName(dstBank, dstAddr, true);
+
+        codeGen->addOutputLine(s + " = " + d + ";");
+    }
+        break;
+
+    case eOpcodes::MOD:
+    {
+        const uint32 srcBank = _params[1]->getUnsigned();
+        const uint32 srcAddrOrValue = 0;
+        auto s = GetVarName(srcBank, srcAddrOrValue, false);
+
+        const uint32 dstBank = _params[0]->getUnsigned();
+        const uint32 dstAddr = _params[2]->getUnsigned();
+        auto d = GetVarName(dstBank, dstAddr, true);
+
+        codeGen->addOutputLine(s + " = " + d + " % " + std::to_string(_params[3]->getUnsigned()) + ";");
+    }
+        break;
+
+    case eOpcodes::RANDOM:
+    {
+        const uint32 dstBank = _params[0]->getUnsigned();
+        const uint32 dstAddr = _params[1]->getUnsigned();
+        auto d = GetVarName(dstBank, dstAddr, true);
+        codeGen->addOutputLine(d + " = rand(); ");
+    }
         break;
 
     case eOpcodes::MINUS:
@@ -102,7 +147,7 @@ void FF7::FF7StackInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
 void FF7::FF7CondJumpInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator*)
 {
     std::string op;
-    switch (_params[3]->getUnsigned())
+    switch (_params[4]->getUnsigned())
     {
     case 0:
         op = "==";
@@ -154,8 +199,8 @@ void FF7::FF7CondJumpInstruction::processInst(ValueStack &stack, Engine*, CodeGe
 
     ValuePtr v = new BinaryOpValue(
         new VarValue("var_" +
-        std::to_string(_params[0]->getUnsigned()) + "_" + std::to_string(_params[1]->getUnsigned())),
-        new VarValue(_params[2]->getString()),
+        std::to_string(_params[0]->getUnsigned()) + "_" + std::to_string(_params[1]->getUnsigned()) + "_" + std::to_string(_params[2]->getUnsigned())),
+        new VarValue(_params[3]->getString()),
         op);
 
     stack.push(v->negate());
@@ -163,7 +208,7 @@ void FF7::FF7CondJumpInstruction::processInst(ValueStack &stack, Engine*, CodeGe
 
 uint32 FF7::FF7CondJumpInstruction::getDestAddress() const
 {
-    return _address + _params[4]->getUnsigned() + 5;
+    return _address + _params[5]->getUnsigned() + 5;
 }
 
 std::ostream& FF7::FF7CondJumpInstruction::print(std::ostream &output) const
@@ -247,15 +292,11 @@ void FF7::FF7KernelCallInstruction::processInst(ValueStack&, Engine*, CodeGenera
         break;
 
     case eOpcodes::BGOFF:
-        codeGen->writeFunctionCall("backgroundOff", "", _params);
+        codeGen->writeFunctionCall("backgroundOff", "nnnn", _params);
         break;
 
     case eOpcodes::BGON:
-        codeGen->writeFunctionCall("backgroundOn", "", _params);
-        break;
-
-    case eOpcodes::MOD:
-        codeGen->writeFunctionCall("Mod", "nn", _params); // TODO: Shouldn't be a kernel call
+        codeGen->writeFunctionCall("backgroundOn", "nnnn", _params);
         break;
 
     case eOpcodes::INC:
@@ -264,10 +305,6 @@ void FF7::FF7KernelCallInstruction::processInst(ValueStack&, Engine*, CodeGenera
 
     case eOpcodes::DEC:
         codeGen->writeFunctionCall("Dec", "nn", _params); // TODO: Shouldn't be a kernel call
-        break;
-
-    case eOpcodes::RANDOM:
-        codeGen->writeFunctionCall("Rand", "nn", _params);
         break;
 
     case eOpcodes::opCodeCHAR:

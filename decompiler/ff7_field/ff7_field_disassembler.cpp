@@ -170,8 +170,8 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
         {
             OPCODE(eOpcodes::JMPF, "JMPF", FF7UncondJumpInstruction, 0, "B");
             OPCODE(eOpcodes::JMPB, "JMPB", FF7UncondJumpInstruction, 0, "B");
-            OPCODE(eOpcodes::IFSW, "IFSW", FF7CondJumpInstruction, 0, "BwsBB");
-            OPCODE(eOpcodes::IFUB, "IFUB", FF7CondJumpInstruction, 0, "BBBBB");
+            OPCODE(eOpcodes::IFSW, "IFSW", FF7CondJumpInstruction, 0, "NwsBB");
+            OPCODE(eOpcodes::IFUB, "IFUB", FF7CondJumpInstruction, 0, "NBBBB");
             OPCODE(eOpcodes::RET, "RET", FF7KernelCallInstruction, 0, "");
             /*
             OPCODE_BASE(eOpcodes::KAWAI)
@@ -208,20 +208,20 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(0x33, "UC", FF7KernelCallInstruction, 0, "B");
             OPCODE(0x2C, "BGPDH", FF7KernelCallInstruction, 0, "BBw");
             OPCODE(0xE4, "BGCLR", FF7KernelCallInstruction, 0, "BB");
-            OPCODE(0xE0, "BGON", FF7KernelCallInstruction, 0, "BBB");
-            OPCODE(0xE1, "BGOFF", FF7KernelCallInstruction, 0, "BBB");
+            OPCODE(0xE0, "BGON", FF7KernelCallInstruction, 0, "NBB");
+            OPCODE(0xE1, "BGOFF", FF7KernelCallInstruction, 0, "NBB");
             OPCODE(0xBB, "CANIM2", FF7KernelCallInstruction, 0, "BBBB");
             OPCODE(0xAD, "CMOVE", FF7KernelCallInstruction, 0, "Bss");
             OPCODE(0x25, "NFADE", FF7KernelCallInstruction, 0, "BBBBBBBB");
             OPCODE(0x2E, "WCLS", FF7KernelCallInstruction, 0, "B");
             OPCODE(0xEC, "LDPLS", FF7KernelCallInstruction, 0, "BBBB");
-            OPCODE(0x99, "RANDOM", FF7KernelCallInstruction, 0, "BB");
-            OPCODE(0x8D, "MOD", FF7KernelCallInstruction, 0, "BBB");
+            OPCODE(eOpcodes::RANDOM, "RANDOM", FF7StoreInstruction, 0, "BB");
+            OPCODE(eOpcodes::MOD, "MOD", FF7StoreInstruction, 0, "NBB");
             OPCODE(0x08, "JOIN", FF7KernelCallInstruction, 0, "B");
             OPCODE(0x6C, "FADEW", FF7KernelCallInstruction, 0, "");
             OPCODE(0x0b, "SPTYE", FF7KernelCallInstruction, 0, "BBBBB");
             OPCODE(0x0a, "GTPYE", FF7KernelCallInstruction, 0, "BBBBB");
-            OPCODE(0x81, "SETWORD", FF7KernelCallInstruction, 0, "BBs");
+            OPCODE(0x81, "SETWORD", FF7KernelCallInstruction, 0, "NBs");
             OPCODE(0x02, "REQSW", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0x03, "REQEW", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0x04, "PREQ", FF7KernelCallInstruction, 0, "BB");
@@ -256,7 +256,7 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(0xE6, "LDPAL", FF7KernelCallInstruction, 0, "BBBB");
             OPCODE(0x87, "MINUS", FF7StoreInstruction, 0, "BBB");
             OPCODE(0x85, "PLUS", FF7StoreInstruction, 0, "BBB");
-            OPCODE(0x80, "SETBYTE", FF7StoreInstruction, 0, "BBB");
+            OPCODE(0x80, "SETBYTE", FF7StoreInstruction, 0, "NBB");
             OPCODE(0x72, "BTLMD", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0xF0, "MUSIC", FF7KernelCallInstruction, 0, "B");
             OPCODE(0x43, "MPNAM", FF7KernelCallInstruction, 0, "B");
