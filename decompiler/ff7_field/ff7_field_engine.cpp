@@ -80,6 +80,7 @@ void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *
 {
     switch (_opcode)
     {
+    case eOpcodes::SETWORD:
     case eOpcodes::SETBYTE:
         {
             const uint32 srcBank = _params[1]->getUnsigned();
@@ -90,21 +91,39 @@ void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *
             const uint32 dstAddr = _params[2]->getUnsigned();
             auto d = GetVarName(dstBank, dstAddr, true);
 
-            codeGen->addOutputLine(s + " = " + d + ";");
+            codeGen->addOutputLine(d + " = " + s + ";");
         }
         break;
 
     case eOpcodes::MOD:
         {
-            const uint32 srcBank = _params[1]->getUnsigned();
+            const uint32 srcBank = _params[0]->getUnsigned();
             const uint32 srcAddrOrValue = _params[2]->getUnsigned(); 
             auto s = GetVarName(srcBank, srcAddrOrValue, false);
 
-            const uint32 dstBank = _params[0]->getUnsigned(); 
+            const uint32 dstBank = _params[1]->getUnsigned(); 
             const uint32 dstAddr = _params[3]->getUnsigned();
             auto d = GetVarName(dstBank, dstAddr, true);
 
             codeGen->addOutputLine(s + " = " + s + " % " + d + ";");
+        }
+        break;
+
+    case eOpcodes::INC:
+        {
+            const uint32 srcBank = _params[0]->getUnsigned();
+            const uint32 srcAddrOrValue = _params[1]->getUnsigned();
+            auto s = GetVarName(srcBank, srcAddrOrValue, false);
+            codeGen->addOutputLine(s + "++;");
+        }
+        break;
+
+    case eOpcodes::DEC:
+        {
+        const uint32 srcBank = _params[0]->getUnsigned();
+        const uint32 srcAddrOrValue = _params[1]->getUnsigned();
+        auto s = GetVarName(srcBank, srcAddrOrValue, false);
+        codeGen->addOutputLine(s + "--;");
         }
         break;
 
@@ -118,19 +137,22 @@ void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *
         break;
 
     case eOpcodes::MINUS:
-        codeGen->addOutputLine(
-            "var_" +
-            _params[0]->getString() + "_" +
-            _params[1]->getString() + " -= " +
-            _params[2]->getString() );
-        break;
-
     case eOpcodes::PLUS:
+    {
+        const uint32 srcBank = _params[0]->getUnsigned();
+        const uint32 srcAddrOrValue = _params[2]->getUnsigned();
+        auto s = GetVarName(srcBank, srcAddrOrValue, false);
+
+        const uint32 dstBank = _params[1]->getUnsigned();
+        const uint32 dstAddr = _params[3]->getUnsigned();
+        auto d = GetVarName(dstBank, dstAddr, true);
+
+
         codeGen->addOutputLine(
-        "var_" +
-            _params[0]->getString() + "_" +
-            _params[1]->getString() + " += " +
-            _params[2]->getString() );
+            s +
+            (_opcode == eOpcodes::MINUS ? " -= " : " += ") +
+            d);
+    }
         break;
 
     default:
@@ -197,11 +219,18 @@ void FF7::FF7CondJumpInstruction::processInst(ValueStack &stack, Engine*, CodeGe
         throw std::runtime_error("unknown op");
     }
 
+    const uint32 srcBank = _params[0]->getUnsigned();
+    const uint32 srcAddrOrValue = _params[2]->getUnsigned();
+    auto s = GetVarName(srcBank, srcAddrOrValue, false);
+
+    const uint32 dstBank = _params[1]->getUnsigned();
+    const uint32 dstAddrOrValue = _params[3]->getUnsigned();
+    auto d = GetVarName(dstBank, dstAddrOrValue, false);
+
+
     ValuePtr v = new BinaryOpValue(
-        new VarValue("var_" +
-        std::to_string(_params[0]->getUnsigned()) + "_" + std::to_string(_params[1]->getUnsigned()) + "_" + std::to_string(_params[2]->getUnsigned())),
-        new VarValue(_params[3]->getString()),
-        op);
+        new VarValue(s),
+        new VarValue(d), op);
 
     stack.push(v->negate());
 }
@@ -260,7 +289,7 @@ void FF7::FF7KernelCallInstruction::processInst(ValueStack&, Engine*, CodeGenera
     switch (_opcode)
     {
     case eOpcodes::RET:
-        codeGen->writeFunctionCall("return", "", _params);
+        codeGen->addOutputLine("return;");
         break;
 
     case eOpcodes::WAIT:
@@ -292,19 +321,33 @@ void FF7::FF7KernelCallInstruction::processInst(ValueStack&, Engine*, CodeGenera
         break;
 
     case eOpcodes::BGOFF:
-        codeGen->writeFunctionCall("backgroundOff", "nnnn", _params);
+    {
+        const uint32 srcBank = _params[0]->getUnsigned();
+        const uint32 srcAddrOrValue = _params[2]->getUnsigned();
+        auto s = GetVarName(srcBank, srcAddrOrValue, false);
+
+        const uint32 dstBank = _params[1]->getUnsigned();
+        const uint32 dstAddrOrValue = _params[3]->getUnsigned();
+        auto d = GetVarName(dstBank, dstAddrOrValue, false);
+
+        std::string line = "backgroundOff(" + d + ", " + s + ");";
+        codeGen->addOutputLine(line);
+    }
         break;
 
     case eOpcodes::BGON:
-        codeGen->writeFunctionCall("backgroundOn", "nnnn", _params);
-        break;
+    {
+        const uint32 srcBank = _params[0]->getUnsigned();
+        const uint32 srcAddrOrValue = _params[2]->getUnsigned();
+        auto s = GetVarName(srcBank, srcAddrOrValue, false);
 
-    case eOpcodes::INC:
-        codeGen->writeFunctionCall("Inc", "nn", _params); // TODO: Shouldn't be a kernel call
-        break;
-
-    case eOpcodes::DEC:
-        codeGen->writeFunctionCall("Dec", "nn", _params); // TODO: Shouldn't be a kernel call
+        const uint32 dstBank = _params[1]->getUnsigned();
+        const uint32 dstAddrOrValue = _params[3]->getUnsigned();
+        auto d = GetVarName(dstBank, dstAddrOrValue, false);
+        
+        std::string line = "backgroundOn(" + d + ", " + s + ");";
+        codeGen->addOutputLine(line);
+    }
         break;
 
     case eOpcodes::opCodeCHAR:
@@ -337,10 +380,6 @@ void FF7::FF7KernelCallInstruction::processInst(ValueStack&, Engine*, CodeGenera
 
     case eOpcodes::MOVE:
         codeGen->writeFunctionCall("move", "nnn", _params);
-        break;
-
-    case eOpcodes::SETWORD:
-        codeGen->writeFunctionCall("setWord", "nnn", _params);
         break;
 
     case eOpcodes::ANIME1:

@@ -27,12 +27,12 @@ SimpleDisassembler::SimpleDisassembler(InstVec &insts)
 
 }
 
-static inline unsigned int Nib1(unsigned int v)
+static inline unsigned int Nib2(unsigned int v)
 {
     return (v & 0xF);
 }
 
-static inline unsigned int Nib2(unsigned int v)
+static inline unsigned int Nib1(unsigned int v)
 {
     return (v >> 4) & 0xF;
 }
