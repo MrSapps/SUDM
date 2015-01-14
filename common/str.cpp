@@ -185,12 +185,12 @@ void String::insertChar(char c, uint32 p) {
 
 void String::toLowercase() {
     for (auto i = 0u; i < _str.size(); ++i)
-		_str[i] = tolower(_str[i]);
+		_str[i] = static_cast<char>(tolower(_str[i]));
 }
 
 void String::toUppercase() {
 	for (auto i = 0u; i < _str.size(); ++i)
-		_str[i] = toupper(_str[i]);
+		_str[i] = static_cast<char>(toupper(_str[i]));
 }
 
 bool String::operator ==(const String &x) const {

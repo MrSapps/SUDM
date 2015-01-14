@@ -84,6 +84,36 @@ private:
 	 * Sets up function data for Kyra2 functions.
 	 */
 	void setupKyra2Funcs();
+
+    template<class type>
+    void ADD_OPCODE(int16& opcode, uint16& address, int16& parameter, std::string name, int16 stackChange, bool hasParam, bool isSigned, bool isAddress, std::string codeGenData = "")
+    {
+        _insts.push_back(new type());
+        _insts.back()->_opcode = opcode;
+        _insts.back()->_address = address;
+        _insts.back()->_stackChange = stackChange;
+        _insts.back()->_name = name;
+        _insts.back()->_codeGenData = codeGenData;
+
+        if (hasParam)
+        {
+            ValuePtr p;
+            if (isAddress)
+            {
+                p = new AddressValue(parameter);
+            }
+            else if (isSigned)
+            {
+                p = new IntValue(parameter, true);
+            }
+            else
+            {
+                p = new IntValue((uint32)parameter, false);
+            }
+            _insts.back()->_params.push_back(p);
+        }
+    }
+
 public:
 	/**
 	 * Constructor for Kyra2Disassembler.
