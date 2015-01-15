@@ -49,7 +49,7 @@ void FF7::FF7LoadInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
 
 }
 
-static std::string GetVarName(uint32 bank, uint32 addr, bool isWrite)
+static std::string GetVarName(uint32 bank, uint32 addr)
 {
     if (bank == 0)
     {
@@ -59,7 +59,7 @@ static std::string GetVarName(uint32 bank, uint32 addr, bool isWrite)
     else if (bank == 1 || bank == 2 || bank == 3 || bank == 13 || bank == 15)
     {
         // TODO: Get the textual name of the var such as tifaLovePoints
-        return isWrite ? "game:variable_set(" + std::to_string(bank) + "_" + std::to_string(addr) + ")" : "game:variable_get(" + std::to_string(bank) + "_" + std::to_string(addr) + ")";
+        return std::to_string(bank) + "_" + std::to_string(addr);
     }
     else if (bank == 5)
     {
@@ -85,11 +85,11 @@ void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *
         {
             const uint32 srcBank = _params[1]->getUnsigned();
             const uint32 srcAddrOrValue = _params[3]->getUnsigned();
-            auto s = GetVarName(srcBank, srcAddrOrValue, false);
+            auto s = GetVarName(srcBank, srcAddrOrValue);
 
             const uint32 dstBank = _params[0]->getUnsigned();
             const uint32 dstAddr = _params[2]->getUnsigned();
-            auto d = GetVarName(dstBank, dstAddr, true);
+            auto d = GetVarName(dstBank, dstAddr);
 
             codeGen->addOutputLine(d + " = " + s + ";");
         }
@@ -99,11 +99,11 @@ void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *
         {
             const uint32 srcBank = _params[0]->getUnsigned();
             const uint32 srcAddrOrValue = _params[2]->getUnsigned(); 
-            auto s = GetVarName(srcBank, srcAddrOrValue, false);
+            auto s = GetVarName(srcBank, srcAddrOrValue);
 
             const uint32 dstBank = _params[1]->getUnsigned(); 
             const uint32 dstAddr = _params[3]->getUnsigned();
-            auto d = GetVarName(dstBank, dstAddr, true);
+            auto d = GetVarName(dstBank, dstAddr);
 
             codeGen->addOutputLine(s + " = " + s + " % " + d + ";");
         }
@@ -113,7 +113,7 @@ void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *
         {
             const uint32 srcBank = _params[0]->getUnsigned();
             const uint32 srcAddrOrValue = _params[1]->getUnsigned();
-            auto s = GetVarName(srcBank, srcAddrOrValue, false);
+            auto s = GetVarName(srcBank, srcAddrOrValue);
             codeGen->addOutputLine(s + "++;");
         }
         break;
@@ -122,7 +122,7 @@ void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *
         {
         const uint32 srcBank = _params[0]->getUnsigned();
         const uint32 srcAddrOrValue = _params[1]->getUnsigned();
-        auto s = GetVarName(srcBank, srcAddrOrValue, false);
+        auto s = GetVarName(srcBank, srcAddrOrValue);
         codeGen->addOutputLine(s + "--;");
         }
         break;
@@ -131,7 +131,7 @@ void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *
         {
             const uint32 dstBank = _params[0]->getUnsigned();
             const uint32 dstAddr = _params[1]->getUnsigned();
-            auto d = GetVarName(dstBank, dstAddr, true);
+            auto d = GetVarName(dstBank, dstAddr);
             codeGen->addOutputLine(d + " = rand(); ");
         }
         break;
@@ -141,11 +141,11 @@ void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *
     {
         const uint32 srcBank = _params[0]->getUnsigned();
         const uint32 srcAddrOrValue = _params[2]->getUnsigned();
-        auto s = GetVarName(srcBank, srcAddrOrValue, false);
+        auto s = GetVarName(srcBank, srcAddrOrValue);
 
         const uint32 dstBank = _params[1]->getUnsigned();
         const uint32 dstAddr = _params[3]->getUnsigned();
-        auto d = GetVarName(dstBank, dstAddr, true);
+        auto d = GetVarName(dstBank, dstAddr);
 
 
         codeGen->addOutputLine(
@@ -221,11 +221,11 @@ void FF7::FF7CondJumpInstruction::processInst(ValueStack &stack, Engine*, CodeGe
 
     const uint32 srcBank = _params[0]->getUnsigned();
     const uint32 srcAddrOrValue = _params[2]->getUnsigned();
-    auto s = GetVarName(srcBank, srcAddrOrValue, false);
+    auto s = GetVarName(srcBank, srcAddrOrValue);
 
     const uint32 dstBank = _params[1]->getUnsigned();
     const uint32 dstAddrOrValue = _params[3]->getUnsigned();
-    auto d = GetVarName(dstBank, dstAddrOrValue, false);
+    auto d = GetVarName(dstBank, dstAddrOrValue);
 
 
     ValuePtr v = new BinaryOpValue(
@@ -355,11 +355,11 @@ void FF7::FF7KernelCallInstruction::processInst(ValueStack&, Engine*, CodeGenera
     {
         const uint32 srcBank = _params[0]->getUnsigned();
         const uint32 srcAddrOrValue = _params[2]->getUnsigned();
-        auto s = GetVarName(srcBank, srcAddrOrValue, false);
+        auto s = GetVarName(srcBank, srcAddrOrValue);
 
         const uint32 dstBank = _params[1]->getUnsigned();
         const uint32 dstAddrOrValue = _params[3]->getUnsigned();
-        auto d = GetVarName(dstBank, dstAddrOrValue, false);
+        auto d = GetVarName(dstBank, dstAddrOrValue);
 
         std::string line = "backgroundOff(" + d + ", " + s + ");";
         codeGen->addOutputLine(line);
@@ -370,11 +370,11 @@ void FF7::FF7KernelCallInstruction::processInst(ValueStack&, Engine*, CodeGenera
     {
         const uint32 srcBank = _params[0]->getUnsigned();
         const uint32 srcAddrOrValue = _params[2]->getUnsigned();
-        auto s = GetVarName(srcBank, srcAddrOrValue, false);
+        auto s = GetVarName(srcBank, srcAddrOrValue);
 
         const uint32 dstBank = _params[1]->getUnsigned();
         const uint32 dstAddrOrValue = _params[3]->getUnsigned();
-        auto d = GetVarName(dstBank, dstAddrOrValue, false);
+        auto d = GetVarName(dstBank, dstAddrOrValue);
         
         std::string line = "backgroundOn(" + d + ", " + s + ");";
         codeGen->addOutputLine(line);
@@ -454,7 +454,7 @@ void FF7::FF7KernelCallInstruction::processInst(ValueStack&, Engine*, CodeGenera
 
         const uint32 dstBank = _params[0]->getUnsigned();
         const uint32 dstAddrOrValue = _params[2]->getUnsigned();
-        auto d = GetVarName(dstBank, dstAddrOrValue, false);
+        auto d = GetVarName(dstBank, dstAddrOrValue);
 
         std::string line = "getEntityTriangleId(" + d + ", " + std::to_string(_params[1]->getUnsigned()) + ");";
         codeGen->addOutputLine(line);
