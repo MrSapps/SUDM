@@ -58,7 +58,7 @@ std::unique_ptr<Function> FF7::FF7Disassembler::StartFunction(size_t entityNumbe
     func->_retVal = false;
     func->_args = 0;
     func->_name = "script_" + std::string(mHeader.mFieldEntityNames[entityNumber].data()) + "_" + std::to_string(entityNumber) + "_" + std::to_string(scriptIndex);
-    func->_startIt = _insts.begin(); // TODO: Will become invalid, and this is wrong
+    func->_startIt = _insts.begin(); // TODO: Will become invalid, and this is wrong - works at the moment probably because the vector has reversed enough memory to avoid a realloc
     return func;
 }
 

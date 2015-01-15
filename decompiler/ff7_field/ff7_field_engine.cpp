@@ -161,15 +161,11 @@ void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *
     }
 }
 
-void FF7::FF7StackInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
-{
-
-}
-
 void FF7::FF7CondJumpInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator*)
 {
     std::string op;
-    switch (_params[4]->getUnsigned())
+    uint32 type = _params[4]->getUnsigned();
+    switch (type)
     {
     case 0:
         op = "==";
@@ -216,7 +212,7 @@ void FF7::FF7CondJumpInstruction::processInst(ValueStack &stack, Engine*, CodeGe
         break;
 
     default:
-        throw std::runtime_error("unknown op");
+        throw UnknownConditionalOperatorException(_address, type);
     }
 
     const uint32 srcBank = _params[0]->getUnsigned();

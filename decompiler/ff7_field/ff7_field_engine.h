@@ -36,13 +36,6 @@ namespace FF7
         virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
-
-    class FF7StackInstruction : public StackInstruction 
-    {
-    public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
-    };
-
     class FF7CondJumpInstruction : public CondJumpInstruction
     {
     public:

@@ -50,6 +50,23 @@ private:
     std::string mWhat;
 };
 
+class UnknownConditionalOperatorException : public InternalDecompilerError
+{
+public:
+    UnknownConditionalOperatorException(uint32 address, uint32 op)
+    {
+        mWhat = "unknown conditional operator: " + std::to_string(op) + " at address " + std::to_string(address);
+    }
+
+    virtual const char *what() const throw() override
+    {
+        return mWhat.c_str();
+    }
+
+private:
+    std::string mWhat;
+};
+
 
 /**
  * Exception representing an unknown opcode.

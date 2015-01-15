@@ -31,144 +31,185 @@
 #define GET(vertex) (boost::get(boost::vertex_name, _g, vertex))
 #define GET_EDGE(edge) (boost::get(boost::edge_attribute, _g, edge))
 
-std::string CodeGenerator::constructFuncSignature(const Function &) {
-	return "";
+std::string CodeGenerator::constructFuncSignature(const Function &)
+{
+    return "";
 }
 
-std::string CodeGenerator::indentString(std::string s) {
-	std::stringstream stream;
-	stream << std::string(kIndentAmount * _indentLevel, ' ') << s;
-	return stream.str();
+std::string CodeGenerator::indentString(std::string s)
+{
+    std::stringstream stream;
+    stream << std::string(kIndentAmount * _indentLevel, ' ') << s;
+    return stream.str();
 }
 
-CodeGenerator::CodeGenerator(Engine *engine, std::ostream &output, ArgOrder binOrder, ArgOrder callOrder) : _output(output), _binOrder(binOrder), _callOrder(callOrder) {
-	_engine = engine;
-	_indentLevel = 0;
+CodeGenerator::CodeGenerator(Engine *engine, std::ostream &output, ArgOrder binOrder, ArgOrder callOrder)
+    : _output(output), _binOrder(binOrder), _callOrder(callOrder)
+{
+    _engine = engine;
+    _indentLevel = 0;
     mTargetLang = std::make_unique<CTargetLanguage>();
 }
 
 typedef std::pair<GraphVertex, ValueStack> DFSEntry;
 
-void CodeGenerator::generate(const Graph &g) {
-	_g = g;
+void CodeGenerator::generate(const Graph &g)
+{
+    _g = g;
+    for (FuncMap::iterator fn = _engine->_functions.begin(); fn != _engine->_functions.end(); ++fn)
+    {
+        _indentLevel = 0;
+        while (!_stack.empty())
+        {
+            _stack.pop();
+        }
+        GraphVertex entryPoint = fn->second._v;
+        std::string funcSignature = constructFuncSignature(fn->second);
 
-	for (FuncMap::iterator fn = _engine->_functions.begin(); fn != _engine->_functions.end(); ++fn) {
-		_indentLevel = 0;
-		while (!_stack.empty())
-			_stack.pop();
-		GraphVertex entryPoint = fn->second._v;
-		std::string funcSignature = constructFuncSignature(fn->second);
-		bool printFuncSignature = !funcSignature.empty();
-		if (printFuncSignature) {
-			_curGroup = GET(entryPoint);
-			if (!(fn == _engine->_functions.begin()))
-				addOutputLine("");
-			addOutputLine(funcSignature, false, true);
-		}
+        // Write the function start
+        bool printFuncSignature = !funcSignature.empty();
+        if (printFuncSignature)
+        {
+            _curGroup = GET(entryPoint);
+            if (!(fn == _engine->_functions.begin()))
+            {
+                addOutputLine("");
+            }
+            addOutputLine(funcSignature, false, true);
+        }
 
-		GroupPtr lastGroup = GET(entryPoint);
+        GroupPtr lastGroup = GET(entryPoint);
 
-		// DFS from entry point to process each vertex
-		Stack<DFSEntry> dfsStack;
-		std::set<GraphVertex> seen;
-		dfsStack.push(DFSEntry(entryPoint, ValueStack()));
-		seen.insert(entryPoint);
-		while (!dfsStack.empty()) {
-			DFSEntry e = dfsStack.pop();
-			GroupPtr tmp = GET(e.first);
-			if ((*tmp->_start)->_address > (*lastGroup->_start)->_address)
-				lastGroup = tmp;
-			_stack = e.second;
-			GraphVertex v = e.first;
-			process(v);
-			OutEdgeRange r = boost::out_edges(v, _g);
-			for (OutEdgeIterator i = r.first; i != r.second; ++i) {
-				GraphVertex target = boost::target(*i, _g);
-				if (seen.find(target) == seen.end()) {
-					dfsStack.push(DFSEntry(target, _stack));
-					seen.insert(target);
-				}
-			}
-		}
+        // DFS from entry point to process each vertex
+        Stack<DFSEntry> dfsStack;
+        std::set<GraphVertex> seen;
+        dfsStack.push(DFSEntry(entryPoint, ValueStack()));
+        seen.insert(entryPoint);
+        while (!dfsStack.empty()) 
+        {
+            DFSEntry e = dfsStack.pop();
+            GroupPtr tmp = GET(e.first);
+            if ((*tmp->_start)->_address > (*lastGroup->_start)->_address)
+            {
+                lastGroup = tmp;
+            }
+            _stack = e.second;
+            GraphVertex v = e.first;
+            process(v);
+            OutEdgeRange r = boost::out_edges(v, _g);
+            for (OutEdgeIterator i = r.first; i != r.second; ++i)
+            {
+                GraphVertex target = boost::target(*i, _g);
+                if (seen.find(target) == seen.end())
+                {
+                    dfsStack.push(DFSEntry(target, _stack));
+                    seen.insert(target);
+                }
+            }
+        }
 
-		if (printFuncSignature) {
-			_curGroup = lastGroup;
-			addOutputLine("}", true, false);
-		}
+        // Write the function end
+        if (printFuncSignature) 
+        {
+            _curGroup = lastGroup;
+            addOutputLine("}", true, false);
+        }
 
-		// Print output
-		GroupPtr p = GET(entryPoint);
-		while (p != NULL) {
-			for (std::vector<CodeLine>::iterator it = p->_code.begin(); it != p->_code.end(); ++it) {
-				if (it->_unindentBefore) {
-					assert(_indentLevel > 0);
-					_indentLevel--;
-				}
-				_output << boost::format("%08X: %s") % (*p->_start)->_address % indentString(it->_line) << std::endl;
-				if (it->_indentAfter)
-					_indentLevel++;
-			}
-			p = p->_next;
-		}
+        // Print output
+        GroupPtr p = GET(entryPoint);
+        while (p != NULL)
+        {
+            for (std::vector<CodeLine>::iterator it = p->_code.begin(); it != p->_code.end(); ++it) 
+            {
+                if (it->_unindentBefore) 
+                {
+                    assert(_indentLevel > 0);
+                    _indentLevel--;
+                }
+                _output << boost::format("%08X: %s") % (*p->_start)->_address % indentString(it->_line) << std::endl;
+                if (it->_indentAfter)
+                {
+                    _indentLevel++;
+                }
+            }
+            p = p->_next;
+        }
 
-		if (_indentLevel != 0)
-			std::cerr << boost::format("WARNING: Indent level for function at %d ended at %d\n") % fn->first % _indentLevel;
-	}
+        if (_indentLevel != 0)
+        {
+            std::cerr << boost::format("WARNING: Indent level for function at %d ended at %d\n") % fn->first % _indentLevel;
+        }
+    }
 }
 
-void CodeGenerator::addOutputLine(std::string s, bool unindentBefore, bool indentAfter) {
-	_curGroup->_code.push_back(CodeLine(s, unindentBefore, indentAfter));
+void CodeGenerator::addOutputLine(std::string s, bool unindentBefore, bool indentAfter) 
+{
+    _curGroup->_code.push_back(CodeLine(s, unindentBefore, indentAfter));
 }
 
-void CodeGenerator::writeAssignment(ValuePtr dst, ValuePtr src) {
-	std::stringstream s;
-	s << dst << " = " << src << ";";
-	addOutputLine(s.str());
+void CodeGenerator::writeAssignment(ValuePtr dst, ValuePtr src) 
+{
+    std::stringstream s;
+    s << dst << " = " << src << ";";
+    addOutputLine(s.str());
 }
 
-void CodeGenerator::process(GraphVertex v) {
-	_curVertex = v;
-	_curGroup = GET(v);
+void CodeGenerator::process(GraphVertex v) 
+{
+    _curVertex = v;
+    _curGroup = GET(v);
 
-	// Check if we should add else start
-	if (_curGroup->_startElse)
-		addOutputLine("} else {", true, true);
+    // Check if we should add else start
+    if (_curGroup->_startElse)
+    {
+        addOutputLine("} else {", true, true);
+    }
 
-	// Check ingoing edges to see if we want to add any extra output
-	InEdgeRange ier = boost::in_edges(v, _g);
-	for (InEdgeIterator ie = ier.first; ie != ier.second; ++ie) {
-		GraphVertex in = boost::source(*ie, _g);
-		GroupPtr inGroup = GET(in);
+    // Check ingoing edges to see if we want to add any extra output
+    InEdgeRange ier = boost::in_edges(v, _g);
+    for (InEdgeIterator ie = ier.first; ie != ier.second; ++ie)
+    {
+        GraphVertex in = boost::source(*ie, _g);
+        GroupPtr inGroup = GET(in);
 
-		if (!boost::get(boost::edge_attribute, _g, *ie)._isJump || inGroup->_stackLevel == -1)
-			continue;
+        if (!boost::get(boost::edge_attribute, _g, *ie)._isJump || inGroup->_stackLevel == -1)
+        {
+            continue;
+        }
 
-		switch (inGroup->_type) {
-		case kDoWhileCondGroupType:
+        switch (inGroup->_type) 
+        {
+        case kDoWhileCondGroupType:
             addOutputLine(mTargetLang->DoLoopHeader(), false, true);
-			break;
-		case kIfCondGroupType:
-			if (!_curGroup->_startElse)
-				addOutputLine("}", true, false);
-			break;
-		case kWhileCondGroupType:
-			addOutputLine("}", true, false);
-			break;
-		default:
-			break;
-		}
-	}
+            break;
+        case kIfCondGroupType:
+            if (!_curGroup->_startElse)
+            {
+                addOutputLine("}", true, false);
+            }
+            break;
+        case kWhileCondGroupType:
+            addOutputLine("}", true, false);
+            break;
+        default:
+            break;
+        }
+    }
 
-	ConstInstIterator it = _curGroup->_start;
-	do {
-		processInst(*it);
-	} while (it++ != _curGroup->_end);
+    ConstInstIterator it = _curGroup->_start;
+    do 
+    {
+        processInst(*it);
+    } while (it++ != _curGroup->_end);
 
-	// Add else end if necessary
-	for (ElseEndIterator elseIt = _curGroup->_endElse.begin(); elseIt != _curGroup->_endElse.end(); ++elseIt) {
-		if (!(*elseIt)->_coalescedElse)
-			addOutputLine("}", true, false);
-	}
+    // Add else end if necessary
+    for (ElseEndIterator elseIt = _curGroup->_endElse.begin(); elseIt != _curGroup->_endElse.end(); ++elseIt)
+    {
+        if (!(*elseIt)->_coalescedElse)
+        {
+            addOutputLine("}", true, false);
+        }
+    }
 }
 
 void CodeGenerator::processUncondJumpInst(const InstPtr inst)
@@ -183,61 +224,59 @@ void CodeGenerator::processUncondJumpInst(const InstPtr inst)
         break;
     default: // Might be a goto
     {
-            bool printJump = true;
-            OutEdgeRange r = boost::out_edges(_curVertex, _g);
-            for (OutEdgeIterator e = r.first; e != r.second && printJump; ++e)
+        bool printJump = true;
+        OutEdgeRange r = boost::out_edges(_curVertex, _g);
+        for (OutEdgeIterator e = r.first; e != r.second && printJump; ++e)
+        {
+            Group* next = _curGroup->_next;
+            if (next)
             {
-                Group* next = _curGroup->_next;
-                if (next)
+                // Don't output jump to next vertex
+                if (boost::target(*e, _g) == next->_vertex)
                 {
-                    // Don't output jump to next vertex
-                    if (boost::target(*e, _g) == next->_vertex) 
-                    {
-                        printJump = false;
-                        break;
-                    }
-
-                    // Don't output jump if next vertex starts an else block
-                    if (next->_startElse)
-                    {
-                        printJump = false;
-                        break;
-                    }
-
-                    OutEdgeRange targetR = boost::out_edges(boost::target(*e, _g), _g);
-                    for (OutEdgeIterator targetE = targetR.first; targetE != targetR.second; ++targetE)
-                    {
-                        // Don't output jump to while loop that has jump to next vertex
-                        if (boost::target(*targetE, _g) == next->_vertex)
-                        {
-                            printJump = false;
-                        }
-                    }
+                    printJump = false;
+                    break;
                 }
-                else
+
+                // Don't output jump if next vertex starts an else block
+                if (next->_startElse)
                 {
-                    // Special case where we forced code that ends with an unconditional jump back into itself to be
-                    // a do { } while(true), without doing this we'd get do { } goto do_start;
-                    if (_curGroup->_type == kDoWhileCondGroupType)
+                    printJump = false;
+                    break;
+                }
+
+                OutEdgeRange targetR = boost::out_edges(boost::target(*e, _g), _g);
+                for (OutEdgeIterator targetE = targetR.first; targetE != targetR.second; ++targetE)
+                {
+                    // Don't output jump to while loop that has jump to next vertex
+                    if (boost::target(*targetE, _g) == next->_vertex)
                     {
                         printJump = false;
-                        addOutputLine(mTargetLang->DoLoopFooter(true) + "true" + mTargetLang->DoLoopFooter(false), true, false);
                     }
                 }
             }
-            if (printJump) 
+            else
             {
-                addOutputLine(mTargetLang->Goto(inst->getDestAddress()));
+                // Special case where we forced code that ends with an unconditional jump back into itself to be
+                // a do { } while(true), without doing this we'd get do { } goto do_start;
+                if (_curGroup->_type == kDoWhileCondGroupType)
+                {
+                    printJump = false;
+                    addOutputLine(mTargetLang->DoLoopFooter(true) + "true" + mTargetLang->DoLoopFooter(false), true, false);
+                }
             }
         }
+        if (printJump)
+        {
+            addOutputLine(mTargetLang->Goto(inst->getDestAddress()));
+        }
+    }
         break;
     }
 }
 
 void CodeGenerator::writeFunctionCall(std::string functionName, std::string paramsFormat, const std::vector<ValuePtr>& params)
 {
-    //mTargetLang->FunctionCallArgumentSeperator();
-
     std::string strFuncCall = functionName + mTargetLang->FunctionCallBegin();
     const char* str = paramsFormat.c_str();
     int paramIndex = 0;
@@ -266,9 +305,7 @@ void CodeGenerator::writeFunctionCall(std::string functionName, std::string para
         }
     }
     strFuncCall += mTargetLang->FunctionCallEnd();
-
     addOutputLine(strFuncCall);
-
 }
 
 void CodeGenerator::processCondJumpInst(const InstPtr inst)
@@ -312,7 +349,8 @@ void CodeGenerator::processCondJumpInst(const InstPtr inst)
     }
 }
 
-void CodeGenerator::processInst(const InstPtr inst) {
+void CodeGenerator::processInst(const InstPtr inst) 
+{
     inst->processInst(_stack, _engine, this);
     if (inst->isCondJump())
     {
@@ -324,21 +362,23 @@ void CodeGenerator::processInst(const InstPtr inst) {
     }
 }
 
-void CodeGenerator::addArg(ValuePtr p) {
-	if (_callOrder == kFIFOArgOrder)
-		_argList.push_front(p);
-	else if (_callOrder == kLIFOArgOrder)
-		_argList.push_back(p);
+void CodeGenerator::addArg(ValuePtr p) 
+{
+    if (_callOrder == kFIFOArgOrder)
+        _argList.push_front(p);
+    else if (_callOrder == kLIFOArgOrder)
+        _argList.push_back(p);
 }
 
-void CodeGenerator::processSpecialMetadata(const InstPtr inst, char c, int) {
-	switch (c) {
-	case 'p':
-		addArg(_stack.pop());
-		break;
-	default:
-		std::cerr << boost::format("WARNING: Unknown character in metadata: %c\n") % c ;
-		break;
-	}
+void CodeGenerator::processSpecialMetadata(const InstPtr inst, char c, int) 
+{
+    switch (c) 
+    {
+    case 'p':
+        addArg(_stack.pop());
+        break;
+    default:
+        std::cerr << boost::format("WARNING: Unknown character in metadata: %c\n") % c;
+        break;
+    }
 }
-
