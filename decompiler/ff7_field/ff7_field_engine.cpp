@@ -406,6 +406,30 @@ void FF7::FF7KernelCallInstruction::processInst(ValueStack&, Engine*, CodeGenera
         codeGen->writeFunctionCall("LDPLS", "", _params);
         break;
 
+    case eOpcodes::BTLMD:
+        codeGen->writeFunctionCall("BTLMD", "n", _params);
+        break;
+
+    case eOpcodes::MUSIC:
+        codeGen->writeFunctionCall("MUSIC", "n", _params);
+        break;
+
+    case eOpcodes::MPNAM:
+        codeGen->writeFunctionCall("setMapName", "n", _params);
+        break;
+
+    case eOpcodes::GETAI:
+    {
+
+        const uint32 dstBank = _params[0]->getUnsigned();
+        const uint32 dstAddrOrValue = _params[2]->getUnsigned();
+        auto d = GetVarName(dstBank, dstAddrOrValue, false);
+
+        std::string line = "getEntityTriangleId(" + d + ", " + std::to_string(_params[1]->getUnsigned()) + ");";
+        codeGen->addOutputLine(line);
+    }
+        break;
+
     default:
         codeGen->addOutputLine("UnknownKernelFunction_" + std::to_string(_opcode) + "();");
         break;
