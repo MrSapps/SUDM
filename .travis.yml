@@ -14,12 +14,11 @@ addons:
       description: "Build submitted via Travis CI"
     notification_email: coverityscan@paulsapps.com
     build_command_prepend: "cmake .."
-    build_command: "cmake .."
-    branch_pattern: "make -j4"
+    build_command: "make -j4"
+    branch_pattern: "coverity_scan"
 
 compiler:
   - gcc
-  
 before_install:
   - sudo add-apt-repository ppa:boost-latest/ppa -y
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
