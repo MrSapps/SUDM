@@ -6,8 +6,8 @@ env:
    #   via the "travis encrypt" command using the project repo's public key
    - secure: "A4JeyJ/faUkHRFCwKD/l7I6/zY4Jzs9SFxrRxxcvqFCawisCZDK3myw1ZMSEFp6bNBC1onWrEbBp7wgQ3aW5bf+xVtNaHvxvGvwOQMY8enFsTfgZ8YA4WTBwqeaFa6tUOC4/u7cQwTK2vlNZxpbATIOJhseOSi0ExD+8igyi4WU="
    - secure: "lbql5U+YxidgVE9xyyL78hhkYMI1TfVfl1JYsV8zLwhiEF7hvi2cKYzJEuQjzc4nlAzKXP2iBrCzy5aE4mh/0P7wnHMGuD4l/ixdAlz+QQedK0siw3G9lt8j7Fsn/IucRhFu0k8kwltQsHtq2+E5eCsAqJkwxNPX0xshuV2x6Mk="
-   - if [ "$CXX" == "g++" ] && [ ${COVERITY_SCAN_BRANCH} == 1 ]; then cov_build_command_prepend="cmake .."; fi
-   - if [ "$CXX" == "g++" ] && [ ${COVERITY_SCAN_BRANCH} == 1 ]; then cov_build_command="make -j4"; fi
+   - if [[ "$CXX" == "g++" && ${COVERITY_SCAN_BRANCH} == 1 ]]; then cov_build_command_prepend="cmake .."; fi
+   - if [[ "$CXX" == "g++" && ${COVERITY_SCAN_BRANCH} == 1 ]]; then cov_build_command="make -j4"; fi
 
 addons:
   coverity_scan:
@@ -55,10 +55,10 @@ before_script:
   - cd build
   
 after_success:
-  - if [ "$CXX" == "g++" ] && [ ${COVERITY_SCAN_BRANCH} != 1 ]; then lcov --directory . --capture --output-file coverage.info; fi
-  - if [ "$CXX" == "g++" ] && [ ${COVERITY_SCAN_BRANCH} != 1 ]; then lcov --remove coverage.info '*/googlemock/*' '/usr/*' --output-file coverage.info; fi
-  - if [ "$CXX" == "g++" ] && [ ${COVERITY_SCAN_BRANCH} != 1 ]; then lcov --list coverage.info; fi
-  - if [ "$CXX" == "g++" ] && [ ${COVERITY_SCAN_BRANCH} != 1 ]; then coveralls-lcov --repo-token $TOKEN coverage.info; fi
+  - if [[ "$CXX" == "g++" && ${COVERITY_SCAN_BRANCH} != 1 ]]; then lcov --directory . --capture --output-file coverage.info; fi
+  - if [[ "$CXX" == "g++" && ${COVERITY_SCAN_BRANCH} != 1 ]]; then lcov --remove coverage.info '*/googlemock/*' '/usr/*' --output-file coverage.info; fi
+  - if [[ "$CXX" == "g++" && ${COVERITY_SCAN_BRANCH} != 1 ]]; then lcov --list coverage.info; fi
+  - if [[ "$CXX" == "g++" && ${COVERITY_SCAN_BRANCH} != 1 ]]; then coveralls-lcov --repo-token $TOKEN coverage.info; fi
   
 script: 
   - cmake ..
