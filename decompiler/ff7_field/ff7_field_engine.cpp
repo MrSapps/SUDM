@@ -237,7 +237,38 @@ void FF7::FF7CondJumpInstruction::processInst(ValueStack &stack, Engine*, CodeGe
 
 uint32 FF7::FF7CondJumpInstruction::getDestAddress() const
 {
-    return _address + _params[5]->getUnsigned() + 5;
+    uint32 paramsSize = 0;
+    switch (_opcode)
+    {
+    case eOpcodes::IFUB:
+        paramsSize = 5; 
+        break;
+
+    case eOpcodes::IFUBL:
+        paramsSize = 6;
+        break;
+
+    case eOpcodes::IFSW:
+        paramsSize = 7;
+        break;
+
+    case eOpcodes::IFSWL:
+        paramsSize = 8;
+        break;
+
+    case eOpcodes::IFUW:
+        paramsSize = 7;
+        break;
+
+    case eOpcodes::IFUWL:
+        paramsSize = 8;
+        break;
+
+    default:
+        throw UnknownOpcodeException(_address, _opcode);
+    }
+
+    return _address + _params[5]->getUnsigned() + paramsSize;
 }
 
 std::ostream& FF7::FF7CondJumpInstruction::print(std::ostream &output) const

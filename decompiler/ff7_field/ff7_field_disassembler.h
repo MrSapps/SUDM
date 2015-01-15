@@ -29,6 +29,7 @@ namespace FF7
         IFSW = 0x16,
         IFSWL = 0x17,
         IFUW = 0x18,
+        IFUWL = 0x19,
         TUTOR = 0x21,
         WAIT = 0x24,
         NFADE = 0x25,
