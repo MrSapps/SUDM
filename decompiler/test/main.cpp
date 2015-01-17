@@ -2,6 +2,7 @@
 
 #include "decompiler/ff7_field/ff7_field_disassembler.h"
 #include "decompiler/ff7_field/ff7_field_engine.h"
+#include "decompiler/ff7_field/ff7_field_codegen.h"
 
 #include "decompiler/ff7_world/ff7_world_disassembler.h"
 #include "decompiler/ff7_world/ff7_world_engine.h"
@@ -12,6 +13,47 @@
 #include "make_unique.h"
 
 #define GET(vertex) (boost::get(boost::vertex_name, g, vertex))
+
+TEST(FF7Field, FunctionMetaData_Parse_Empty)
+{
+    FF7::FunctionMetaData meta("");
+    ASSERT_EQ("", meta.EntityName());
+    ASSERT_EQ(false, meta.IsEnd());
+    ASSERT_EQ(false, meta.IsStart());
+}
+
+TEST(FF7Field, FunctionMetaData_Parse_Empties)
+{
+    FF7::FunctionMetaData meta("__________________");
+    ASSERT_EQ("", meta.EntityName());
+    ASSERT_EQ(false, meta.IsEnd());
+    ASSERT_EQ(false, meta.IsStart());
+}
+
+TEST(FF7Field, FunctionMetaData_Parse_Start)
+{
+    FF7::FunctionMetaData meta("start_entity");
+    ASSERT_EQ("entity", meta.EntityName());
+    ASSERT_EQ(false, meta.IsEnd());
+    ASSERT_EQ(true, meta.IsStart());
+}
+
+TEST(FF7Field, FunctionMetaData_Parse_End)
+{
+    FF7::FunctionMetaData meta("end_entity");
+    ASSERT_EQ("entity", meta.EntityName());
+    ASSERT_EQ(true, meta.IsEnd());
+    ASSERT_EQ(false, meta.IsStart());
+}
+
+
+TEST(FF7Field, FunctionMetaData_Parse_StartEnd)
+{
+    FF7::FunctionMetaData meta("start_end_entity");
+    ASSERT_EQ("entity", meta.EntityName());
+    ASSERT_EQ(true, meta.IsEnd());
+    ASSERT_EQ(true, meta.IsStart());
+}
 
 TEST(FF7Field, DisAsm)
 {

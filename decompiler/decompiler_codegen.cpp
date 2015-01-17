@@ -21,15 +21,23 @@
 
 #include "decompiler_codegen.h"
 #include "decompiler_engine.h"
-
 #include <algorithm>
 #include <iostream>
 #include <set>
 #include <boost/format.hpp>
 #include "make_unique.h"
 
-#define GET(vertex) (boost::get(boost::vertex_name, _g, vertex))
+#define GET(vertex)    (boost::get(boost::vertex_name, _g, vertex))
 #define GET_EDGE(edge) (boost::get(boost::edge_attribute, _g, edge))
+
+void CodeGenerator::onBeforeStartFunction(const Function&)
+{
+}
+
+void CodeGenerator::onEndFunction(const Function &)
+{
+    addOutputLine("}", true, false);
+}
 
 std::string CodeGenerator::constructFuncSignature(const Function &)
 {
@@ -44,7 +52,9 @@ std::string CodeGenerator::indentString(std::string s)
 }
 
 CodeGenerator::CodeGenerator(Engine *engine, std::ostream &output, ArgOrder binOrder, ArgOrder callOrder)
-    : _output(output), _binOrder(binOrder), _callOrder(callOrder)
+   : _output(output),
+    _binOrder(binOrder),
+    _callOrder(callOrder)
 {
     _engine = engine;
     _indentLevel = 0;
@@ -58,7 +68,6 @@ void CodeGenerator::generate(const Graph &g)
     _g = g;
     for (FuncMap::iterator fn = _engine->_functions.begin(); fn != _engine->_functions.end(); ++fn)
     {
-        _indentLevel = 0;
         while (!_stack.empty())
         {
             _stack.pop();
@@ -75,6 +84,7 @@ void CodeGenerator::generate(const Graph &g)
             {
                 addOutputLine("");
             }
+            onBeforeStartFunction(fn->second);
             addOutputLine(funcSignature, false, true);
         }
 
@@ -112,7 +122,7 @@ void CodeGenerator::generate(const Graph &g)
         if (printFuncSignature) 
         {
             _curGroup = lastGroup;
-            addOutputLine("}", true, false);
+            onEndFunction(fn->second);
         }
 
         // Print output
@@ -127,17 +137,13 @@ void CodeGenerator::generate(const Graph &g)
                     _indentLevel--;
                 }
                 _output << boost::format("%08X: %s") % (*p->_start)->_address % indentString(it->_line) << std::endl;
+                //_output << indentString(it->_line) << std::endl;
                 if (it->_indentAfter)
                 {
                     _indentLevel++;
                 }
             }
             p = p->_next;
-        }
-
-        if (_indentLevel != 0)
-        {
-            std::cerr << boost::format("WARNING: Indent level for function at %d ended at %d\n") % fn->first % _indentLevel;
         }
     }
 }

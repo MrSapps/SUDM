@@ -184,8 +184,15 @@ namespace FF7
         virtual void open(const char *filename) override;
 	    virtual void doDisassemble() throw(std::exception) override;
     private:
+        void DisassembleIndivdualScript(std::string entityName,
+            size_t scriptIndex,
+            int16 scriptEntryPoint,
+            uint32 nextScriptEntryPoint,
+            bool isStart,
+            bool isEnd);
+
         void ReadOpCodes(size_t endPos);
-        std::unique_ptr<Function> StartFunction(size_t entityNumber, size_t scriptIndex);
+        std::unique_ptr<Function> StartFunction(size_t scriptIndex);
 
         FF7Engine* mEngine;
 

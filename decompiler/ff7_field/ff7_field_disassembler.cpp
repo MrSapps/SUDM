@@ -6,7 +6,8 @@
 #include "make_unique.h"
 
 FF7::FF7Disassembler::FF7Disassembler(FF7Engine *engine, InstVec &insts)
-    : SimpleDisassembler(insts), mEngine(engine)
+  : SimpleDisassembler(insts), 
+    mEngine(engine)
 {
 
 }
@@ -21,7 +22,6 @@ void FF7::FF7Disassembler::open(const char *filename)
     // Read all of the file, decompress it, then stuff it into a stream
     mStream = std::make_unique<BinaryReader>(Lzs::Decompress(BinaryReader::ReadAll(filename)));
 }
-
 
 uint32 FF7::FF7Disassembler::GetEndOfScriptOffset(uint16 curEntryPoint, size_t entityIndex, size_t scriptIndex)
 {
@@ -52,15 +52,22 @@ uint32 FF7::FF7Disassembler::GetEndOfScriptOffset(uint16 curEntryPoint, size_t e
     return nextEntryPoint;
 }
 
-std::unique_ptr<Function> FF7::FF7Disassembler::StartFunction(size_t entityNumber, size_t scriptIndex)
+std::unique_ptr<Function> FF7::FF7Disassembler::StartFunction(size_t scriptIndex)
 {
     auto func = std::make_unique<Function>();
     func->_retVal = false;
     func->_args = 0;
-    func->_name = "script_" + std::string(mHeader.mFieldEntityNames[entityNumber].data()) + "_" + std::to_string(entityNumber) + "_" + std::to_string(scriptIndex);
+    func->_name = "script_" + std::to_string(scriptIndex);
     func->_startIt = _insts.begin(); // TODO: Will become invalid, and this is wrong - works at the moment probably because the vector has reversed enough memory to avoid a realloc
     return func;
 }
+
+struct ScriptInfo
+{
+    uint16 mEntryPoint;
+    uint32 mNextEntryPoint;
+    size_t mIndex;
+};
 
 void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
 {
@@ -86,7 +93,13 @@ void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
     // Loop through the scripts for each entity
     for (size_t entityNumber = 0; entityNumber < mHeader.mEntityScripts.size(); entityNumber++)
     {
+        std::string entityName = mHeader.mFieldEntityNames[entityNumber].data();
+
+        // Only parse each script one
         std::set<uint16> parsedScripts;
+        std::vector<ScriptInfo> scriptInfo;
+
+        // Collect the scripts to parse
         for (size_t scriptIndex = 0; scriptIndex < mHeader.mEntityScripts[entityNumber].size(); scriptIndex++)
         {
             uint16 scriptEntryPoint = mHeader.mEntityScripts[entityNumber][scriptIndex];
@@ -102,61 +115,129 @@ void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
             const uint32 scriptSize = nextScriptEntryPoint - scriptEntryPoint;
             if (scriptSize > 0)
             {
-                scriptEntryPoint += kSectionPointersSize;
-                mStream->Seek(scriptEntryPoint);
-         
-                this->_addressBase = mStream->Position();
-                this->_address = this->_addressBase;
-               
-                if (scriptIndex > 0)
-                {
-                    // Read each block of opcodes up to a return
-                    auto func = StartFunction(entityNumber, scriptIndex);
-                    while (mStream->Position() != nextScriptEntryPoint + kSectionPointersSize)
-                    {
-                        // Keep going till we have all of the script
-                        // TODO: Wrong as should only be a single return in these scripts?
-                        ReadOpCodes(nextScriptEntryPoint + kSectionPointersSize);
-                    }
-                    func->_endIt = _insts.end() - 1;
-                    mEngine->_functions[scriptEntryPoint] = *func;
-                }
-                else
-                {
-                    // Read the init script
-                    const size_t endPos = nextScriptEntryPoint + kSectionPointersSize;
-                    auto initFunc = StartFunction(entityNumber, scriptIndex);
-                    initFunc->_name += "_init";
-                    ReadOpCodes(endPos);
-                    initFunc->_endIt = _insts.end() - 1;
-                    mEngine->_functions[scriptEntryPoint] = *initFunc;
-
-                    size_t streamPos = mStream->Position();
-                    if (streamPos != endPos)
-                    {
-                        // Main entry point is the current pos
-                        scriptEntryPoint = static_cast<uint16>(streamPos);
-                        auto mainFunc = StartFunction(entityNumber, scriptIndex);
-                        mainFunc->_name += "_main";
-
-                        // Read the main script
-                        ReadOpCodes(endPos);
-                        mainFunc->_endIt = _insts.end() - 1;
-                        mEngine->_functions[scriptEntryPoint] = *mainFunc;
-
-                        streamPos = mStream->Position();
-                        if (streamPos != endPos)
-                        {
-                            // We only ever expect 2 return statements in script 0
-                            // the first gives us the "init" script, the second gives
-                            // us the "main" script, anymore is an error
-                            abort();
-                        }
-                    }
-                }
+                ScriptInfo info = { scriptEntryPoint, nextScriptEntryPoint, scriptIndex };
+                scriptInfo.push_back(info);
             }
         }
+
+        for (auto it = scriptInfo.begin(); it != scriptInfo.end(); it++)
+        {
+            const bool isStart = it == scriptInfo.begin();
+            const bool isEnd = it == (--scriptInfo.end());
+            DisassembleIndivdualScript(entityName, it->mIndex, it->mEntryPoint, it->mNextEntryPoint, isStart, isEnd);
+        }
     } 
+}
+
+void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
+    size_t scriptIndex, 
+    int16 scriptEntryPoint, 
+    uint32 nextScriptEntryPoint,
+    bool isStart,
+    bool isEnd)
+{
+    scriptEntryPoint += kSectionPointersSize;
+    mStream->Seek(scriptEntryPoint);
+
+    _addressBase = mStream->Position();
+    _address = _addressBase;
+
+
+
+    if (scriptIndex > 0)
+    {
+        // Read each block of opcodes up to a return
+        auto func = StartFunction(scriptIndex);
+        while (mStream->Position() != nextScriptEntryPoint + kSectionPointersSize)
+        {
+            // Keep going till we have all of the script
+            ReadOpCodes(nextScriptEntryPoint + kSectionPointersSize);
+        }
+
+        std::string metaData;
+        if (isStart && isEnd)
+        {
+            metaData = "start_end_" + entityName;
+        }
+        else if (isStart)
+        {
+            metaData = "start_" + entityName;
+        }
+        else if (isEnd)
+        {
+            metaData = "end_" + entityName;
+        }
+        func->_metadata = metaData;
+        func->_endIt = _insts.end() - 1;
+        mEngine->_functions[scriptEntryPoint] = *func;
+    }
+    else
+    {
+        // Read the init script
+        const size_t endPos = nextScriptEntryPoint + kSectionPointersSize;
+        auto initFunc = StartFunction(scriptIndex);
+        initFunc->_name = "init";
+        ReadOpCodes(endPos);
+        initFunc->_endIt = _insts.end() - 1;
+        initFunc->_metadata = "";
+ 
+        // See if there anymore script data, if yes then this is the main script
+        size_t streamPos = mStream->Position();
+        if (streamPos != endPos)
+        {
+            // Main entry point is the current pos
+            uint16 mainScriptEntryPoint = static_cast<uint16>(streamPos);
+            auto mainFunc = StartFunction(scriptIndex);
+            mainFunc->_name = "main";
+
+            // Read the main script
+            ReadOpCodes(endPos);
+            mainFunc->_endIt = _insts.end() - 1;
+        
+            streamPos = mStream->Position();
+            if (streamPos != endPos)
+            {
+                // We only ever expect 2 return statements in script 0
+                // the first gives us the "init" script, the second gives
+                // us the "main" script, anymore is an error
+                abort();
+            }
+
+            std::string metaData;
+            if (isStart)
+            {
+                metaData = "start_" + entityName;
+            }
+            initFunc->_metadata = metaData;
+            mEngine->_functions[scriptEntryPoint] = *initFunc;
+
+            metaData = "";
+            if (isEnd)
+            {
+                metaData = "end_" + entityName;
+            }
+            mainFunc->_metadata = metaData;
+            mEngine->_functions[mainScriptEntryPoint] = *mainFunc;
+        }
+        else
+        {
+            std::string metaData;
+            if (isStart && isEnd)
+            {
+                metaData = "start_end_" + entityName;
+            }
+            else if (isStart)
+            {
+                metaData = "start_" + entityName;
+            }
+            else if (isEnd)
+            {
+                metaData = "end_" + entityName;
+            }
+            initFunc->_metadata = metaData;
+            mEngine->_functions[scriptEntryPoint] = *initFunc;
+        }
+    }
 }
 
 void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
