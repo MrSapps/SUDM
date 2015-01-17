@@ -30,8 +30,6 @@ SET(gmock_src
 ${CMAKE_CURRENT_SOURCE_DIR}/googlemock/src/gmock-all.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/googlemock/gtest/src/gtest-all.cc)
 
-add_library(gmock STATIC ${gmock_src})
-
 if (MSVC)
 	# Build cpp files on all cores
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W4")
@@ -75,6 +73,8 @@ else()
 		set_source_files_properties(${gmock_src} PROPERTIES COMPILE_FLAGS -Wno-effc++)
 	endif()
 endif()
+
+add_library(gmock STATIC ${gmock_src})
 
 SET(source
 decompiler/decompiler_codegen.cpp
