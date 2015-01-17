@@ -104,12 +104,6 @@ decompiler/scummv6/disassembler.cpp
 decompiler/scummv6/disassembler.h
 decompiler/scummv6/engine.cpp
 decompiler/scummv6/engine.h
-decompiler/kyra/codegen.cpp
-decompiler/kyra/codegen.h
-decompiler/kyra/disassembler.cpp
-decompiler/kyra/disassembler.h
-decompiler/kyra/engine.cpp
-decompiler/kyra/engine.h
 decompiler/groovie/disassembler.cpp
 decompiler/groovie/disassembler.h
 decompiler/groovie/engine.cpp

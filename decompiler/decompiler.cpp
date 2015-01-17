@@ -28,7 +28,6 @@
 #include "control_flow.h"
 
 #include "groovie/engine.h"
-#include "kyra/engine.h"
 #include "scummv6/engine.h"
 
 #include <fstream>
@@ -49,7 +48,6 @@ int main(int argc, char** argv) {
 		ObjectFactory<std::string, Engine> engineFactory;
 
 		ENGINE("groovie", "Groovie", Groovie::GroovieEngine);
-		ENGINE("kyra2", "Legend of Kyrandia: Hand of Fate", Kyra::Kyra2Engine);
 		ENGINE("scummv6", "SCUMM v6", Scumm::v6::Scummv6Engine);
 
         po::options_description visible("Options", 1024);

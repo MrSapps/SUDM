@@ -16,10 +16,11 @@ namespace FF7
         Disassembler* getDisassembler(InstVec &insts) override;
         CodeGenerator* getCodeGenerator(std::ostream &output) override;
         void postCFG(InstVec &insts, Graph g) override;
-        bool detectMoreFuncs() const override;
         void getVariants(std::vector<std::string> &variants) const override;
         virtual bool usePureGrouping() const override { return false; }
         std::vector<std::string> _textStrings; ///< Container for strings from the TEXT chunk.
+    private:
+        void RemoveExtraneousReturnStatements(InstVec& insts, Graph g);
     };
 
 
@@ -39,8 +40,8 @@ namespace FF7
     class FF7CondJumpInstruction : public CondJumpInstruction
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
-        virtual uint32 getDestAddress() const;
+        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
+        virtual uint32 getDestAddress() const override;
         virtual std::ostream& print(std::ostream &output) const override;
     };
 

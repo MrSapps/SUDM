@@ -25,7 +25,6 @@
 #include "decompiler/graph.h"
 #include "decompiler/decompiler_codegen.h"
 #include "decompiler/scummv6/engine.h"
-#include "decompiler/kyra/engine.h"
 
 #include <vector>
 #define GET(vertex) (boost::get(boost::vertex_name, g, vertex))
@@ -239,71 +238,3 @@ TEST(CodeGen, DISABLED_testCoalescing) {
     delete c;
     delete engine;
 }
-
-// This test requires _START04.EMC from the CD demo of
-// Legend of Kyrandia: Hand of Fate, found in MISC_EMC.PAK.
-// Extract using extract_kyra from the scummvm-tools-cli bundle.
-// ba2821ac6da96394ce0af75a3cbe48eb *_START04.EMC
-// Disabled as mentioned file is copyrighted
-TEST(CodeGen, DISABLED_testKyra2Start04CodeGen) {
-    InstVec insts;
-    Kyra::Kyra2Engine *engine = new Kyra::Kyra2Engine();
-    Disassembler *d = engine->getDisassembler(insts);
-    d->open("decompiler/test/_START04.EMC");
-    d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
-    c->createGroups();
-    Graph g = c->analyze();
-    engine->postCFG(insts, g);
-    onullstream ns;
-    CodeGenerator *cg = engine->getCodeGenerator(ns);
-    cg->generate(g);
-
-    VertexIterator v = boost::vertices(g).first;
-    std::vector<std::string> output, expected;
-    expected.push_back("auto_sub0x278(param1, param2, param3, param4) {");
-    expected.push_back("if (var1 > param1 && var1 < param3 && var2 > param2 && var2 < param4) {");
-    expected.push_back("retval = o1_queryGameFlag(3);");
-    expected.push_back("if (retval) {");
-    expected.push_back("retval = o2_drawBox(param1, param2, param3, param4, 199);");
-    expected.push_back("}");
-    expected.push_back("retval = 1;");
-    expected.push_back("return;");
-    expected.push_back("}");
-    expected.push_back("retval = o1_queryGameFlag(3);");
-    expected.push_back("if (retval) {");
-    expected.push_back("retval = o2_drawBox(param1, param2, param3, param4, 132);");
-    expected.push_back("}");
-    expected.push_back("retval = 0;");
-    expected.push_back("return;");
-    expected.push_back("}");
-
-    GroupPtr gr = GET(*v);
-    // Find first node
-    while (gr->_prev != NULL)
-        gr = gr->_prev;
-
-    // Find right starting node
-    while ((*gr->_start)->_address != 0x278)
-        gr = gr->_next;
-
-    // Copy out all lines of code from function
-    while ((*gr->_start)->_address <= 0x2DC) {
-        for (std::vector<CodeLine>::iterator it = gr->_code.begin(); it != gr->_code.end(); ++it) {
-            if (it->_line.compare("") != 0)
-                output.push_back(it->_line);
-        }
-        gr = gr->_next;
-    }
-    ASSERT_TRUE(output.size() == expected.size());
-    CodeIterator it, it2;
-    for (it = output.begin(), it2 = expected.begin(); it != output.end() && it2 != expected.end(); ++it, ++it2) {
-        ASSERT_TRUE(removeSpaces(*it).compare(removeSpaces(*it2)) == 0);
-    }
-
-    delete cg;
-    delete c;
-    delete engine;
-}
-

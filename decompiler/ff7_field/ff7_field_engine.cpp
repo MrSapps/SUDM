@@ -18,25 +18,29 @@ CodeGenerator* FF7::FF7Engine::getCodeGenerator(std::ostream &output)
     return new FF7CodeGenerator(this, output);
 }
 
-void FF7::FF7Engine::postCFG(InstVec &insts, Graph g)
+void FF7::FF7Engine::postCFG(InstVec& insts, Graph g)
 {
-    VertexRange vr = boost::vertices(g);
-    for (VertexIterator v = vr.first; v != vr.second; ++v) 
-    {
-        GroupPtr gr = GET(*v);
-
-        // If this group is the last instruction and its an unconditional jump
-        if ((*gr->_start)->_address == insts.back()->_address && insts.back()->isUncondJump())
-        {
-            // Then assume its an infinite do { } while(true) loop that wraps part of the script
-            gr->_type = kDoWhileCondGroupType;
-        }
-    }
+    // Scripts end with a "return" this isn't required so strip them out
+    RemoveExtraneousReturnStatements(insts, g);
 }
 
-bool FF7::FF7Engine::detectMoreFuncs() const
+void FF7::FF7Engine::RemoveExtraneousReturnStatements(InstVec& insts, Graph g)
 {
-	return false;
+    for (auto& f : _functions)
+    {
+        Function& func = f.second;
+        for (auto it = insts.begin(); it != insts.end(); it++)
+        {
+            if ((*it)->_address == func.mEndAddr)
+            {
+                Instruction* nop = new FF7NoOutputInstruction();
+                nop->_opcode = eOpcodes::NOP;
+                nop->_address = (*it)->_address;
+                (*it).reset(nop);
+                break;
+            }
+        }
+    }
 }
 
 void FF7::FF7Engine::getVariants(std::vector<std::string>&) const

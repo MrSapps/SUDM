@@ -23,7 +23,6 @@
 #include "disassembler/pasc.h"
 #include "disassembler/subopcode.h"
 #include "decompiler/scummv6/disassembler.h"
-#include "decompiler/kyra/engine.h"
 #include <gmock/gmock.h>
 
 
@@ -226,30 +225,3 @@ TEST(Disassembler, DISABLED_testScummv6StackChangeFixScript30) {
     it -= 3;
     ASSERT_TRUE((*it)->_stackChange == -6);
 }
-
-// This test requires _START04.EMC from the CD demo of
-// Legend of Kyrandia: Hand of Fate, found in MISC_EMC.PAK.
-// Extract using extract_kyra from the scummvm-tools-cli bundle.
-// ba2821ac6da96394ce0af75a3cbe48eb *_START04.EMC
-TEST(Disassembler, DISABLED_testKyra2Start04) {
-    InstVec insts;
-    Kyra::Kyra2Engine engine;
-    Disassembler* s = engine.getDisassembler(insts);
-    s->open("decompiler/test/_START04.EMC");
-    s->disassemble();
-
-    ASSERT_TRUE(insts.size() == 481);
-
-    //These scripts are far too big to check all instructions, so we just check a few different ones
-    ASSERT_TRUE(insts[16]->_address == 0x20);
-    ASSERT_TRUE(insts[16]->_opcode == 15);
-    ASSERT_TRUE(insts[16]->_name == "ifNotJmp");
-    ASSERT_TRUE(insts[16]->_stackChange == -1);
-    ASSERT_TRUE(insts[38]->_address == 0x54);
-    ASSERT_TRUE(insts[38]->_opcode == 14);
-    ASSERT_TRUE(insts[38]->_name == "o1_setHandItem");
-    ASSERT_TRUE(insts[38]->_stackChange == 0);
-
-    delete s;
-}
-

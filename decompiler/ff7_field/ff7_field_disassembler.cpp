@@ -58,7 +58,7 @@ std::unique_ptr<Function> FF7::FF7Disassembler::StartFunction(size_t scriptIndex
     func->_retVal = false;
     func->_args = 0;
     func->_name = "script_" + std::to_string(scriptIndex);
-    func->_startIt = _insts.begin(); // TODO: Will become invalid, and this is wrong - works at the moment probably because the vector has reversed enough memory to avoid a realloc
+    func->mStartAddr = _address;
     return func;
 }
 
@@ -168,7 +168,7 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
             metaData = "end_" + entityName;
         }
         func->_metadata = metaData;
-        func->_endIt = _insts.end() - 1;
+        func->mEndAddr = _insts.back()->_address;
         mEngine->_functions[scriptEntryPoint] = *func;
     }
     else
@@ -178,7 +178,7 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
         auto initFunc = StartFunction(scriptIndex);
         initFunc->_name = "init";
         ReadOpCodes(endPos);
-        initFunc->_endIt = _insts.end() - 1;
+        initFunc->mEndAddr = _insts.back()->_address;
         initFunc->_metadata = "";
  
         // See if there anymore script data, if yes then this is the main script
@@ -192,7 +192,7 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
 
             // Read the main script
             ReadOpCodes(endPos);
-            mainFunc->_endIt = _insts.end() - 1;
+            mainFunc->mEndAddr = _insts.back()->_address;
         
             streamPos = mStream->Position();
             if (streamPos != endPos)
@@ -256,6 +256,7 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(eOpcodes::IFUW, "IFUW", FF7CondJumpInstruction, 0, "NwwBB");
             OPCODE(eOpcodes::IFUWL, "IFUWL", FF7CondJumpInstruction, 0, "NwwBw");
 
+            OPCODE(eOpcodes::NOP, "NOP", FF7NoOutputInstruction, 0, "");
 
             OPCODE(eOpcodes::JMPF, "JMPF", FF7UncondJumpInstruction, 0, "B");
             OPCODE(eOpcodes::JMPB, "JMPB", FF7UncondJumpInstruction, 0, "B");

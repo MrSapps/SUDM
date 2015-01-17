@@ -23,7 +23,6 @@
 #include "decompiler/decompiler_disassembler.h"
 #include "decompiler/graph.h"
 #include "decompiler/scummv6/engine.h"
-#include "decompiler/kyra/engine.h"
 #include <gmock/gmock.h>
 #include <vector>
 
@@ -613,58 +612,6 @@ TEST(CFG, DISABLED_testSamAndMaxScript30) {
             break;
         }
     }
-    delete c;
-    delete engine;
-}
-
-// This test requires _START04.EMC from the CD demo of
-// Legend of Kyrandia: Hand of Fate, found in MISC_EMC.PAK.
-// Extract using extract_kyra from the scummvm-tools-cli bundle.
-// ba2821ac6da96394ce0af75a3cbe48eb *_START04.EMC
-// Disabled as mentioned file is copyrighted
-TEST(CFG, DISABLED_testFunctionDetection) {
-    InstVec insts;
-    Kyra::Kyra2Engine *engine = new Kyra::Kyra2Engine();
-    Disassembler *d = engine->getDisassembler(insts);
-    d->open("decompiler/test/_START04.EMC");
-    d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
-    c->createGroups();
-    Graph g = c->analyze();
-    ASSERT_TRUE(engine->_functions.size() == 15);
-    FuncMap::iterator it = engine->_functions.begin();
-    ASSERT_TRUE(it->first == 0x0);
-    ++it;
-    ASSERT_TRUE(it->first == 0x7E);
-    ++it;
-    ASSERT_TRUE(it->first == 0xFC);
-    ++it;
-    ASSERT_TRUE(it->first == 0x100);
-    ++it;
-    ASSERT_TRUE(it->first == 0x1F4);
-    ++it;
-    ASSERT_TRUE(it->first == 0x1F8);
-    ++it;
-    ASSERT_TRUE(it->first == 0x276);
-    ++it;
-    ASSERT_TRUE(it->first == 0x278);
-    ++it;
-    ASSERT_TRUE(it->first == 0x2DE);
-    ++it;
-    ASSERT_TRUE(it->first == 0x2E0);
-    ++it;
-    ASSERT_TRUE(it->first == 0x30C);
-    ++it;
-    ASSERT_TRUE(it->first == 0x30E);
-    ++it;
-    ASSERT_TRUE(it->first == 0x33A);
-    ++it;
-    ASSERT_TRUE(it->first == 0x33C);
-    ++it;
-    ASSERT_TRUE(it->first == 0x33E);
-    ++it;
-
     delete c;
     delete engine;
 }

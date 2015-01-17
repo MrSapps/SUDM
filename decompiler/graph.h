@@ -229,8 +229,8 @@ typedef ElseEnds::iterator ElseEndIterator;
 struct Group : public RefCounted {
 public:
 	GraphVertex _vertex;         ///< Vertex the group belongs to.
-	ConstInstIterator _start;    ///< First instruction in the group.
-	ConstInstIterator _end;      ///< Last instruction in the group.
+	InstIterator _start;    ///< First instruction in the group.
+	InstIterator _end;      ///< Last instruction in the group.
 	int _stackLevel;             ///< Level of the stack upon entry.
 	GroupType _type;             ///< Type of the group.
 	bool _startElse;             ///< Group is start of an else block.
@@ -253,7 +253,7 @@ public:
 	 * @param end   Last instruction in the group.
 	 * @param prev  Pointer to the previous group, when ordered by address.
 	 */
-	Group(GraphVertex v, ConstInstIterator start, ConstInstIterator end, GroupPtr prev) {
+	Group(GraphVertex v,InstIterator start, InstIterator end, GroupPtr prev) {
 		_vertex = v;
 		_start = start;
 		_end = end;

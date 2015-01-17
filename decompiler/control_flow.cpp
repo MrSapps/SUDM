@@ -34,18 +34,22 @@
 #define GET(vertex) (boost::get(boost::vertex_name, _g, vertex))
 #define GET_EDGE(edge) (boost::get(boost::edge_attribute, _g, edge))
 
-ControlFlow::ControlFlow(const InstVec &insts, Engine *engine) : _insts(insts) {
+ControlFlow::ControlFlow(InstVec& insts, Engine *engine) 
+    : _insts(insts) 
+{
 	_engine = engine;
 
 	// Automatically add a function if we're not supposed to look for more functions and no functions are defined
 	// This avoids a special case for when no real functions exist in the script
-	if (engine->_functions.empty() && !_engine->detectMoreFuncs())
-		engine->_functions[(*insts.begin())->_address] = Function(insts.begin(), insts.end());
+    if (engine->_functions.empty())
+    {
+        engine->_functions[(*insts.begin())->_address] = Function((*insts.begin())->_address, (insts.back())->_address);
+    }
 
 	GroupPtr prev = NULL;
 	int id = 0;
 	// Create vertices
-	for (ConstInstIterator it = insts.begin(); it != insts.end(); ++it) {
+	for (InstIterator it = insts.begin(); it != insts.end(); ++it) {
 		GraphVertex cur = boost::add_vertex(_g);
 		_addrMap[(*it)->_address] = cur;
 		PUT(cur, new Group(cur, it, it, prev));
@@ -61,10 +65,10 @@ ControlFlow::ControlFlow(const InstVec &insts, Engine *engine) : _insts(insts) {
 
 	// Add regular edges
 	FuncMap::iterator fn;
-	GraphVertex last;
+    GraphVertex last = {};
 	bool addEdge = false;
 	prev = NULL;
-	for (ConstInstIterator it = insts.begin(); it != insts.end(); ++it) {
+	for (InstIterator it = insts.begin(); it != insts.end(); ++it) {
 		if (_engine->_functions.find((*it)->_address) != _engine->_functions.end()) {
 			addEdge = false;
 		}
@@ -82,7 +86,7 @@ ControlFlow::ControlFlow(const InstVec &insts, Engine *engine) : _insts(insts) {
 	}
 
 	// Add jump edges
-	for (ConstInstIterator it = insts.begin(); it != insts.end(); ++it) {
+	for (InstIterator it = insts.begin(); it != insts.end(); ++it) {
 		if ((*it)->isJump()) {
 			GraphEdge e = boost::add_edge(find(it), find((*it)->getDestAddress()), _g).first;
 			PUT_EDGE(e, true);
@@ -165,96 +169,12 @@ void ControlFlow::setStackLevel(GraphVertex g, int level) {
 	}
 }
 
-void ControlFlow::detectFunctions() {
-	uint32 nextFunc = 0;
-	for (ConstInstIterator it = _insts.begin(); it != _insts.end(); ++it) {
-		GraphVertex v = find(it);
-		GroupPtr gr = GET(v);
-
-		if ((*it)->_address < nextFunc)
-			continue;
-
-		bool functionExists = false;
-		bool detectEndPoint = false;
-		for (FuncMap::iterator fn = _engine->_functions.begin(); fn != _engine->_functions.end(); ++fn) {
-			if (fn->first == (*it)->_address) {
-				if (fn->second._endIt == _insts.end()) {
-					return;
-				}
-				if (fn->second._startIt == fn->second._endIt) {
-					// We already know this is an entry point, we only need to detect the end point
-					detectEndPoint = true;
-					break;
-				}
-				nextFunc = (*fn->second._endIt)->_address;
-				functionExists = true;
-			}
-		}
-
-		if (functionExists)
-			continue;
-
-		bool isEntryPoint = true;
-		if (!detectEndPoint) {
-			InEdgeRange ier = boost::in_edges(v, _g);
-			for (InEdgeIterator e = ier.first; e != ier.second; ++e) {
-				// If an ingoing edge exists from earlier in the code, this is not a function entry point
-				if ((*GET(boost::source(*e, _g))->_start)->_address < (*gr->_start)->_address)
-					isEntryPoint = false;
-			}
-		}
-
-		if (isEntryPoint) {
-			// Detect end point
-			Stack<GraphVertex> stack;
-			std::set<GraphVertex> seen;
-			stack.push(v);
-			GroupPtr endPoint = gr;
-			while (!stack.empty()) {
-				v = stack.pop();
-				GroupPtr tmp = GET(v);
-				if ((*tmp->_start)->_address > (*endPoint->_start)->_address)
-					endPoint = tmp;
-				OutEdgeRange r = boost::out_edges(v, _g);
-				for (OutEdgeIterator i = r.first; i != r.second; ++i) {
-					GraphVertex target = boost::target(*i, _g);
-					if (seen.find(target) == seen.end()) {
-						stack.push(target);
-						seen.insert(target);
-					}
-				}
-			}
-
-			ConstInstIterator endInst;
-			if (endPoint->_next) {
-				endInst = endPoint->_next->_start;
-				nextFunc = (*endInst)->_address;
-			} else {
-				endInst = _insts.end();
-			}
-			Function f;
-			if (detectEndPoint) {
-				f = _engine->_functions[(*gr->_start)->_address];
-				f._endIt = endInst;
-			} else {
-				f = Function(gr->_start, endInst);
-				f._name = "auto_";
-			}
-			f._v = find(it);
-			_engine->_functions[(*gr->_start)->_address] = f;
-			if (!endPoint->_next)
-				return;
-		}
-	}
-}
-
-void ControlFlow::createGroups() {
-	if (!_engine->_functions.empty() && GET(_engine->_functions.begin()->second._v)->_stackLevel != -1)
-		return;
-
-	// Detect more functions
-	if (_engine->detectMoreFuncs())
-		detectFunctions();
+void ControlFlow::createGroups() 
+{
+    if (!_engine->_functions.empty() && GET(_engine->_functions.begin()->second._v)->_stackLevel != -1)
+    {
+        return;
+    }
 
 	for (FuncMap::iterator fn = _engine->_functions.begin(); fn != _engine->_functions.end(); ++fn)
 		setStackLevel(fn->second._v, 0);

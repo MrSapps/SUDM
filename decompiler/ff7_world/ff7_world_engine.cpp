@@ -35,11 +35,6 @@ void FF7::FF7WorldEngine::postCFG(InstVec&, Graph g)
     }*/
 }
 
-bool FF7::FF7WorldEngine::detectMoreFuncs() const
-{
-	return false;
-}
-
 void FF7::FF7WorldEngine::getVariants(std::vector<std::string>&) const
 {
 

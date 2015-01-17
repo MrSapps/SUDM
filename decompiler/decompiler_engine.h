@@ -32,10 +32,13 @@
 /**
  * Structure representing a function.
  */
-class Function {
+class Function 
+{
 public:
-	ConstInstIterator _startIt; ///< Iterator to of the first instruction in the function, if available.
-	ConstInstIterator _endIt;   ///< Iterator to the instruction immediately after the function, similar to end() on STL containers. If _endIt == _startIt, the function endpoint is assumed to be unknown.
+    uint32 mStartAddr = 0;
+    uint32 mEndAddr = 0;
+	//InstIterator _startIt; ///< Iterator to of the first instruction in the function, if available.
+	//InstIterator _endIt;   ///< Iterator to the instruction immediately after the function, similar to end() on STL containers. If _endIt == _startIt, the function endpoint is assumed to be unknown.
 	std::string _name;          ///< Function name.
 	GraphVertex _v;             ///< Graph vertex for the entry point to the function.
 	uint32 _args;               ///< Number of arguments to the function.
@@ -54,8 +57,8 @@ public:
 	 * @param startIt Index of the first instruction in the function.
 	 * @param endIt Index of the instruction immediately after the function, similar to end() on STL containers.
 	 */
-	Function(ConstInstIterator startIt, ConstInstIterator endIt) : _startIt(startIt), _endIt(endIt) {
-	}
+//	Function(InstIterator startIt, InstIterator endIt) : _startIt(startIt), _endIt(endIt) {}
+    Function(uint32 startAddr, uint32 endAddr) : mStartAddr(startAddr), mEndAddr(endAddr) {}
 };
 
 /**
@@ -106,15 +109,6 @@ public:
 	 * @return True if supported, false if not. If false is returned, code generation should not take place, and -G should be implied.
 	 */
 	virtual bool supportsCodeGen() const { return true; }
-
-	/**
-	 * Whether or not additional functions should be looked for during CFG analysis.
-	 * Code that was normally unreachable will be treated as starting a new function.
-	 * Note: You will need a post-processing step to add the necessary metadata to the functions.
-	 *
-	 * @return True if yes, false if no.
-	 */
-	virtual bool detectMoreFuncs() const { return false; }
 
 	FuncMap _functions; ///< Map to functions in the current script, indexed by starting address.
 

@@ -14,12 +14,11 @@ namespace FF7
         {
             setOutputStackEffect(true);
         }
-        Disassembler* getDisassembler(InstVec &insts);
-        CodeGenerator* getCodeGenerator(std::ostream &output);
-        void postCFG(InstVec &insts, Graph g);
-        bool detectMoreFuncs() const;
-        void getVariants(std::vector<std::string> &variants) const;
-        virtual bool usePureGrouping() const { return false; }
+        Disassembler* getDisassembler(InstVec &insts) override;
+        CodeGenerator* getCodeGenerator(std::ostream &output) override;
+        virtual void postCFG(InstVec &insts, Graph g) override;
+        virtual void getVariants(std::vector<std::string> &variants) const override;
+        virtual bool usePureGrouping() const override { return false; }
         std::vector<std::string> _textStrings; ///< Container for strings from the TEXT chunk.
     private:
         int mScriptNumber;
