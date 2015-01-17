@@ -26,10 +26,11 @@ include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}/googlemock/gtest
 )
 
-add_library(gmock STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/googlemock/src/gmock-all.cc
-	${CMAKE_CURRENT_SOURCE_DIR}/googlemock/gtest/src/gtest-all.cc
-)
+SET(gmock_src
+${CMAKE_CURRENT_SOURCE_DIR}/googlemock/src/gmock-all.cc
+${CMAKE_CURRENT_SOURCE_DIR}/googlemock/gtest/src/gtest-all.cc)
+
+add_library(gmock STATIC ${gmock_src})
 
 if (MSVC)
 	# Build cpp files on all cores
@@ -54,7 +55,7 @@ else()
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wformat-y2k")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wimport  -Winit-self")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Winvalid-pch")
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunsafe-loop-optimizations  -Wlong-long -Wmissing-braces")
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunsafe-loop-optimizations -Wmissing-braces")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-field-initializers -Wmissing-format-attribute")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-include-dirs -Wmissing-noreturn")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpacked  -Wparentheses  -Wpointer-arith")
@@ -69,6 +70,9 @@ else()
 		
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0") # debug, no optimisation
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage") # enabling coverage
+		
+		# we dont want high warning levels on 3rd party things since we won't be fixing those warnings
+		set_source_files_properties(${gmock_src} PROPERTIES COMPILE_FLAGS -Wno-effc++)
 	endif()
 endif()
 
