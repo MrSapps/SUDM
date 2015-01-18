@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <boost/format.hpp>
+#include "make_unique.h"
 
 #define GET(vertex) (boost::get(boost::vertex_name, g, vertex))
 
