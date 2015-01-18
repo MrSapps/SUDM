@@ -45,6 +45,7 @@
 #ifdef _MSC_VER
 #pragma warning (pop)
 #endif
+#include "make_unique.h"
 
 
 namespace po = boost::program_options;
