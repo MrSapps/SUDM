@@ -34,16 +34,16 @@
 #define GET(vertex) (boost::get(boost::vertex_name, _g, vertex))
 #define GET_EDGE(edge) (boost::get(boost::edge_attribute, _g, edge))
 
-ControlFlow::ControlFlow(InstVec& insts, Engine *engine) 
-    : _insts(insts) 
+ControlFlow::ControlFlow(InstVec& insts, Engine& engine) 
+  : mInsts(insts), 
+    mEngine(engine)
 {
-	_engine = engine;
 
 	// Automatically add a function if we're not supposed to look for more functions and no functions are defined
 	// This avoids a special case for when no real functions exist in the script
-    if (engine->_functions.empty())
+    if (mEngine._functions.empty())
     {
-        engine->_functions[(*insts.begin())->_address] = Function((*insts.begin())->_address, (insts.back())->_address);
+        mEngine._functions[(*insts.begin())->_address] = Function((*insts.begin())->_address, (insts.back())->_address);
     }
 
 	GroupPtr prev = NULL;
@@ -57,8 +57,8 @@ ControlFlow::ControlFlow(InstVec& insts, Engine *engine)
 		id++;
 
 		// Add reference to vertex if function starts here
-		if (_engine->_functions.find((*it)->_address) != _engine->_functions.end())
-			_engine->_functions[(*it)->_address]._v = cur;
+		if (mEngine._functions.find((*it)->_address) != mEngine._functions.end())
+			mEngine._functions[(*it)->_address]._v = cur;
 
 		prev = GET(cur);
 	}
@@ -69,7 +69,7 @@ ControlFlow::ControlFlow(InstVec& insts, Engine *engine)
 	bool addEdge = false;
 	prev = NULL;
 	for (InstIterator it = insts.begin(); it != insts.end(); ++it) {
-		if (_engine->_functions.find((*it)->_address) != _engine->_functions.end()) {
+		if (mEngine._functions.find((*it)->_address) != mEngine._functions.end()) {
 			addEdge = false;
 		}
 
@@ -171,19 +171,19 @@ void ControlFlow::setStackLevel(GraphVertex g, int level) {
 
 void ControlFlow::createGroups() 
 {
-    if (!_engine->_functions.empty() && GET(_engine->_functions.begin()->second._v)->_stackLevel != -1)
+    if (!mEngine._functions.empty() && GET(mEngine._functions.begin()->second._v)->_stackLevel != -1)
     {
         return;
     }
 
-	for (FuncMap::iterator fn = _engine->_functions.begin(); fn != _engine->_functions.end(); ++fn)
+	for (FuncMap::iterator fn = mEngine._functions.begin(); fn != mEngine._functions.end(); ++fn)
 		setStackLevel(fn->second._v, 0);
 	ConstInstIterator curInst, nextInst;
-	nextInst = _insts.begin();
+	nextInst = mInsts.begin();
 	nextInst++;
 	int stackLevel = 0;
 	int expectedStackLevel = 0;
-	for (curInst = _insts.begin(); nextInst != _insts.end(); ++curInst, ++nextInst) {
+	for (curInst = mInsts.begin(); nextInst != mInsts.end(); ++curInst, ++nextInst) {
 		GraphVertex cur = find(curInst);
 		GraphVertex next = find(nextInst);
 
@@ -231,7 +231,7 @@ void ControlFlow::createGroups()
 		}
 
 		// This part is only relevant if we use the stack level.
-		if (!_engine->usePureGrouping()) {
+		if (!mEngine.usePureGrouping()) {
 			// If group has no instructions with stack effect >= 0, don't merge on balanced stack
 			bool forceMerge = true;
 			ConstInstIterator it = grCur->_start;
@@ -259,7 +259,7 @@ void ControlFlow::createGroups()
 }
 
 void ControlFlow::detectShortCircuit() {
-	ConstInstIterator lastInst = _insts.end();
+	ConstInstIterator lastInst = mInsts.end();
 	--lastInst;
 	GraphVertex cur = find(lastInst);
 	GroupPtr gr = GET(cur);

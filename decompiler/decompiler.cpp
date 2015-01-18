@@ -27,7 +27,6 @@
 
 #include "control_flow.h"
 
-#include "groovie/engine.h"
 #include "scummv6/engine.h"
 
 #include <fstream>
@@ -35,8 +34,18 @@
 #include <map>
 #include <string>
 #include <vector>
+
+#ifdef _MSC_VER
+#pragma warning (push)
+#pragma warning(disable:4512)
+#pragma warning(disable:4100)
+#endif
 #include <boost/program_options.hpp>
 #include <boost/graph/graphviz.hpp>
+#ifdef _MSC_VER
+#pragma warning (pop)
+#endif
+
 
 namespace po = boost::program_options;
 
@@ -47,7 +56,6 @@ int main(int argc, char** argv) {
 		std::map<std::string, std::string> engines;
 		ObjectFactory<std::string, Engine> engineFactory;
 
-		ENGINE("groovie", "Groovie", Groovie::GroovieEngine);
 		ENGINE("scummv6", "SCUMM v6", Scumm::v6::Scummv6Engine);
 
         po::options_description visible("Options", 1024);
@@ -124,13 +132,13 @@ int main(int argc, char** argv) {
 			setOutputStackEffect(false);
 		}
 
-		Engine *engine = engineFactory.create(vm["engine"].as<std::string>());
+		std::unique_ptr<Engine> engine(engineFactory.create(vm["engine"].as<std::string>()));
 		engine->_variant = vm["variant"].as<std::string>();
 		std::string inputFile = vm["input-file"].as<std::string>();
 
 		// Disassembly
 		InstVec insts;
-		Disassembler *disassembler = engine->getDisassembler(insts);
+		auto disassembler = engine->getDisassembler(insts);
 		disassembler->open(inputFile.c_str());
 
 		disassembler->disassemble();
@@ -152,15 +160,11 @@ int main(int argc, char** argv) {
 			if (!vm.count("dump-disassembly")) {
 				disassembler->dumpDisassembly(std::cout);
 			}
-			delete disassembler;
-			delete engine;
 			return 0;
 		}
 
-		delete disassembler;
-
 		// Control flow analysis
-		ControlFlow *cf = new ControlFlow(insts, engine);
+		auto cf = std::make_unique<ControlFlow>(insts, *engine);
 		cf->createGroups();
 		Graph g = cf->analyze();
 
@@ -175,15 +179,13 @@ int main(int argc, char** argv) {
 				buf = std::cout.rdbuf();
 			}
 			std::ostream out(buf);
-			boost::write_graphviz(out, g, boost::make_label_writer(get(boost::vertex_name, g)), boost::makeArrowheadWriter(get(boost::edge_attribute, g)), GraphProperties(engine, g));
+			boost::write_graphviz(out, g, boost::make_label_writer(get(boost::vertex_name, g)), boost::makeArrowheadWriter(get(boost::edge_attribute, g)), GraphProperties(engine.get(), g));
 		}
 
 		if (!engine->supportsCodeGen() || vm.count("only-graph")) {
 			if (!vm.count("dump-graph")) {
-				boost::write_graphviz(std::cout, g, boost::make_label_writer(get(boost::vertex_name, g)), boost::makeArrowheadWriter(get(boost::edge_attribute, g)), GraphProperties(engine, g));
+				boost::write_graphviz(std::cout, g, boost::make_label_writer(get(boost::vertex_name, g)), boost::makeArrowheadWriter(get(boost::edge_attribute, g)), GraphProperties(engine.get(), g));
 			}
-			delete cf;
-			delete engine;
 			return 0;
 		}
 
@@ -191,7 +193,7 @@ int main(int argc, char** argv) {
 		engine->postCFG(insts, g);
 
 		// Code generation
-		CodeGenerator *cg = engine->getCodeGenerator(std::cout);
+		auto cg = engine->getCodeGenerator(std::cout);
 		cg->generate(g);
 
 		if (vm.count("show-unreachable")) {
@@ -221,10 +223,6 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		// Free memory
-		delete cf;
-		delete cg;
-		delete engine;
 	} catch (UnknownOpcodeException &e) {
 		std::cerr << "ERROR: " << e.what() << "\n";
 		return 3;

@@ -104,11 +104,6 @@ decompiler/scummv6/disassembler.cpp
 decompiler/scummv6/disassembler.h
 decompiler/scummv6/engine.cpp
 decompiler/scummv6/engine.h
-decompiler/groovie/disassembler.cpp
-decompiler/groovie/disassembler.h
-decompiler/groovie/engine.cpp
-decompiler/groovie/engine.h
-decompiler/groovie/opcodes.h
 decompiler/ff7_field/ff7_field_disassembler.cpp
 decompiler/ff7_field/ff7_field_disassembler.h
 decompiler/ff7_field/ff7_field_engine.cpp

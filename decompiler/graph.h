@@ -32,9 +32,18 @@
 #include <boost/format.hpp>
 #include <boost/version.hpp>
 
+
+#ifdef _MSC_VER
+#pragma warning (push)
+#pragma warning(disable:4512)
+#pragma warning(disable:4100)
+#endif
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
+#ifdef _MSC_VER
+#pragma warning (pop)
+#endif
 
 #include <boost/intrusive_ptr.hpp>
 

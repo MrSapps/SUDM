@@ -68,7 +68,7 @@ TEST(FF7Field, DisAsm)
     d.dumpDisassembly(std::cout);
     std::cout << std::endl;
 
-    std::unique_ptr<ControlFlow> c = std::make_unique<ControlFlow>(insts, &engine);
+    auto c = std::make_unique<ControlFlow>(insts, engine);
     c->createGroups();
 
 
@@ -80,7 +80,7 @@ TEST(FF7Field, DisAsm)
 
 
     onullstream ns;
-    CodeGenerator *cg = engine.getCodeGenerator(std::cout);
+    auto cg = engine.getCodeGenerator(std::cout);
 
     std::ofstream out;
     out.open("graph.dot");
@@ -140,7 +140,7 @@ TEST(FF7World, DisAsm)
         std::cout << std::endl;
 
 
-        ControlFlow *c = new ControlFlow(insts, &engine);
+        auto c = std::make_unique<ControlFlow>(insts, engine);
         c->createGroups();
 
 
@@ -152,7 +152,7 @@ TEST(FF7World, DisAsm)
 
 
         onullstream ns;
-        CodeGenerator *cg = engine.getCodeGenerator(std::cout);
+        auto cg = engine.getCodeGenerator(std::cout);
 
         std::ofstream out;
         out.open("graph.dot");

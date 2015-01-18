@@ -46,16 +46,15 @@ typedef std::vector<std::string>::iterator CodeIterator;
 
 TEST(CodeGen, testContinue) {
     InstVec insts;
-    Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto engine = std::make_unique<Scumm::v6::Scummv6Engine>();
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/continue-do-while.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+    auto c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     Graph g = c->analyze();
     onullstream ns;
-    CodeGenerator *cg = engine->getCodeGenerator(ns);
+    auto cg = engine->getCodeGenerator(ns);
     cg->generate(g);
 
     VertexIterator v = boost::vertices(g).first;
@@ -82,24 +81,19 @@ TEST(CodeGen, testContinue) {
     for (it = output.begin(), it2 = expected.begin(); it != output.end() && it2 != expected.end(); ++it, ++it2) {
         ASSERT_TRUE(removeSpaces(*it).compare(removeSpaces(*it2)) == 0);
     }
-
-    delete cg;
-    delete c;
-    delete engine;
 }
 
 TEST(CodeGen, testBreak) {
     InstVec insts;
-    Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto engine = std::make_unique<Scumm::v6::Scummv6Engine>();
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/break-while.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+    auto c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     Graph g = c->analyze();
     onullstream ns;
-    CodeGenerator *cg = engine->getCodeGenerator(ns);
+    auto cg = engine->getCodeGenerator(ns);
     cg->generate(g);
 
     VertexIterator v = boost::vertices(g).first;
@@ -126,24 +120,19 @@ TEST(CodeGen, testBreak) {
     for (it = output.begin(), it2 = expected.begin(); it != output.end() && it2 != expected.end(); ++it, ++it2) {
         ASSERT_TRUE(removeSpaces(*it).compare(removeSpaces(*it2)) == 0);
     }
-
-    delete cg;
-    delete c;
-    delete engine;
 }
 
 TEST(CodeGen, testElse) {
     InstVec insts;
-    Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto engine = std::make_unique<Scumm::v6::Scummv6Engine>();
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/if-else.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+    auto c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     Graph g = c->analyze();
     onullstream ns;
-    CodeGenerator *cg = engine->getCodeGenerator(ns);
+    auto cg = engine->getCodeGenerator(ns);
     cg->generate(g);
 
     VertexIterator v = boost::vertices(g).first;
@@ -169,10 +158,6 @@ TEST(CodeGen, testElse) {
     for (it = output.begin(), it2 = expected.begin(); it != output.end() && it2 != expected.end(); ++it, ++it2) {
         ASSERT_TRUE(removeSpaces(*it).compare(removeSpaces(*it2)) == 0);
     }
-
-    delete cg;
-    delete c;
-    delete engine;
 }
 
 // This test requires script-30 and script-48.dmp from Sam & Max: Hit The Road.
@@ -181,16 +166,15 @@ TEST(CodeGen, testElse) {
 // Disabled as mentioned file is copyrighted
 TEST(CodeGen, DISABLED_testCoalescing) {
     InstVec insts;
-    Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto engine = std::make_unique<Scumm::v6::Scummv6Engine>();
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/script-30.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+    auto c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     Graph g = c->analyze();
     onullstream ns;
-    CodeGenerator *cg = engine->getCodeGenerator(ns);
+    auto cg = engine->getCodeGenerator(ns);
     cg->generate(g);
 
     VertexIterator v = boost::vertices(g).first;
@@ -206,17 +190,13 @@ TEST(CodeGen, DISABLED_testCoalescing) {
     ASSERT_TRUE(removeSpaces(gr->_code[0]._line).compare("}else{") == 0);
     ASSERT_TRUE(removeSpaces(gr->_code[1]._line).substr(0, 2).compare("if") == 0);
 
-    delete cg;
-    delete c;
-    delete engine;
-
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/script-48.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     cg = engine->getCodeGenerator(ns);
@@ -233,8 +213,4 @@ TEST(CodeGen, DISABLED_testCoalescing) {
 
     ASSERT_TRUE(gr->_code.size() == 1);
     ASSERT_TRUE(removeSpaces(gr->_code[0]._line).substr(0, 7).compare("}elseif") == 0);
-
-    delete cg;
-    delete c;
-    delete engine;
 }

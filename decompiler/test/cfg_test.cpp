@@ -32,11 +32,10 @@
 TEST(CFG, testUnreachable) {
     InstVec insts;
     Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/unreachable.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+    ControlFlow *c = new ControlFlow(insts, *engine);
     Graph g = c->getGraph();
     ASSERT_TRUE(boost::num_vertices(g) == 4);
     VertexRange range = boost::vertices(g);
@@ -66,11 +65,11 @@ TEST(CFG, testUnreachable) {
 TEST(CFG, testBranching) {
     InstVec insts;
     Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/branches.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+
+    ControlFlow *c = new ControlFlow(insts, *engine);
     Graph g = c->getGraph();
     ASSERT_TRUE(boost::num_vertices(g) == 4);
     VertexRange range = boost::vertices(g);
@@ -99,12 +98,12 @@ TEST(CFG, testBranching) {
 
 TEST(CFG, testGrouping) {
     InstVec insts;
-    Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto engine = std::make_unique<Scumm::v6::Scummv6Engine>();
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/branches.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+
+    auto c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     Graph g = c->getGraph();
     ASSERT_TRUE(boost::num_vertices(g) == 3);
@@ -127,34 +126,28 @@ TEST(CFG, testGrouping) {
             break;
         }
     }
-    delete c;
-    delete engine;
 }
 
 // TODO: Fix me, this fails but looks like it shouldn't
 TEST(CFG, DISABLED_testShortCircuitDetection) {
     InstVec insts;
-    Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto engine = std::make_unique<Scumm::v6::Scummv6Engine>();
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/short-circuit.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+    auto c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     Graph g = c->getGraph();
     ASSERT_TRUE(boost::num_vertices(g) == 3);
-    delete c;
-    delete engine;
 }
 
 TEST(CFG, testWhileDetection) {
     InstVec insts;
-    Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto engine = std::make_unique<Scumm::v6::Scummv6Engine>();
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/while.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+    auto c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     Graph g = c->analyze();
     VertexRange range = boost::vertices(g);
@@ -163,18 +156,16 @@ TEST(CFG, testWhileDetection) {
         if ((*gr->_start)->_address == 0)
             ASSERT_TRUE(gr->_type == kWhileCondGroupType);
     }
-    delete c;
-    delete engine;
+
 }
 
 TEST(CFG, testDoWhileDetection) {
     InstVec insts;
-    Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto engine = std::make_unique<Scumm::v6::Scummv6Engine>();
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/while.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+    auto c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     Graph g = c->analyze();
     VertexRange range = boost::vertices(g);
@@ -183,18 +174,15 @@ TEST(CFG, testDoWhileDetection) {
         if ((*gr->_start)->_address == 3)
             ASSERT_TRUE(gr->_type == kDoWhileCondGroupType);
     }
-    delete c;
-    delete engine;
 }
 
 TEST(CFG, testBreakDetection) {
     InstVec insts;
-    Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto engine = std::make_unique<Scumm::v6::Scummv6Engine>();
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/break-while.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+    auto c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     Graph g = c->analyze();
     VertexRange range = boost::vertices(g);
@@ -203,16 +191,15 @@ TEST(CFG, testBreakDetection) {
         if ((*gr->_start)->_address == 0x14)
             ASSERT_TRUE(gr->_type == kBreakGroupType);
     }
-    delete c;
-    delete engine;
+
 
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/break-do-while.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     range = boost::vertices(g);
@@ -221,16 +208,13 @@ TEST(CFG, testBreakDetection) {
         if ((*gr->_start)->_address == 0xA)
             ASSERT_TRUE(gr->_type == kBreakGroupType);
     }
-    delete c;
-    delete engine;
 
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/break-do-while2.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     range = boost::vertices(g);
@@ -239,18 +223,16 @@ TEST(CFG, testBreakDetection) {
         if ((*gr->_start)->_address == 0xD)
             ASSERT_TRUE(gr->_type == kBreakGroupType);
     }
-    delete c;
-    delete engine;
+
 }
 
 TEST(CFG, testContinueDetection) {
     InstVec insts;
-    Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto engine = std::make_unique<Scumm::v6::Scummv6Engine>();
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/continue-while.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+    auto c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     Graph g = c->analyze();
     VertexRange range = boost::vertices(g);
@@ -261,16 +243,14 @@ TEST(CFG, testContinueDetection) {
         if ((*gr->_start)->_address == 0x1a)
             ASSERT_TRUE(gr->_type == kNormalGroupType);
     }
-    delete c;
-    delete engine;
+;
 
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/continue-do-while.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     range = boost::vertices(g);
@@ -279,16 +259,13 @@ TEST(CFG, testContinueDetection) {
         if ((*gr->_start)->_address == 0xA)
             ASSERT_TRUE(gr->_type == kContinueGroupType);
     }
-    delete c;
-    delete engine;
 
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/continue-do-while2.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     range = boost::vertices(g);
@@ -297,18 +274,15 @@ TEST(CFG, testContinueDetection) {
         if ((*gr->_start)->_address == 0xD)
             ASSERT_TRUE(gr->_type == kContinueGroupType);
     }
-    delete c;
-    delete engine;
 }
 
 TEST(CFG, testIfDetection) {
     InstVec insts;
-    Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto engine = std::make_unique<Scumm::v6::Scummv6Engine>();
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/if.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+    auto c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     Graph g = c->analyze();
     VertexRange range = boost::vertices(g);
@@ -317,16 +291,14 @@ TEST(CFG, testIfDetection) {
         if ((*gr->_start)->_address == 0x0)
             ASSERT_TRUE(gr->_type == kIfCondGroupType);
     }
-    delete c;
-    delete engine;
 
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/break-do-while.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     range = boost::vertices(g);
@@ -335,16 +307,13 @@ TEST(CFG, testIfDetection) {
         if ((*gr->_start)->_address == 0x0)
             ASSERT_TRUE(gr->_type == kIfCondGroupType);
     }
-    delete c;
-    delete engine;
 
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/break-do-while2.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     range = boost::vertices(g);
@@ -353,16 +322,14 @@ TEST(CFG, testIfDetection) {
         if ((*gr->_start)->_address == 0x3)
             ASSERT_TRUE(gr->_type == kIfCondGroupType);
     }
-    delete c;
-    delete engine;
+
 
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/continue-do-while.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     range = boost::vertices(g);
@@ -371,16 +338,13 @@ TEST(CFG, testIfDetection) {
         if ((*gr->_start)->_address == 0x0)
             ASSERT_TRUE(gr->_type == kIfCondGroupType);
     }
-    delete c;
-    delete engine;
 
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/continue-do-while2.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     range = boost::vertices(g);
@@ -389,18 +353,15 @@ TEST(CFG, testIfDetection) {
         if ((*gr->_start)->_address == 0x3)
             ASSERT_TRUE(gr->_type == kIfCondGroupType);
     }
-    delete c;
-    delete engine;
 }
 
 TEST(CFG, testElseDetection) {
     InstVec insts;
-    Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto engine = std::make_unique<Scumm::v6::Scummv6Engine>();
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/if-else.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+    auto c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     Graph g = c->analyze();
     VertexRange range = boost::vertices(g);
@@ -411,16 +372,14 @@ TEST(CFG, testElseDetection) {
             ASSERT_TRUE(gr->_endElse.size() == 1 && gr->_endElse[0] == gr);
         }
     }
-    delete c;
-    delete engine;
 
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/if-no-else.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     range = boost::vertices(g);
@@ -430,19 +389,15 @@ TEST(CFG, testElseDetection) {
             ASSERT_TRUE(gr->_type == kIfCondGroupType);
         ASSERT_TRUE(!gr->_startElse);
     }
-
-    delete c;
-    delete engine;
 }
 
 TEST(CFG, testNestedLoops) {
     InstVec insts;
-    Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto engine = std::make_unique<Scumm::v6::Scummv6Engine>();
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/do-while-in-while.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+    auto c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     Graph g = c->analyze();
     VertexRange range = boost::vertices(g);
@@ -453,16 +408,14 @@ TEST(CFG, testNestedLoops) {
         if ((*gr->_start)->_address == 0xd)
             ASSERT_TRUE(gr->_type == kDoWhileCondGroupType);
     }
-    delete c;
-    delete engine;
 
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/nested-do-while.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     range = boost::vertices(g);
@@ -473,16 +426,13 @@ TEST(CFG, testNestedLoops) {
         if ((*gr->_start)->_address == 0x10)
             ASSERT_TRUE(gr->_type == kDoWhileCondGroupType);
     }
-    delete c;
-    delete engine;
 
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/nested-while.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     range = boost::vertices(g);
@@ -493,16 +443,13 @@ TEST(CFG, testNestedLoops) {
         if ((*gr->_start)->_address == 0xa)
             ASSERT_TRUE(gr->_type == kWhileCondGroupType);
     }
-    delete c;
-    delete engine;
 
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/nested-while2.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     range = boost::vertices(g);
@@ -513,16 +460,13 @@ TEST(CFG, testNestedLoops) {
         if ((*gr->_start)->_address == 0xd)
             ASSERT_TRUE(gr->_type == kWhileCondGroupType);
     }
-    delete c;
-    delete engine;
 
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/while-in-do-while.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     range = boost::vertices(g);
@@ -533,16 +477,14 @@ TEST(CFG, testNestedLoops) {
         if ((*gr->_start)->_address == 0x10)
             ASSERT_TRUE(gr->_type == kDoWhileCondGroupType);
     }
-    delete c;
-    delete engine;
 
     insts.clear();
-    engine = new Scumm::v6::Scummv6Engine();
+    engine = std::make_unique<Scumm::v6::Scummv6Engine>();
     d = engine->getDisassembler(insts);
     d->open("decompiler/test/while-in-do-while2.dmp");
     d->disassemble();
-    delete d;
-    c = new ControlFlow(insts, engine);
+
+    c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
     range = boost::vertices(g);
@@ -553,8 +495,6 @@ TEST(CFG, testNestedLoops) {
         if ((*gr->_start)->_address == 0x13)
             ASSERT_TRUE(gr->_type == kDoWhileCondGroupType);
     }
-    delete c;
-    delete engine;
 }
 
 // This test requires script-30.dmp from Sam & Max: Hit The Road.
@@ -562,12 +502,11 @@ TEST(CFG, testNestedLoops) {
 // Disabled as mentioned file is copyrighted
 TEST(CFG, DISABLED_testSamAndMaxScript30) {
     InstVec insts;
-    Scumm::v6::Scummv6Engine *engine = new Scumm::v6::Scummv6Engine();
-    Disassembler *d = engine->getDisassembler(insts);
+    auto engine = std::make_unique<Scumm::v6::Scummv6Engine>();
+    auto d = engine->getDisassembler(insts);
     d->open("decompiler/test/script-30.dmp");
     d->disassemble();
-    delete d;
-    ControlFlow *c = new ControlFlow(insts, engine);
+    auto c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     Graph g = c->analyze();
     VertexRange range = boost::vertices(g);
@@ -612,6 +551,4 @@ TEST(CFG, DISABLED_testSamAndMaxScript30) {
             break;
         }
     }
-    delete c;
-    delete engine;
 }

@@ -258,7 +258,7 @@ void Scumm::v6::Scummv6CodeGenerator::processSpecialMetadata(const InstPtr inst,
 	case 'i':
 		addArg(inst->_params[0]);
 	case 'v':
-		addArg(new VarValue(decodeVarName(inst->_params[0]->getUnsigned())));
+		addArg(new VarValue(decodeVarName(static_cast<uint16>(inst->_params[0]->getUnsigned()))));
 		break;
 	case 's':
 		addArg(inst->_params[0]);

@@ -46,14 +46,14 @@ void Scumm::v6::Scummv6LoadInstruction::processInst(ValueStack &stack, Engine*, 
 		break;
 	case 0x02: // pushByteVar
 	case 0x03: // pushWordVar
-		stack.push(new VarValue(cg->decodeVarName(_params[0]->getUnsigned())));
+        stack.push(new VarValue(cg->decodeVarName(static_cast<uint16>(_params[0]->getUnsigned()))));
 		break;
 	case 0x06: // byteArrayRead
 	case 0x07: // wordArrayRead
 		{
 			ValueList idxs;
 			idxs.push_front(stack.pop());
-			stack.push(new ArrayValue(cg->decodeArrayName(_params[0]->getUnsigned()), idxs));
+            stack.push(new ArrayValue(cg->decodeArrayName(static_cast<uint16>(_params[0]->getUnsigned())), idxs));
 			break;
 		}
 	case 0x0A: // byteArrayIndexedRead
@@ -62,7 +62,7 @@ void Scumm::v6::Scummv6LoadInstruction::processInst(ValueStack &stack, Engine*, 
 			ValueList idxs;
 			idxs.push_front(stack.pop());
 			idxs.push_front(stack.pop());
-			stack.push(new ArrayValue(cg->decodeArrayName(_params[0]->getUnsigned()), idxs));
+            stack.push(new ArrayValue(cg->decodeArrayName(static_cast<uint16>(_params[0]->getUnsigned())), idxs));
 			break;
 		}
 	}
@@ -74,7 +74,7 @@ void Scumm::v6::Scummv6StoreInstruction::processInst(ValueStack &stack, Engine*,
 	case 0x42: // writeByteVar
 	case 0x43: // writeWordVar
 		{
-			ValuePtr p = new VarValue(cg->decodeVarName(_params[0]->getUnsigned()));
+        ValuePtr p = new VarValue(cg->decodeVarName(static_cast<uint16>(_params[0]->getUnsigned())));
 			cg->writeAssignment(p, stack.pop());
 		}
 		break;
@@ -84,7 +84,7 @@ void Scumm::v6::Scummv6StoreInstruction::processInst(ValueStack &stack, Engine*,
 			ValuePtr value = stack.pop();
 			ValueList idxs;
 			idxs.push_back(stack.pop());
-			ValuePtr p = new ArrayValue(cg->decodeArrayName(_params[0]->getUnsigned()), idxs);
+            ValuePtr p = new ArrayValue(cg->decodeArrayName(static_cast<uint16>(_params[0]->getUnsigned())), idxs);
 			cg->writeAssignment(p, value);
 		}
 		break;
@@ -95,7 +95,7 @@ void Scumm::v6::Scummv6StoreInstruction::processInst(ValueStack &stack, Engine*,
 			ValueList idxs;
 			idxs.push_front(stack.pop());
 			idxs.push_front(stack.pop());
-			ValuePtr p = new ArrayValue(cg->decodeArrayName(_params[0]->getUnsigned()), idxs);
+            ValuePtr p = new ArrayValue(cg->decodeArrayName(static_cast<uint16>(_params[0]->getUnsigned())), idxs);
 			cg->writeAssignment(p, value);
 		}
 		break;
@@ -128,7 +128,7 @@ void Scumm::v6::Scummv6IncDecInstruction::processInst(ValueStack &stack, Engine*
 	case 0x57: // wordVarDec
 		{
 			std::stringstream s;
-			ValuePtr p = new UnaryOpValue(new VarValue(cg->decodeVarName(_params[0]->getUnsigned())), _codeGenData, true);
+			ValuePtr p = new UnaryOpValue(new VarValue(cg->decodeVarName(static_cast<uint16>(_params[0]->getUnsigned()))), _codeGenData, true);
 			s << p << ";";
 			cg->addOutputLine(s.str());
 		}
@@ -141,7 +141,7 @@ void Scumm::v6::Scummv6IncDecInstruction::processInst(ValueStack &stack, Engine*
 			std::stringstream s;
 			ValueList idxs;
 			idxs.push_front(stack.pop());
-			ValuePtr p = new UnaryOpValue(new ArrayValue(cg->decodeVarName(_params[0]->getUnsigned()), idxs), _codeGenData, true);
+            ValuePtr p = new UnaryOpValue(new ArrayValue(cg->decodeVarName(static_cast<uint16>(_params[0]->getUnsigned())), idxs), _codeGenData, true);
 			s << p << ";";
 			cg->addOutputLine(s.str());
 		}
@@ -157,7 +157,7 @@ void Scumm::v6::Scummv6ArrayOpInstruction::processInst(ValueStack &stack, Engine
 			ValuePtr value = _params[1];
 			ValueList idxs;
 			idxs.push_front(stack.pop());
-			ValuePtr p = new ArrayValue(cg->decodeArrayName(_params[0]->getUnsigned()), idxs);
+            ValuePtr p = new ArrayValue(cg->decodeArrayName(static_cast<uint16>(_params[0]->getUnsigned())), idxs);
 			cg->writeAssignment(p, value);
 		}
 		break;
@@ -166,7 +166,7 @@ void Scumm::v6::Scummv6ArrayOpInstruction::processInst(ValueStack &stack, Engine
 			ValueList idxs;
 			idxs.push_front(stack.pop());
 			ValuePtr value = cg->createListValue();
-			ValuePtr p = new ArrayValue(cg->decodeArrayName(_params[0]->getUnsigned()), idxs);
+            ValuePtr p = new ArrayValue(cg->decodeArrayName(static_cast<uint16>(_params[0]->getUnsigned())), idxs);
 			cg->writeAssignment(p, value);
 		}
 		break;
@@ -176,7 +176,7 @@ void Scumm::v6::Scummv6ArrayOpInstruction::processInst(ValueStack &stack, Engine
 			idxs.push_front(stack.pop());
 			ValuePtr value = cg->createListValue();
 			idxs.push_front(stack.pop());
-			ValuePtr p = new ArrayValue(cg->decodeArrayName(_params[0]->getUnsigned()), idxs);
+            ValuePtr p = new ArrayValue(cg->decodeArrayName(static_cast<uint16>(_params[0]->getUnsigned())), idxs);
 			cg->writeAssignment(p, value);
 		}
 		break;
