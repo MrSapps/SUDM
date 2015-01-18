@@ -21,6 +21,7 @@ namespace FF7
         std::vector<std::string> _textStrings; ///< Container for strings from the TEXT chunk.
     private:
         void RemoveExtraneousReturnStatements(InstVec& insts, Graph g);
+        void RemoveTrailingInfiniteLoops(InstVec& insts, Graph g);
     };
 
 

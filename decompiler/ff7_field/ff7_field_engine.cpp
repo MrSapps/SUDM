@@ -22,6 +22,10 @@ void FF7::FF7Engine::postCFG(InstVec& insts, Graph g)
 {
     // Scripts end with a "return" this isn't required so strip them out
     RemoveExtraneousReturnStatements(insts, g);
+    
+    // In FF7 some scripts ends with an infinite loop to "keep it alive"
+    // in QGears this isn't required so we can remove them
+    RemoveTrailingInfiniteLoops(insts, g);
 }
 
 void FF7::FF7Engine::RemoveExtraneousReturnStatements(InstVec& insts, Graph g)
@@ -31,13 +35,45 @@ void FF7::FF7Engine::RemoveExtraneousReturnStatements(InstVec& insts, Graph g)
         Function& func = f.second;
         for (auto it = insts.begin(); it != insts.end(); it++)
         {
+            // Is it the last instruction in the function, and is it a return statement?
             if ((*it)->_address == func.mEndAddr)
             {
-                Instruction* nop = new FF7NoOutputInstruction();
-                nop->_opcode = eOpcodes::NOP;
-                nop->_address = (*it)->_address;
-                (*it).reset(nop);
-                break;
+                if ((*it)->_opcode == eOpcodes::RET)
+                {
+                    // Set new end address to be before the NOP
+                    func.mEndAddr = (*(it - 1))->_address;
+                    Instruction* nop = new FF7NoOutputInstruction();
+                    nop->_opcode = eOpcodes::NOP;
+                    nop->_address = (*it)->_address;
+                    (*it).reset(nop);
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void FF7::FF7Engine::RemoveTrailingInfiniteLoops(InstVec& insts, Graph g)
+{
+    for (auto& f : _functions)
+    {
+        Function& func = f.second;
+        for (auto it = insts.begin(); it != insts.end(); it++)
+        {
+            // Is it the last instruction in the function, a jump, and a jumping to itself?
+            if ((*it)->_address == func.mEndAddr)
+            {
+                if ((*it)->isJump() && (*it)->getDestAddress() == (*it)->_address)
+                {
+                    // Set new end address to be before the NOP
+                    func.mEndAddr = (*(it - 1))->_address;
+
+                    Instruction* nop = new FF7NoOutputInstruction();
+                    nop->_opcode = eOpcodes::NOP;
+                    nop->_address = (*it)->_address;
+                    (*it).reset(nop);
+                    break;
+                }
             }
         }
     }
