@@ -77,6 +77,7 @@ public:
 	int16 _stackChange;             ///< How much this instruction changes the stack pointer by.
 	std::vector<ValuePtr> _params;  ///< Array of parameters used for the instruction.
 	std::string _codeGenData;       ///< String containing metadata for code generation. See the extended documentation for details.
+    bool mLabelRequired = false;
 
 	/**
 	 * Operator overload to output an Instruction to a std::ostream.

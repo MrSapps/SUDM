@@ -63,7 +63,7 @@ CodeGenerator::CodeGenerator(Engine *engine, std::ostream &output, ArgOrder binO
 
 typedef std::pair<GraphVertex, ValueStack> DFSEntry;
 
-void CodeGenerator::generate(const Graph &g)
+void CodeGenerator::generatePass(InstVec& insts, const Graph& g)
 {
     _g = g;
     for (FuncMap::iterator fn = _engine->_functions.begin(); fn != _engine->_functions.end(); ++fn)
@@ -79,7 +79,7 @@ void CodeGenerator::generate(const Graph &g)
         bool printFuncSignature = !funcSignature.empty();
         if (printFuncSignature)
         {
-            _curGroup = GET(entryPoint);
+            mCurGroup = GET(entryPoint);
             if (!(fn == _engine->_functions.begin()))
             {
                 addOutputLine("");
@@ -95,7 +95,7 @@ void CodeGenerator::generate(const Graph &g)
         std::set<GraphVertex> seen;
         dfsStack.push(DFSEntry(entryPoint, ValueStack()));
         seen.insert(entryPoint);
-        while (!dfsStack.empty()) 
+        while (!dfsStack.empty())
         {
             DFSEntry e = dfsStack.pop();
             GroupPtr tmp = GET(e.first);
@@ -105,7 +105,7 @@ void CodeGenerator::generate(const Graph &g)
             }
             _stack = e.second;
             GraphVertex v = e.first;
-            process(v);
+            process(insts, v);
             OutEdgeRange r = boost::out_edges(v, _g);
             for (OutEdgeIterator i = r.first; i != r.second; ++i)
             {
@@ -119,9 +119,9 @@ void CodeGenerator::generate(const Graph &g)
         }
 
         // Write the function end
-        if (printFuncSignature) 
+        if (printFuncSignature)
         {
-            _curGroup = lastGroup;
+            mCurGroup = lastGroup;
             onEndFunction(fn->second);
         }
 
@@ -129,15 +129,23 @@ void CodeGenerator::generate(const Graph &g)
         GroupPtr p = GET(entryPoint);
         while (p != NULL)
         {
-            for (std::vector<CodeLine>::iterator it = p->_code.begin(); it != p->_code.end(); ++it) 
+            for (auto it = p->_code.begin(); it != p->_code.end(); ++it)
             {
-                if (it->_unindentBefore) 
+                if (it->_unindentBefore)
                 {
                     assert(_indentLevel > 0);
                     _indentLevel--;
                 }
-                _output << boost::format("%08X: %s") % (*p->_start)->_address % indentString(it->_line) << std::endl;
-                //_output << indentString(it->_line) << std::endl;
+
+                if (OutputOnlyRequiredLabels())
+                {
+                    _output << indentString(it->_line) << std::endl;
+                }
+                else
+                {
+                    _output << boost::format("%08X: %s") % (*p->_start)->_address % indentString(it->_line) << std::endl;
+                }
+
                 if (it->_indentAfter)
                 {
                     _indentLevel++;
@@ -148,9 +156,27 @@ void CodeGenerator::generate(const Graph &g)
     }
 }
 
+void CodeGenerator::generate(InstVec& insts, const Graph &g)
+{
+    if (OutputOnlyRequiredLabels())
+    {
+        // Call twice, once where no output is generated but instructions are
+        // marked as "needs label", then a 2nd time to actually output the code
+        mIsLabelPass = true;
+        generatePass(insts, g);
+    }
+    mIsLabelPass = false;
+    generatePass(insts, g);
+}
+
 void CodeGenerator::addOutputLine(std::string s, bool unindentBefore, bool indentAfter) 
 {
-    _curGroup->_code.push_back(CodeLine(s, unindentBefore, indentAfter));
+    // We don't generate output in the labels pass, we just find instructions that
+    // require a label to be outputted
+    if (!mIsLabelPass)
+    {
+        mCurGroup->_code.push_back(CodeLine(s, unindentBefore, indentAfter));
+    }
 }
 
 void CodeGenerator::writeAssignment(ValuePtr dst, ValuePtr src) 
@@ -160,13 +186,13 @@ void CodeGenerator::writeAssignment(ValuePtr dst, ValuePtr src)
     addOutputLine(s.str());
 }
 
-void CodeGenerator::process(GraphVertex v) 
+void CodeGenerator::process(InstVec& insts, GraphVertex v)
 {
     _curVertex = v;
-    _curGroup = GET(v);
+    mCurGroup = GET(v);
 
     // Check if we should add else start
-    if (_curGroup->_startElse)
+    if (mCurGroup->_startElse)
     {
         addOutputLine("} else {", true, true);
     }
@@ -189,7 +215,7 @@ void CodeGenerator::process(GraphVertex v)
             addOutputLine(mTargetLang->DoLoopHeader(), false, true);
             break;
         case kIfCondGroupType:
-            if (!_curGroup->_startElse)
+            if (!mCurGroup->_startElse)
             {
                 addOutputLine("}", true, false);
             }
@@ -202,14 +228,21 @@ void CodeGenerator::process(GraphVertex v)
         }
     }
 
-    ConstInstIterator it = _curGroup->_start;
+    ConstInstIterator it = mCurGroup->_start;
     do 
     {
-        processInst(*it);
-    } while (it++ != _curGroup->_end);
+        // If we only want to write labels that targets of goto's then check if this is the pass
+        // after we've setup mLabelRequired on each instruction. If this is set then it needs a label
+        // so write one out.
+        if (OutputOnlyRequiredLabels() && !mIsLabelPass && (*it)->mLabelRequired)
+        {
+            addOutputLine(mTargetLang->Label((*it)->_address));
+        }
+        processInst(insts, *it);
+    } while (it++ != mCurGroup->_end);
 
     // Add else end if necessary
-    for (ElseEndIterator elseIt = _curGroup->_endElse.begin(); elseIt != _curGroup->_endElse.end(); ++elseIt)
+    for (ElseEndIterator elseIt = mCurGroup->_endElse.begin(); elseIt != mCurGroup->_endElse.end(); ++elseIt)
     {
         if (!(*elseIt)->_coalescedElse)
         {
@@ -218,9 +251,9 @@ void CodeGenerator::process(GraphVertex v)
     }
 }
 
-void CodeGenerator::processUncondJumpInst(const InstPtr inst)
+void CodeGenerator::processUncondJumpInst(InstVec& insts, const InstPtr inst)
 {
-    switch (_curGroup->_type)
+    switch (mCurGroup->_type)
     {
     case kBreakGroupType:
         addOutputLine(mTargetLang->LoopBreak());
@@ -231,14 +264,14 @@ void CodeGenerator::processUncondJumpInst(const InstPtr inst)
     default: // Might be a goto
     {
         bool printJump = true;
-        OutEdgeRange r = boost::out_edges(_curVertex, _g);
-        for (OutEdgeIterator e = r.first; e != r.second && printJump; ++e)
+        OutEdgeRange jumpTargets = boost::out_edges(_curVertex, _g);
+        for (OutEdgeIterator target = jumpTargets.first; target != jumpTargets.second && printJump; ++target)
         {
-            Group* next = _curGroup->_next;
+            Group* next = mCurGroup->_next;
             if (next)
             {
                 // Don't output jump to next vertex
-                if (boost::target(*e, _g) == next->_vertex)
+                if (boost::target(*target, _g) == next->_vertex)
                 {
                     printJump = false;
                     break;
@@ -251,7 +284,7 @@ void CodeGenerator::processUncondJumpInst(const InstPtr inst)
                     break;
                 }
 
-                OutEdgeRange targetR = boost::out_edges(boost::target(*e, _g), _g);
+                OutEdgeRange targetR = boost::out_edges(boost::target(*target, _g), _g);
                 for (OutEdgeIterator targetE = targetR.first; targetE != targetR.second; ++targetE)
                 {
                     // Don't output jump to while loop that has jump to next vertex
@@ -265,16 +298,30 @@ void CodeGenerator::processUncondJumpInst(const InstPtr inst)
             {
                 // Special case where we forced code that ends with an unconditional jump back into itself to be
                 // a do { } while(true), without doing this we'd get do { } goto do_start;
-                if (_curGroup->_type == kDoWhileCondGroupType)
+                if (mCurGroup->_type == kDoWhileCondGroupType)
                 {
                     printJump = false;
                     addOutputLine(mTargetLang->DoLoopFooter(true) + "true" + mTargetLang->DoLoopFooter(false), true, false);
                 }
             }
         }
+
         if (printJump)
         {
-            addOutputLine(mTargetLang->Goto(inst->getDestAddress()));
+            const uint32 dstAddr = inst->getDestAddress();
+            if (mIsLabelPass)
+            {
+                // Mark the goto target
+                for (auto& i : insts)
+                {
+                    if (i->_address == dstAddr)
+                    {
+                        i->mLabelRequired = true;
+                        break;
+                    }
+                }
+            }
+            addOutputLine(mTargetLang->Goto(dstAddr));
         }
     }
         break;
@@ -317,30 +364,30 @@ void CodeGenerator::writeFunctionCall(std::string functionName, std::string para
 void CodeGenerator::processCondJumpInst(const InstPtr inst)
 {
     std::stringstream s;
-    switch (_curGroup->_type)
+    switch (mCurGroup->_type)
     {
     case kIfCondGroupType:
-        if (_curGroup->_startElse && _curGroup->_code.size() == 1)
+        if (mCurGroup->_startElse && mCurGroup->_code.size() == 1)
         {
             OutEdgeRange oer = boost::out_edges(_curVertex, _g);
             bool coalesceElse = false;
             for (OutEdgeIterator oe = oer.first; oe != oer.second; ++oe)
             {
                 GroupPtr oGr = GET(boost::target(*oe, _g))->_prev;
-                if (std::find(oGr->_endElse.begin(), oGr->_endElse.end(), _curGroup.get()) != oGr->_endElse.end())
+                if (std::find(oGr->_endElse.begin(), oGr->_endElse.end(), mCurGroup.get()) != oGr->_endElse.end())
                 {
                     coalesceElse = true;
                 }
             }
             if (coalesceElse)
             {
-                _curGroup->_code.clear();
-                _curGroup->_coalescedElse = true;
+                mCurGroup->_code.clear();
+                mCurGroup->_coalescedElse = true;
                 s << "} else ";
             }
         }
         s << "if (" << _stack.pop()->negate() << ") {";
-        addOutputLine(s.str(), _curGroup->_coalescedElse, true);
+        addOutputLine(s.str(), mCurGroup->_coalescedElse, true);
         break;
     case kWhileCondGroupType:
         s << "while (" << _stack.pop()->negate() << ") {";
@@ -355,7 +402,7 @@ void CodeGenerator::processCondJumpInst(const InstPtr inst)
     }
 }
 
-void CodeGenerator::processInst(const InstPtr inst) 
+void CodeGenerator::processInst(InstVec& insts, const InstPtr inst)
 {
     inst->processInst(_stack, _engine, this);
     if (inst->isCondJump())
@@ -364,7 +411,7 @@ void CodeGenerator::processInst(const InstPtr inst)
     }
     else if (inst->isUncondJump())
     {
-        processUncondJumpInst(inst);
+        processUncondJumpInst(insts, inst);
     }
 }
 

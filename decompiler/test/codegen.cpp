@@ -56,7 +56,7 @@ TEST(CodeGen, testContinue) {
     Graph g = c->analyze();
     onullstream ns;
     auto cg = engine->getCodeGenerator(ns);
-    cg->generate(g);
+    cg->generate(insts, g);
 
     VertexIterator v = boost::vertices(g).first;
     std::vector<std::string> output, expected;
@@ -95,7 +95,7 @@ TEST(CodeGen, testBreak) {
     Graph g = c->analyze();
     onullstream ns;
     auto cg = engine->getCodeGenerator(ns);
-    cg->generate(g);
+    cg->generate(insts, g);
 
     VertexIterator v = boost::vertices(g).first;
     std::vector<std::string> output, expected;
@@ -134,7 +134,7 @@ TEST(CodeGen, testElse) {
     Graph g = c->analyze();
     onullstream ns;
     auto cg = engine->getCodeGenerator(ns);
-    cg->generate(g);
+    cg->generate(insts, g);
 
     VertexIterator v = boost::vertices(g).first;
     std::vector<std::string> output, expected;
@@ -176,7 +176,7 @@ TEST(CodeGen, DISABLED_testCoalescing) {
     Graph g = c->analyze();
     onullstream ns;
     auto cg = engine->getCodeGenerator(ns);
-    cg->generate(g);
+    cg->generate(insts, g);
 
     VertexIterator v = boost::vertices(g).first;
     GroupPtr gr = GET(*v);
@@ -201,7 +201,7 @@ TEST(CodeGen, DISABLED_testCoalescing) {
     c->createGroups();
     g = c->analyze();
     cg = engine->getCodeGenerator(ns);
-    cg->generate(g);
+    cg->generate(insts, g);
 
     v = boost::vertices(g).first;
     gr = GET(*v);

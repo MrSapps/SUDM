@@ -60,6 +60,7 @@ public:
     virtual std::string FunctionCallArgumentSeperator() = 0;
     virtual std::string FunctionCallBegin() = 0;
     virtual std::string FunctionCallEnd() = 0;
+    virtual std::string Label(uint32 addr) = 0;
 };
 
 class CTargetLanguage : public ITargetLanaguge
@@ -128,6 +129,13 @@ public:
     {
         return ");";
     }
+
+    virtual std::string Label(uint32 addr) override
+    {
+        std::stringstream s;
+        s << boost::format("label_0x%X:") % addr;
+        return s.str();
+    }
 };
 
 /**
@@ -143,7 +151,7 @@ private:
      *
      * @param v The vertex to process.
      */
-    void process(GraphVertex v);
+    void process(InstVec& insts, GraphVertex v);
 
 protected:
     Engine *_engine;        ///< Pointer to the Engine used for the script.
@@ -160,8 +168,8 @@ protected:
      *
      * @param inst The instruction to process.
      */
-    void processInst(const InstPtr inst);
-    void processUncondJumpInst(const InstPtr inst);
+    void processInst(InstVec& insts, const InstPtr inst);
+    void processUncondJumpInst(InstVec& insts, const InstPtr inst);
     void processCondJumpInst(const InstPtr inst);
 
     /**
@@ -181,13 +189,17 @@ protected:
     virtual void onBeforeStartFunction(const Function& func);
     virtual void onEndFunction(const Function& func);
     virtual bool OutputOnlyRequiredLabels() const { return false; }
+
+    void generatePass(InstVec& insts, const Graph& g);
+    bool mIsLabelPass = true;
+
 public:
     void writeFunctionCall(std::string functionName, std::string paramsFormat, const std::vector<ValuePtr>& params);
 
     const ArgOrder _binOrder;  ///< Order of operands for binary operations.
     const ArgOrder _callOrder; ///< Order of operands for call arguments.
     ValueList _argList;        ///< Storage for lists of arguments to be built when processing function calls.
-    GroupPtr _curGroup;     ///< Pointer to the group currently being processed.
+    GroupPtr mCurGroup;     ///< Pointer to the group currently being processed.
 
     virtual ~CodeGenerator() { }
 
@@ -206,7 +218,7 @@ public:
      *
      * @param g The annotated graph of the script.
      */
-    void generate(const Graph &g);
+    void generate(InstVec& insts, const Graph &g);
 
     /**
      * Adds a line of code to the current group.

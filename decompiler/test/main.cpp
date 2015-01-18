@@ -93,7 +93,7 @@ TEST(FF7Field, DisAsm)
     }
     out.close();
 
-    cg->generate(g);
+    cg->generate(insts, g);
 
     VertexIterator v = boost::vertices(g).first;
     GroupPtr gr = GET(*v);
@@ -165,7 +165,7 @@ TEST(FF7World, DisAsm)
         }
         out.close();
 
-        cg->generate(g);
+        cg->generate(insts, g);
 
         VertexIterator v = boost::vertices(g).first;
         GroupPtr gr = GET(*v);

@@ -195,7 +195,7 @@ int main(int argc, char** argv) {
 
 		// Code generation
 		auto cg = engine->getCodeGenerator(std::cout);
-		cg->generate(g);
+        cg->generate(insts, g);
 
 		if (vm.count("show-unreachable")) {
 			std::vector<GroupPtr> unreachable;
