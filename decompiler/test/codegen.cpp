@@ -33,6 +33,7 @@
 #include <ostream>
 #include <gmock/gmock.h>
 #include "util.h"
+#include "make_unique.h"
 
 std::string removeSpaces(std::string s) {
     size_t found;

@@ -22,6 +22,7 @@
 #include "engine.h"
 #include "disassembler.h"
 #include "codegen.h"
+#include "make_unique.h"
 
 std::ostream &Scumm::v6::Scummv6StringValue::print(std::ostream &output) const {
 	return output << _str;
