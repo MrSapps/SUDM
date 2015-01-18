@@ -5,7 +5,7 @@
 #include "lzs.h"
 #include "make_unique.h"
 
-FF7::FF7Disassembler::FF7Disassembler(FF7Engine *engine, InstVec &insts)
+FF7::FF7Disassembler::FF7Disassembler(FF7FieldEngine *engine, InstVec &insts)
   : SimpleDisassembler(insts), 
     mEngine(engine)
 {

@@ -8,14 +8,14 @@
 
 #define GET(vertex) (boost::get(boost::vertex_name, g, vertex))
 
-Disassembler* FF7::FF7WorldEngine::getDisassembler(InstVec &insts)
+std::unique_ptr<Disassembler> FF7::FF7WorldEngine::getDisassembler(InstVec &insts)
 {
-    return new FF7WorldDisassembler(this, insts, mScriptNumber);
+    return std::make_unique<FF7WorldDisassembler>(this, insts, mScriptNumber);
 }
 
-CodeGenerator* FF7::FF7WorldEngine::getCodeGenerator(std::ostream &output)
+std::unique_ptr<CodeGenerator> FF7::FF7WorldEngine::getCodeGenerator(std::ostream &output)
 {
-    return new FF7WorldCodeGenerator(this, output);
+    return std::make_unique<FF7WorldCodeGenerator>(this, output);
 }
 
 void FF7::FF7WorldEngine::postCFG(InstVec&, Graph g)

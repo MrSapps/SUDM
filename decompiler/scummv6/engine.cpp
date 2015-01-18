@@ -27,12 +27,14 @@ std::ostream &Scumm::v6::Scummv6StringValue::print(std::ostream &output) const {
 	return output << _str;
 }
 
-Disassembler *Scumm::v6::Scummv6Engine::getDisassembler(InstVec &insts) {
-	return new Scummv6Disassembler(insts);
+std::unique_ptr<Disassembler> Scumm::v6::Scummv6Engine::getDisassembler(InstVec &insts) 
+{
+	return std::make_unique<Scummv6Disassembler>(insts);
 }
 
-CodeGenerator *Scumm::v6::Scummv6Engine::getCodeGenerator(std::ostream &output) {
-	return new Scummv6CodeGenerator(this, output);
+std::unique_ptr<CodeGenerator> Scumm::v6::Scummv6Engine::getCodeGenerator(std::ostream &output) 
+{
+	return std::make_unique<Scummv6CodeGenerator>(this, output);
 }
 
 void Scumm::v6::Scummv6LoadInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator *codeGen) {

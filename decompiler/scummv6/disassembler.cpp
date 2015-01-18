@@ -443,12 +443,12 @@ void Scumm::v6::Scummv6Disassembler::doDisassemble() throw(std::exception) {
 }
 
 void Scumm::v6::Scummv6Disassembler::fixStackEffect(InstIterator &it, int popBefore, int popAfter, int pushTotal) {
-	(*it)->_stackChange = -popBefore - popAfter + pushTotal;
+	(*it)->_stackChange = static_cast<int16>(-popBefore - popAfter + pushTotal);
 	InstIterator it2 = it;
 	for (--it2; popBefore != 0; --it2)
 		if ((*it2)->isLoad())
 			--popBefore;
-	(*it)->_stackChange -= (*it2)->_params[0]->getSigned() + 1;
+	(*it)->_stackChange -= static_cast<int16>((*it2)->_params[0]->getSigned() + 1);
 }
 
 ValuePtr Scumm::v6::Scummv6Disassembler::readParameter(InstPtr inst, boost::string_ref type) {

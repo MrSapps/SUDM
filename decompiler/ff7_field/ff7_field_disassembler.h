@@ -175,11 +175,11 @@ namespace FF7
         CHMST = 0xFE
     };
 
-    class FF7Engine;
+    class FF7FieldEngine;
     class FF7Disassembler : public SimpleDisassembler 
     {
     public:
-        FF7Disassembler(FF7Engine* engine, InstVec& insts);
+        FF7Disassembler(FF7FieldEngine* engine, InstVec& insts);
         ~FF7Disassembler();
         virtual void open(const char *filename) override;
 	    virtual void doDisassemble() throw(std::exception) override;
@@ -194,7 +194,7 @@ namespace FF7
         void ReadOpCodes(size_t endPos);
         std::unique_ptr<Function> StartFunction(size_t scriptIndex);
 
-        FF7Engine* mEngine;
+        FF7FieldEngine* mEngine;
 
         uint32 mHeaderEndPos = 0;
         void ReadHeader(BinaryReader& reader)

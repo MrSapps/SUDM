@@ -101,11 +101,10 @@ namespace FF7
         {
 
         }
-        const InstPtr findFirstCall();
-        const InstPtr findLastCall();
     protected:
         virtual std::string constructFuncSignature(const Function &func) override;
         virtual void onEndFunction(const Function& func) override;
         virtual void onBeforeStartFunction(const Function& func) override;
+        virtual bool OutputOnlyRequiredLabels() const override { return true; }
     };
 }

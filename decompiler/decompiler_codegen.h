@@ -180,7 +180,7 @@ protected:
     virtual std::string constructFuncSignature(const Function& func);
     virtual void onBeforeStartFunction(const Function& func);
     virtual void onEndFunction(const Function& func);
-
+    virtual bool OutputOnlyRequiredLabels() const { return false; }
 public:
     void writeFunctionCall(std::string functionName, std::string paramsFormat, const std::vector<ValuePtr>& params);
 

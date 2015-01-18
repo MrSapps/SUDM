@@ -14,8 +14,8 @@ namespace FF7
         {
             setOutputStackEffect(true);
         }
-        Disassembler* getDisassembler(InstVec &insts) override;
-        CodeGenerator* getCodeGenerator(std::ostream &output) override;
+        std::unique_ptr<Disassembler> getDisassembler(InstVec &insts) override;
+        std::unique_ptr<CodeGenerator> getCodeGenerator(std::ostream &output) override;
         virtual void postCFG(InstVec &insts, Graph g) override;
         virtual void getVariants(std::vector<std::string> &variants) const override;
         virtual bool usePureGrouping() const override { return false; }

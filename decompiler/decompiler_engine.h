@@ -69,9 +69,10 @@ typedef std::map<uint32, Function> FuncMap;
 /**
  * Base class for engines.
  */
-class Engine {
+class Engine 
+{
 public:
-	virtual ~Engine() {}
+    virtual ~Engine() = default;
 
 	/**
 	 * Retrieve the disassembler for the engine.
@@ -79,7 +80,7 @@ public:
 	 * @param insts Reference to the std::vector to place the Instructions in.
 	 * @return Pointer to a Disassembler for the engine.
 	 */
-	virtual Disassembler *getDisassembler(InstVec &insts) = 0;
+	virtual std::unique_ptr<Disassembler> getDisassembler(InstVec &insts) = 0;
 
 	/**
 	 * Retrieve the code generator for the engine.
@@ -87,7 +88,7 @@ public:
 	 * @param output The std::ostream to output the code to.
 	 * @return Pointer to a CodeGenerator for the engine.
 	 */
-	virtual CodeGenerator *getCodeGenerator(std::ostream &output) = 0;
+	virtual std::unique_ptr<CodeGenerator> getCodeGenerator(std::ostream &output) = 0;
 
 	/**
 	 * Post-processing step after CFG analysis.

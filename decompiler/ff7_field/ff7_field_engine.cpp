@@ -8,17 +8,17 @@
 
 #define GET(vertex) (boost::get(boost::vertex_name, g, vertex))
 
-Disassembler* FF7::FF7Engine::getDisassembler(InstVec &insts)
+std::unique_ptr<Disassembler> FF7::FF7FieldEngine::getDisassembler(InstVec &insts)
 {
-    return new FF7Disassembler(this, insts);
+    return std::make_unique<FF7Disassembler>(this, insts);
 }
 
-CodeGenerator* FF7::FF7Engine::getCodeGenerator(std::ostream &output)
+std::unique_ptr<CodeGenerator> FF7::FF7FieldEngine::getCodeGenerator(std::ostream &output)
 {
-    return new FF7CodeGenerator(this, output);
+    return std::make_unique<FF7CodeGenerator>(this, output);
 }
 
-void FF7::FF7Engine::postCFG(InstVec& insts, Graph g)
+void FF7::FF7FieldEngine::postCFG(InstVec& insts, Graph g)
 {
     // Scripts end with a "return" this isn't required so strip them out
     RemoveExtraneousReturnStatements(insts, g);
@@ -28,7 +28,7 @@ void FF7::FF7Engine::postCFG(InstVec& insts, Graph g)
     RemoveTrailingInfiniteLoops(insts, g);
 }
 
-void FF7::FF7Engine::RemoveExtraneousReturnStatements(InstVec& insts, Graph g)
+void FF7::FF7FieldEngine::RemoveExtraneousReturnStatements(InstVec& insts, Graph g)
 {
     for (auto& f : _functions)
     {
@@ -53,7 +53,7 @@ void FF7::FF7Engine::RemoveExtraneousReturnStatements(InstVec& insts, Graph g)
     }
 }
 
-void FF7::FF7Engine::RemoveTrailingInfiniteLoops(InstVec& insts, Graph g)
+void FF7::FF7FieldEngine::RemoveTrailingInfiniteLoops(InstVec& insts, Graph g)
 {
     for (auto& f : _functions)
     {
@@ -77,11 +77,6 @@ void FF7::FF7Engine::RemoveTrailingInfiniteLoops(InstVec& insts, Graph g)
             }
         }
     }
-}
-
-void FF7::FF7Engine::getVariants(std::vector<std::string>&) const
-{
-
 }
 
 void FF7::FF7LoadInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)

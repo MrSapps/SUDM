@@ -6,24 +6,21 @@
 
 namespace FF7
 {
-    class FF7Engine : public Engine
+    class FF7FieldEngine : public Engine
     {
     public:
-        FF7Engine()
+        FF7FieldEngine()
         {
             setOutputStackEffect(false);
         }
-        Disassembler* getDisassembler(InstVec &insts) override;
-        CodeGenerator* getCodeGenerator(std::ostream &output) override;
-        void postCFG(InstVec &insts, Graph g) override;
-        void getVariants(std::vector<std::string> &variants) const override;
+        virtual std::unique_ptr<Disassembler> getDisassembler(InstVec &insts) override;
+        virtual std::unique_ptr<CodeGenerator> getCodeGenerator(std::ostream &output) override;
+        virtual void postCFG(InstVec &insts, Graph g) override;
         virtual bool usePureGrouping() const override { return false; }
-        std::vector<std::string> _textStrings; ///< Container for strings from the TEXT chunk.
     private:
         void RemoveExtraneousReturnStatements(InstVec& insts, Graph g);
         void RemoveTrailingInfiniteLoops(InstVec& insts, Graph g);
     };
-
 
     class FF7LoadInstruction : public LoadInstruction 
     {

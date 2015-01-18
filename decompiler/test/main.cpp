@@ -57,7 +57,7 @@ TEST(FF7Field, FunctionMetaData_Parse_StartEnd)
 
 TEST(FF7Field, DisAsm)
 {
-    FF7::FF7Engine engine;
+    FF7::FF7FieldEngine engine;
 
 
     InstVec insts;
