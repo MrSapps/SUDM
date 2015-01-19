@@ -18,15 +18,6 @@ TEST(FF7Field, DISABLED_AllOpcodesDisassembler)
     d->dumpDisassembly(std::cout);
     std::cout << std::endl;
 
-    auto c = std::make_unique<ControlFlow>(insts, engine);
-    c->createGroups();
-
-    Graph g = c->analyze();
-    engine.postCFG(insts, g);
-
-    onullstream ns;
-    auto cg = engine.getCodeGenerator(std::cout);
-    cg->generate(insts, g);
 
     ASSERT_EQ(insts[0]->_opcode, FF7::eOpcodes::RET);
     ASSERT_EQ(insts[0]->_params.size(), 0);
