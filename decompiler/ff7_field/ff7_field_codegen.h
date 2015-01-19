@@ -74,18 +74,25 @@ namespace FF7
                 {
                     auto tmp = strs.front();
                     strs.pop_front();
-                    ParseEntity(tmp);
+                    ParseEntity(tmp, strs);
                 }
             }
             else
             {
-                ParseEntity(item);
+                ParseEntity(item, strs);
             }
         }
 
-        void ParseEntity(const std::string& item)
+        void ParseEntity(const std::string& item, std::deque<std::string>& strs)
         {
             mEntityName = item;
+            for (auto& part : strs)
+            {
+                if (!part.empty())
+                {
+                    mEntityName += "_" + part;
+                }
+            }
         }
 
         bool mEnd = false;

@@ -46,6 +46,14 @@ TEST(FF7Field, FunctionMetaData_Parse_End)
     ASSERT_EQ(false, meta.IsStart());
 }
 
+TEST(FF7Field, FunctionMetaData_Parse_EntityNameWithUnderscores)
+{
+    FF7::FunctionMetaData meta("end_entity_name");
+    ASSERT_EQ("entity_name", meta.EntityName());
+    ASSERT_EQ(true, meta.IsEnd());
+    ASSERT_EQ(false, meta.IsStart());
+}
+
 
 TEST(FF7Field, FunctionMetaData_Parse_StartEnd)
 {
