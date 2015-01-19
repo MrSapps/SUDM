@@ -4,6 +4,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/utility/string_ref.hpp>
 #include <deque>
+#include "make_unique.h"
 
 namespace FF7
 {
