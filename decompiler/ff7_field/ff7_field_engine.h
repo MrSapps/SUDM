@@ -20,14 +20,9 @@ namespace FF7
     private:
         void RemoveExtraneousReturnStatements(InstVec& insts, Graph g);
         void RemoveTrailingInfiniteLoops(InstVec& insts, Graph g);
+        void MarkInfiniteLoopGroups(InstVec& insts, Graph g);
+        void RemoveEmptyFunctions(InstVec& insts, Graph g);
     };
-
-    class FF7LoadInstruction : public LoadInstruction 
-    {
-    public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
-    };
-
 
     class FF7StoreInstruction : public StoreInstruction
     {

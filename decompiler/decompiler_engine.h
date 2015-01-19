@@ -37,6 +37,7 @@ class Function
 public:
     uint32 mStartAddr = 0;
     uint32 mEndAddr = 0;
+    uint32 mNumInstructions = 0;
 	//InstIterator _startIt; ///< Iterator to of the first instruction in the function, if available.
 	//InstIterator _endIt;   ///< Iterator to the instruction immediately after the function, similar to end() on STL containers. If _endIt == _startIt, the function endpoint is assumed to be unknown.
 	std::string _name;          ///< Function name.

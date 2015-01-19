@@ -4,6 +4,7 @@
 
 void FF7::FF7CodeGenerator::onBeforeStartFunction(const Function& func)
 {
+    // Start class
     FunctionMetaData metaData(func._metadata);
     if (metaData.IsStart())
     {
@@ -13,8 +14,10 @@ void FF7::FF7CodeGenerator::onBeforeStartFunction(const Function& func)
 
 void FF7::FF7CodeGenerator::onEndFunction(const Function& func)
 {
+    // End function
     addOutputLine("}", true, false);
-
+    
+    // End class
     FunctionMetaData metaData(func._metadata);
     if (metaData.IsEnd())
     {
@@ -22,8 +25,8 @@ void FF7::FF7CodeGenerator::onEndFunction(const Function& func)
     }
 }
 
-
 std::string FF7::FF7CodeGenerator::constructFuncSignature(const Function &func)
 {
-    return "void " + func._name + "() { ";
+    // Generate name
+    return "void " + func._name + "() {";
 }

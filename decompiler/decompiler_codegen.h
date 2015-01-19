@@ -151,7 +151,7 @@ private:
      *
      * @param v The vertex to process.
      */
-    void process(InstVec& insts, GraphVertex v);
+    void process(Function& func, InstVec& insts, GraphVertex v);
 
 protected:
     Engine *_engine;        ///< Pointer to the Engine used for the script.
@@ -168,8 +168,8 @@ protected:
      *
      * @param inst The instruction to process.
      */
-    void processInst(InstVec& insts, const InstPtr inst);
-    void processUncondJumpInst(InstVec& insts, const InstPtr inst);
+    void processInst(Function& func, InstVec& insts, const InstPtr inst);
+    void processUncondJumpInst(Function& func, InstVec& insts, const InstPtr inst);
     void processCondJumpInst(const InstPtr inst);
 
     /**

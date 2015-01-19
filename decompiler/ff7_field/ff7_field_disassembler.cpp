@@ -142,11 +142,11 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
     _addressBase = mStream->Position();
     _address = _addressBase;
 
-
-
     if (scriptIndex > 0)
     {
         // Read each block of opcodes up to a return
+        const size_t oldNumInstructions = _insts.size();
+
         auto func = StartFunction(scriptIndex);
         while (mStream->Position() != nextScriptEntryPoint + kSectionPointersSize)
         {
@@ -169,12 +169,18 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
         }
         func->_metadata = metaData;
         func->mEndAddr = _insts.back()->_address;
+
+        const size_t newNumInstructions = _insts.size();
+
+        func->mNumInstructions = newNumInstructions - oldNumInstructions;
+
         mEngine->_functions[scriptEntryPoint] = *func;
     }
     else
     {
         // Read the init script
         const size_t endPos = nextScriptEntryPoint + kSectionPointersSize;
+        const size_t oldNumInstructionsInit = _insts.size();
         auto initFunc = StartFunction(scriptIndex);
         initFunc->_name = "init";
         ReadOpCodes(endPos);
@@ -187,6 +193,7 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
         {
             // Main entry point is the current pos
             uint16 mainScriptEntryPoint = static_cast<uint16>(streamPos);
+            const size_t oldNumInstructionsMain = _insts.size();
             auto mainFunc = StartFunction(scriptIndex);
             mainFunc->_name = "main";
 
@@ -209,6 +216,7 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
                 metaData = "start_" + entityName;
             }
             initFunc->_metadata = metaData;
+            initFunc->mNumInstructions = oldNumInstructionsMain - oldNumInstructionsInit;
             mEngine->_functions[scriptEntryPoint] = *initFunc;
 
             metaData = "";
@@ -217,6 +225,7 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
                 metaData = "end_" + entityName;
             }
             mainFunc->_metadata = metaData;
+            mainFunc->mNumInstructions = _insts.size() - oldNumInstructionsMain;
             mEngine->_functions[mainScriptEntryPoint] = *mainFunc;
         }
         else
@@ -235,6 +244,7 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
                 metaData = "end_" + entityName;
             }
             initFunc->_metadata = metaData;
+            initFunc->mNumInstructions = _insts.size() - oldNumInstructionsInit;
             mEngine->_functions[scriptEntryPoint] = *initFunc;
         }
     }

@@ -21,12 +21,24 @@ std::unique_ptr<CodeGenerator> FF7::FF7FieldEngine::getCodeGenerator(std::ostrea
 
 void FF7::FF7FieldEngine::postCFG(InstVec& insts, Graph g)
 {
-    // Scripts end with a "return" this isn't required so strip them out
-    RemoveExtraneousReturnStatements(insts, g);
-    
     // In FF7 some scripts ends with an infinite loop to "keep it alive"
     // in QGears this isn't required so we can remove them
     RemoveTrailingInfiniteLoops(insts, g);
+
+    // TODO
+    //RemoveTrailingUnreachableReturns(insts, g);
+
+    // This could generate bad code, but it always seems to follow that pattern that if the last
+    // instruction is an uncond jump back into the script then it simply nests all of those blocks
+    // in an infinite loop
+    MarkInfiniteLoopGroups(insts, g);
+
+    // Scripts end with a "return" this isn't required so strip them out
+    RemoveExtraneousReturnStatements(insts, g);
+    
+    // After pruning out self loops and returns we can end up with empty functions, so remove those too
+    // TODO
+    //RemoveEmptyFunctions(insts, g);
 }
 
 void FF7::FF7FieldEngine::RemoveExtraneousReturnStatements(InstVec& insts, Graph g)
@@ -43,6 +55,8 @@ void FF7::FF7FieldEngine::RemoveExtraneousReturnStatements(InstVec& insts, Graph
                 {
                     // Set new end address to be before the NOP
                     func.mEndAddr = (*(it - 1))->_address;
+                    func.mNumInstructions--;
+
                     Instruction* nop = new FF7NoOutputInstruction();
                     nop->_opcode = eOpcodes::NOP;
                     nop->_address = (*it)->_address;
@@ -68,6 +82,7 @@ void FF7::FF7FieldEngine::RemoveTrailingInfiniteLoops(InstVec& insts, Graph g)
                 {
                     // Set new end address to be before the NOP
                     func.mEndAddr = (*(it - 1))->_address;
+                    func.mNumInstructions--;
 
                     Instruction* nop = new FF7NoOutputInstruction();
                     nop->_opcode = eOpcodes::NOP;
@@ -80,9 +95,55 @@ void FF7::FF7FieldEngine::RemoveTrailingInfiniteLoops(InstVec& insts, Graph g)
     }
 }
 
-void FF7::FF7LoadInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
+void FF7::FF7FieldEngine::MarkInfiniteLoopGroups(InstVec& insts, Graph g)
 {
+    for (auto& f : _functions)
+    {
+        Function& func = f.second;
+        for (auto it = insts.begin(); it != insts.end(); it++)
+        {
+            if ((*it)->_address == func.mEndAddr)
+            {
+                // TODO: Some light scripts break this pattern by having a jump and then an unreachable return
+                // we can detect this too by checking if the 2nd before last instruction is an unconditional jump
+                // followed by a return
+                if ((*it)->isUncondJump() )
+                {
+                    // Then assume its an infinite do { } while(true) loop that wraps part of the script
+                    VertexRange vr = boost::vertices(g);
+                    for (VertexIterator v = vr.first; v != vr.second; ++v)
+                    {
+                        GroupPtr gr = GET(*v);
+                        if ((*gr->_start)->_address == func.mEndAddr)
+                        {
+                            // Then assume its an infinite do { } while(true) loop that wraps part of the script
+                            gr->_type = kDoWhileCondGroupType;
+                        }
+                    } 
+                }
+                break;
+            }
+        }
+    }
+}
 
+void FF7::FF7FieldEngine::RemoveEmptyFunctions(InstVec& insts, Graph g)
+{
+    auto it = _functions.begin();
+    for (; it != _functions.end();)
+    {
+        if (it->second.mNumInstructions == 0)
+        {
+            // TODO: Propergate the start/end metadata to the previous function
+            //_functions.erase(it++);
+            it->second._name = "";
+            it++;
+        }
+        else
+        {
+            ++it;
+        }
+    }
 }
 
 static std::string GetVarName(uint32 bank, uint32 addr)

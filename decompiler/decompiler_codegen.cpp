@@ -82,10 +82,11 @@ void CodeGenerator::generatePass(InstVec& insts, const Graph& g)
             mCurGroup = GET(entryPoint);
             if (!(fn == _engine->_functions.begin()))
             {
-                addOutputLine("");
+                 addOutputLine("");
             }
             onBeforeStartFunction(fn->second);
-            addOutputLine(funcSignature, false, true);
+
+            addOutputLine(funcSignature, false, true); 
         }
 
         GroupPtr lastGroup = GET(entryPoint);
@@ -105,7 +106,7 @@ void CodeGenerator::generatePass(InstVec& insts, const Graph& g)
             }
             _stack = e.second;
             GraphVertex v = e.first;
-            process(insts, v);
+            process(fn->second, insts, v);
             OutEdgeRange r = boost::out_edges(v, _g);
             for (OutEdgeIterator i = r.first; i != r.second; ++i)
             {
@@ -186,7 +187,7 @@ void CodeGenerator::writeAssignment(ValuePtr dst, ValuePtr src)
     addOutputLine(s.str());
 }
 
-void CodeGenerator::process(InstVec& insts, GraphVertex v)
+void CodeGenerator::process(Function& func, InstVec& insts, GraphVertex v)
 {
     _curVertex = v;
     mCurGroup = GET(v);
@@ -238,7 +239,7 @@ void CodeGenerator::process(InstVec& insts, GraphVertex v)
         {
             addOutputLine(mTargetLang->Label((*it)->_address));
         }
-        processInst(insts, *it);
+        processInst(func, insts, *it);
     } while (it++ != mCurGroup->_end);
 
     // Add else end if necessary
@@ -251,7 +252,7 @@ void CodeGenerator::process(InstVec& insts, GraphVertex v)
     }
 }
 
-void CodeGenerator::processUncondJumpInst(InstVec& insts, const InstPtr inst)
+void CodeGenerator::processUncondJumpInst(Function& func, InstVec& insts, const InstPtr inst)
 {
     switch (mCurGroup->_type)
     {
@@ -293,15 +294,16 @@ void CodeGenerator::processUncondJumpInst(InstVec& insts, const InstPtr inst)
                         printJump = false;
                     }
                 }
-            }
-            else
-            {
-                // Special case where we forced code that ends with an unconditional jump back into itself to be
-                // a do { } while(true), without doing this we'd get do { } goto do_start;
-                if (mCurGroup->_type == kDoWhileCondGroupType)
+
+                if (printJump)
                 {
-                    printJump = false;
-                    addOutputLine(mTargetLang->DoLoopFooter(true) + "true" + mTargetLang->DoLoopFooter(false), true, false);
+                    // Check if this instruction is the last instruction in the function
+                    // and its an uncond jump
+                    if (mCurGroup->_type == kDoWhileCondGroupType && inst->_address == func.mEndAddr && inst->isUncondJump())
+                    {
+                        printJump = false;
+                        addOutputLine(mTargetLang->DoLoopFooter(true) + "true" + mTargetLang->DoLoopFooter(false), true, false);
+                    }
                 }
             }
         }
@@ -402,7 +404,7 @@ void CodeGenerator::processCondJumpInst(const InstPtr inst)
     }
 }
 
-void CodeGenerator::processInst(InstVec& insts, const InstPtr inst)
+void CodeGenerator::processInst(Function& func, InstVec& insts, const InstPtr inst)
 {
     inst->processInst(_stack, _engine, this);
     if (inst->isCondJump())
@@ -411,7 +413,7 @@ void CodeGenerator::processInst(InstVec& insts, const InstPtr inst)
     }
     else if (inst->isUncondJump())
     {
-        processUncondJumpInst(insts, inst);
+        processUncondJumpInst(func, insts, inst);
     }
 }
 
