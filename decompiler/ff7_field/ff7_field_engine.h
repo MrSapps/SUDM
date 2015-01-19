@@ -21,7 +21,6 @@ namespace FF7
         void RemoveExtraneousReturnStatements(InstVec& insts, Graph g);
         void RemoveTrailingInfiniteLoops(InstVec& insts, Graph g);
         void MarkInfiniteLoopGroups(InstVec& insts, Graph g);
-        void RemoveEmptyFunctions(InstVec& insts, Graph g);
     };
 
     class FF7StoreInstruction : public StoreInstruction

@@ -25,9 +25,6 @@ void FF7::FF7FieldEngine::postCFG(InstVec& insts, Graph g)
     // in QGears this isn't required so we can remove them
     RemoveTrailingInfiniteLoops(insts, g);
 
-    // TODO
-    //RemoveTrailingUnreachableReturns(insts, g);
-
     // This could generate bad code, but it always seems to follow that pattern that if the last
     // instruction is an uncond jump back into the script then it simply nests all of those blocks
     // in an infinite loop
@@ -35,10 +32,6 @@ void FF7::FF7FieldEngine::postCFG(InstVec& insts, Graph g)
 
     // Scripts end with a "return" this isn't required so strip them out
     RemoveExtraneousReturnStatements(insts, g);
-    
-    // After pruning out self loops and returns we can end up with empty functions, so remove those too
-    // TODO
-    //RemoveEmptyFunctions(insts, g);
 }
 
 void FF7::FF7FieldEngine::RemoveExtraneousReturnStatements(InstVec& insts, Graph g)
@@ -104,9 +97,8 @@ void FF7::FF7FieldEngine::MarkInfiniteLoopGroups(InstVec& insts, Graph g)
         {
             if ((*it)->_address == func.mEndAddr)
             {
-                // TODO: Some light scripts break this pattern by having a jump and then an unreachable return
-                // we can detect this too by checking if the 2nd before last instruction is an unconditional jump
-                // followed by a return
+                // Note: This is a "best effort heuristic", so quite a few loops will still end up as goto's.
+                // this could potentially generate invalid code too
                 if ((*it)->isUncondJump() )
                 {
                     // Then assume its an infinite do { } while(true) loop that wraps part of the script
@@ -123,25 +115,6 @@ void FF7::FF7FieldEngine::MarkInfiniteLoopGroups(InstVec& insts, Graph g)
                 }
                 break;
             }
-        }
-    }
-}
-
-void FF7::FF7FieldEngine::RemoveEmptyFunctions(InstVec& insts, Graph g)
-{
-    auto it = _functions.begin();
-    for (; it != _functions.end();)
-    {
-        if (it->second.mNumInstructions == 0)
-        {
-            // TODO: Propergate the start/end metadata to the previous function
-            //_functions.erase(it++);
-            it->second._name = "";
-            it++;
-        }
-        else
-        {
-            ++it;
         }
     }
 }
