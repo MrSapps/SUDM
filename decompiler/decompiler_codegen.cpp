@@ -87,6 +87,8 @@ void CodeGenerator::generatePass(InstVec& insts, const Graph& g)
             onBeforeStartFunction(fn->second);
 
             addOutputLine(funcSignature, false, true); 
+
+            onStartFunction(fn->second);
         }
 
         GroupPtr lastGroup = GET(entryPoint);
@@ -406,7 +408,7 @@ void CodeGenerator::processCondJumpInst(const InstPtr inst)
 
 void CodeGenerator::processInst(Function& func, InstVec& insts, const InstPtr inst)
 {
-    inst->processInst(_stack, _engine, this);
+    inst->processInst(func, _stack, _engine, this);
     if (inst->isCondJump())
     {
         processCondJumpInst(inst);

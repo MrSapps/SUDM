@@ -146,7 +146,7 @@ static std::string GetVarName(uint32 bank, uint32 addr)
 
 }
 
-void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *codeGen)
+void FF7::FF7StoreInstruction::processInst(Function&, ValueStack&, Engine*, CodeGenerator *codeGen)
 {
     switch (_opcode)
     {
@@ -231,7 +231,7 @@ void FF7::FF7StoreInstruction::processInst(ValueStack&, Engine*, CodeGenerator *
     }
 }
 
-void FF7::FF7CondJumpInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator*)
+void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator*)
 {
     std::string op;
     uint32 type = _params[4]->getUnsigned();
@@ -376,12 +376,12 @@ std::ostream& FF7::FF7UncondJumpInstruction::print(std::ostream &output) const
 }
 
 
-void FF7::FF7UncondJumpInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
+void FF7::FF7UncondJumpInstruction::processInst(Function&, ValueStack&, Engine*, CodeGenerator*)
 {
 
 }
 
-void FF7::FF7KernelCallInstruction::processInst(ValueStack&, Engine*, CodeGenerator *codeGen)
+void FF7::FF7KernelCallInstruction::processInst(Function&, ValueStack&, Engine*, CodeGenerator *codeGen)
 {
     switch (_opcode)
     {
@@ -533,7 +533,7 @@ void FF7::FF7KernelCallInstruction::processInst(ValueStack&, Engine*, CodeGenera
     }
 }
 
-void FF7::FF7NoOutputInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
+void FF7::FF7NoOutputInstruction::processInst(Function&, ValueStack&, Engine*, CodeGenerator*)
 {
 
 }

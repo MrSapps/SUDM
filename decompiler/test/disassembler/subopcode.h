@@ -27,12 +27,12 @@
 class SubOpcodeDisassembler : public SimpleDisassembler {
 public:
 	SubOpcodeDisassembler(InstVec &insts);
-	void doDisassemble() throw(std::exception);
+	void doDisassemble() throw(std::exception) override;
 };
 
 class SubOpcodeFakeInstruction : public Instruction {
 public:
-	virtual void processInst(ValueStack&, Engine*, CodeGenerator*) {}
+    virtual void processInst(Function&, ValueStack&, Engine*, CodeGenerator*) override {}
 };
 
 #endif

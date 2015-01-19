@@ -26,13 +26,13 @@ namespace FF7
     class FF7StoreInstruction : public StoreInstruction
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
     class FF7CondJumpInstruction : public CondJumpInstruction
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
         virtual uint32 getDestAddress() const override;
         virtual std::ostream& print(std::ostream &output) const override;
     };
@@ -45,7 +45,7 @@ namespace FF7
         virtual bool isFuncCall() const;
         virtual bool isUncondJump() const;
         virtual uint32 getDestAddress() const;
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
         virtual std::ostream& print(std::ostream &output) const override;
 
     };
@@ -54,13 +54,13 @@ namespace FF7
     class FF7KernelCallInstruction : public KernelCallInstruction
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
     class FF7NoOutputInstruction : public Instruction
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
 }

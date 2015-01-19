@@ -38,7 +38,7 @@ std::unique_ptr<CodeGenerator> Scumm::v6::Scummv6Engine::getCodeGenerator(std::o
 	return std::make_unique<Scummv6CodeGenerator>(this, output);
 }
 
-void Scumm::v6::Scummv6LoadInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator *codeGen) {
+void Scumm::v6::Scummv6LoadInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator *codeGen) {
 	Scummv6CodeGenerator *cg = (Scummv6CodeGenerator *)codeGen;
 	switch (_opcode) {
 	case 0x00: // pushByte
@@ -69,7 +69,7 @@ void Scumm::v6::Scummv6LoadInstruction::processInst(ValueStack &stack, Engine*, 
 	}
 }
 
-void Scumm::v6::Scummv6StoreInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator *codeGen) {
+void Scumm::v6::Scummv6StoreInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator *codeGen) {
 	Scummv6CodeGenerator *cg = (Scummv6CodeGenerator *)codeGen;
 	switch (_opcode) {
 	case 0x42: // writeByteVar
@@ -103,11 +103,11 @@ void Scumm::v6::Scummv6StoreInstruction::processInst(ValueStack &stack, Engine*,
 	}
 }
 
-void Scumm::v6::Scummv6StackInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator*) {
+void Scumm::v6::Scummv6StackInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator*) {
 	stack.pop();
 }
 
-void Scumm::v6::Scummv6CondJumpInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator*) {
+void Scumm::v6::Scummv6CondJumpInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator*) {
 	if (_opcode == 0x5D) // jumpFalse
 		stack.push(stack.pop()->negate());
 }
@@ -120,7 +120,7 @@ uint32 Scumm::v6::Scummv6JumpInstruction::getDestAddress() const {
 	return _params[0]->getUnsigned();
 }
 
-void Scumm::v6::Scummv6IncDecInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator *codeGen) {
+void Scumm::v6::Scummv6IncDecInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator *codeGen) {
 	Scummv6CodeGenerator *cg = (Scummv6CodeGenerator *)codeGen;
 	switch (_opcode) {
 	case 0x4E: // byteVarInc
@@ -150,7 +150,7 @@ void Scumm::v6::Scummv6IncDecInstruction::processInst(ValueStack &stack, Engine*
 	}
 }
 
-void Scumm::v6::Scummv6ArrayOpInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator *codeGen) {
+void Scumm::v6::Scummv6ArrayOpInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator *codeGen) {
 	Scummv6CodeGenerator *cg = (Scummv6CodeGenerator *)codeGen;
 	switch (_opcode) {
 	case 0xA4CD: // arrayOp_assignString

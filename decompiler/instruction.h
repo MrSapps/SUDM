@@ -66,6 +66,8 @@ struct Instruction;
  */
 typedef boost::intrusive_ptr<Instruction> InstPtr;
 
+class Function;
+
 /**
  * Structure for representing an instruction.
  */
@@ -176,7 +178,7 @@ public:
 	 * @param engine Pointer to the Engine used for code generation.
 	 * @param codeGen Pointer to the CodeGenerator used for code generation.
 	 */
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen) = 0;
+	virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) = 0;
 };
 
 /**
@@ -198,8 +200,8 @@ public:
  */
 struct UncondJumpInstruction : public JumpInstruction {
 public:
-	virtual bool isUncondJump() const;
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+	virtual bool isUncondJump() const override;
+	virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
 };
 
 /**
@@ -271,7 +273,7 @@ public:
  */
 struct DupStackInstruction : public DupInstruction {
 public:
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+	virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
 };
 
 /**
@@ -279,7 +281,7 @@ public:
  */
 struct BoolNegateStackInstruction : public BoolNegateInstruction {
 public:
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+	virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
 };
 
 /**
@@ -287,7 +289,7 @@ public:
  */
 struct BinaryOpStackInstruction : public BinaryOpInstruction {
 public:
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+	virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
 };
 
 /**
@@ -295,7 +297,7 @@ public:
  */
 struct ReturnInstruction : public Instruction {
 public:
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+    virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
 	virtual bool isReturn() const;
 };
 
@@ -304,7 +306,7 @@ public:
  */
 struct UnaryOpPrefixStackInstruction : public UnaryOpInstruction {
 public:
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+	virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
 };
 
 /**
@@ -312,7 +314,7 @@ public:
  */
 struct UnaryOpPostfixStackInstruction : public UnaryOpInstruction {
 public:
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+	virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
 };
 
 /**
@@ -320,7 +322,7 @@ public:
  */
 struct KernelCallStackInstruction : public Instruction {
 public:
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+	virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
 };
 
 /**

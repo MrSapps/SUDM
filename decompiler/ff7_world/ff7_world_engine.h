@@ -27,7 +27,7 @@ namespace FF7
     class FF7WorldLoadBankInstruction : public LoadInstruction
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
     class BankValue : public VarValue
@@ -39,42 +39,42 @@ namespace FF7
     class FF7WorldLoadInstruction : public LoadInstruction 
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
     class FF7SubStackInstruction : public StackInstruction
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
     class BinaryEqualStackInstruction : public BinaryOpStackInstruction 
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen)
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override
         {
             _codeGenData = "==";
-            BinaryOpStackInstruction::processInst(stack, engine, codeGen);
+            BinaryOpStackInstruction::processInst(func, stack, engine, codeGen);
         }
     };
 
     class FF7WorldStoreInstruction : public StoreInstruction
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
 
     class FF7WorldStackInstruction : public StackInstruction
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
     class FF7WorldCondJumpInstruction : public CondJumpInstruction
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
         virtual uint32 getDestAddress() const;
         virtual std::ostream& print(std::ostream &output) const override;
     };
@@ -87,7 +87,7 @@ namespace FF7
         virtual bool isFuncCall() const;
         virtual bool isUncondJump() const;
         virtual uint32 getDestAddress() const;
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
         virtual std::ostream& print(std::ostream &output) const override;
 
     };
@@ -96,13 +96,13 @@ namespace FF7
     class FF7WorldKernelCallInstruction : public KernelCallInstruction
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
     class FF7WorldNoOutputInstruction : public Instruction
     {
     public:
-        virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
 }

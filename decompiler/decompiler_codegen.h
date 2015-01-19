@@ -265,6 +265,7 @@ protected:
     virtual std::string constructFuncSignature(const Function& func);
     virtual void onBeforeStartFunction(const Function& func);
     virtual void onEndFunction(const Function& func);
+    virtual void onStartFunction(const Function&) { }
     virtual bool OutputOnlyRequiredLabels() const { return false; }
 
     void generatePass(InstVec& insts, const Graph& g);

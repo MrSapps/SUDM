@@ -41,17 +41,17 @@ void FF7::FF7WorldEngine::getVariants(std::vector<std::string>&) const
 
 }
 
-void FF7::FF7WorldLoadBankInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator*)
+void FF7::FF7WorldLoadBankInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator*)
 {
     stack.push(new BankValue("Read(" + _params[0]->getString() + ")"));
 }
 
-void FF7::FF7WorldLoadInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator*)
+void FF7::FF7WorldLoadInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator*)
 {
     stack.push(new VarValue(_params[0]->getString()));
 }
 
-void FF7::FF7SubStackInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator*)
+void FF7::FF7SubStackInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator*)
 {
     std::string op;
     switch (_opcode)
@@ -117,7 +117,7 @@ void FF7::FF7SubStackInstruction::processInst(ValueStack &stack, Engine*, CodeGe
     stack.push(new VarValue(strValue));
 }
 
-void FF7::FF7WorldStoreInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator *codeGen)
+void FF7::FF7WorldStoreInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator *codeGen)
 {
     std::string strValue = stack.pop()->getString();
 
@@ -128,12 +128,12 @@ void FF7::FF7WorldStoreInstruction::processInst(ValueStack &stack, Engine*, Code
     codeGen->addOutputLine("Write(" + bankAddr + ", " + strValue + ");");
 }
 
-void FF7::FF7WorldStackInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
+void FF7::FF7WorldStackInstruction::processInst(Function&, ValueStack&, Engine*, CodeGenerator*)
 {
 
 }
 
-void FF7::FF7WorldCondJumpInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
+void FF7::FF7WorldCondJumpInstruction::processInst(Function&, ValueStack&, Engine*, CodeGenerator*)
 {
 
 }
@@ -175,12 +175,12 @@ std::ostream& FF7::FF7WorldUncondJumpInstruction::print(std::ostream &output) co
 }
 
 
-void FF7::FF7WorldUncondJumpInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
+void FF7::FF7WorldUncondJumpInstruction::processInst(Function& , ValueStack&, Engine*, CodeGenerator*)
 {
 
 }
 
-void FF7::FF7WorldKernelCallInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator *codeGen)
+void FF7::FF7WorldKernelCallInstruction::processInst(Function& , ValueStack &stack, Engine*, CodeGenerator *codeGen)
 {
     std::string strFunc;
     switch (_opcode)
@@ -464,7 +464,7 @@ void FF7::FF7WorldKernelCallInstruction::processInst(ValueStack &stack, Engine*,
     codeGen->addOutputLine(strFunc);
 }
 
-void FF7::FF7WorldNoOutputInstruction::processInst(ValueStack&, Engine*, CodeGenerator*)
+void FF7::FF7WorldNoOutputInstruction::processInst(Function&, ValueStack&, Engine*, CodeGenerator*)
 {
 
 }

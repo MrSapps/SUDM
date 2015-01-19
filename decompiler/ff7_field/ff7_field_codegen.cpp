@@ -14,6 +14,15 @@ void FF7::FF7CodeGenerator::onBeforeStartFunction(const Function& func)
     }
 }
 
+void FF7::FF7CodeGenerator::onStartFunction(const Function& func)
+{
+    FunctionMetaData metaData(func._metadata);
+    if (func._name == "init")
+    {
+        addOutputLine("self." + metaData.EntityName() + " = entity_manager:get_entity(\"" + metaData.EntityName() + "\")");
+    }
+}
+
 void FF7::FF7CodeGenerator::onEndFunction(const Function& func)
 {
     // End function

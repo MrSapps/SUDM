@@ -224,6 +224,10 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
             {
                 metaData = "end_" + entityName;
             }
+            else
+            {
+                metaData = entityName;
+            }
             mainFunc->_metadata = metaData;
             mainFunc->mNumInstructions = _insts.size() - oldNumInstructionsMain;
             mEngine->_functions[mainScriptEntryPoint] = *mainFunc;

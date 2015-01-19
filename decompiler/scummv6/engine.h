@@ -62,7 +62,7 @@ public:
  */
 class Scummv6LoadInstruction : public LoadInstruction {
 public:
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+	virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
 };
 
 /**
@@ -70,7 +70,7 @@ public:
  */
 class Scummv6StoreInstruction : public StoreInstruction {
 public:
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+	virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
 };
 
 /**
@@ -78,7 +78,7 @@ public:
  */
 class Scummv6StackInstruction : public StackInstruction {
 public:
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+	virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
 };
 
 /**
@@ -86,7 +86,7 @@ public:
  */
 class Scummv6CondJumpInstruction : public CondJumpInstruction {
 public:
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+	virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
 	virtual uint32 getDestAddress() const;
 };
 
@@ -103,7 +103,7 @@ public:
  */
 class Scummv6IncDecInstruction : public UnaryOpPostfixStackInstruction {
 public:
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+	virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
 };
 
 /**
@@ -111,7 +111,7 @@ public:
  */
 class Scummv6ArrayOpInstruction : public StoreInstruction {
 public:
-	virtual void processInst(ValueStack &stack, Engine *engine, CodeGenerator *codeGen);
+	virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
 };
 
 } // End of namespace v6

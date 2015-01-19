@@ -90,7 +90,7 @@ bool UncondJumpInstruction::isUncondJump() const {
 	return true;
 }
 
-void UncondJumpInstruction::processInst(ValueStack&, Engine*, CodeGenerator*) {
+void UncondJumpInstruction::processInst(Function&, ValueStack&, Engine*, CodeGenerator*) {
 }
 
 bool StackInstruction::isStackOp() const {
@@ -109,7 +109,7 @@ bool StoreInstruction::isStore() const {
 	return true;
 }
 
-void DupStackInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator *codeGen) {
+void DupStackInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator *codeGen) {
 	std::stringstream s;
 	ValuePtr p = stack.pop()->dup(s);
 	if (s.str().length() > 0)
@@ -118,11 +118,11 @@ void DupStackInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator 
 	stack.push(p);
 }
 
-void BoolNegateStackInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator*) {
+void BoolNegateStackInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator*) {
 	stack.push(stack.pop()->negate());
 }
 
-void BinaryOpStackInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator *codeGen) {
+void BinaryOpStackInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator *codeGen) {
 	ValuePtr op1 = stack.pop();
 	ValuePtr op2 = stack.pop();
 	if (codeGen->_binOrder == kFIFOArgOrder)
@@ -135,19 +135,19 @@ bool ReturnInstruction::isReturn() const {
 	return true;
 }
 
-void ReturnInstruction::processInst(ValueStack&, Engine*, CodeGenerator *codeGen) {
+void ReturnInstruction::processInst(Function&, ValueStack&, Engine*, CodeGenerator *codeGen) {
 	codeGen->addOutputLine("return;");
 }
 
-void UnaryOpPrefixStackInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator*) {
+void UnaryOpPrefixStackInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator*) {
 	stack.push(new UnaryOpValue(stack.pop(), _codeGenData, false));
 }
 
-void UnaryOpPostfixStackInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator*) {
+void UnaryOpPostfixStackInstruction::processInst(Function& , ValueStack &stack, Engine*, CodeGenerator*) {
 	stack.push(new UnaryOpValue(stack.pop(), _codeGenData, true));
 }
 
-void KernelCallStackInstruction::processInst(ValueStack &stack, Engine*, CodeGenerator *codeGen) {
+void KernelCallStackInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator *codeGen) {
 	codeGen->_argList.clear();
 	bool returnsValue = (_codeGenData.find("r") == 0);
 	std::string metadata = (!returnsValue ? _codeGenData : _codeGenData.substr(1));

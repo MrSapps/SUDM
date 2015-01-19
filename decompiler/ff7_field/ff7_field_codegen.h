@@ -112,6 +112,7 @@ namespace FF7
         virtual std::string constructFuncSignature(const Function &func) override;
         virtual void onEndFunction(const Function& func) override;
         virtual void onBeforeStartFunction(const Function& func) override;
+        virtual void onStartFunction(const Function& func) override;
         virtual bool OutputOnlyRequiredLabels() const override { return true; }
     };
 }
