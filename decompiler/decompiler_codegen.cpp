@@ -339,14 +339,23 @@ void CodeGenerator::writeFunctionCall(std::string functionName, std::string para
     int paramIndex = 0;
     while (*str)
     {
+        bool skipArgument = false;
         switch (*str)
         {
+        case 'b':
+            strFuncCall += params[paramIndex]->getUnsigned() ? "true" : "false";
+            break;
+
         case 'n':
             strFuncCall += std::to_string(params[paramIndex]->getUnsigned());
             break;
 
         case 'f':
-            strFuncCall += std::to_string(params[paramIndex]->getUnsigned());
+            strFuncCall += std::to_string(static_cast<float>(params[paramIndex]->getUnsigned()) / 30.0f);
+            break;
+
+        case '_': // Ignore param
+            skipArgument = true;
             break;
 
         default:
@@ -358,7 +367,10 @@ void CodeGenerator::writeFunctionCall(std::string functionName, std::string para
         if (*str)
         {
             // There is another param
-            strFuncCall += mTargetLang->FunctionCallArgumentSeperator() + " ";
+            if (!skipArgument)
+            {
+                strFuncCall += mTargetLang->FunctionCallArgumentSeperator() + " ";
+            }
         }
     }
     strFuncCall += mTargetLang->FunctionCallEnd();

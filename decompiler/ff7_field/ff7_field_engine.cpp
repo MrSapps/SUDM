@@ -381,8 +381,10 @@ void FF7::FF7UncondJumpInstruction::processInst(Function&, ValueStack&, Engine*,
 
 }
 
-void FF7::FF7KernelCallInstruction::processInst(Function&, ValueStack&, Engine*, CodeGenerator *codeGen)
+void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Engine*, CodeGenerator *codeGen)
 {
+    FunctionMetaData md(func._metadata);
+
     switch (_opcode)
     {
     case eOpcodes::RET:
@@ -390,7 +392,7 @@ void FF7::FF7KernelCallInstruction::processInst(Function&, ValueStack&, Engine*,
         break;
 
     case eOpcodes::WAIT:
-        codeGen->writeFunctionCall("wait", "f", _params);
+        codeGen->writeFunctionCall("script:wait", "f", _params);
         break;
 
     case eOpcodes::STPAL:
@@ -460,19 +462,20 @@ void FF7::FF7KernelCallInstruction::processInst(Function&, ValueStack&, Engine*,
         break;
 
     case eOpcodes::SOLID:
-        codeGen->writeFunctionCall("setSolid", "n", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":set_solid", "b", _params);
         break;
 
     case eOpcodes::TALKON:
-        codeGen->writeFunctionCall("setTalkable", "n", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":set_talkable", "b", _params);
         break;
 
     case eOpcodes::VISI:
-        codeGen->writeFunctionCall("setVisible", "n", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":set_visible", "b", _params);
         break;
 
     case eOpcodes::MSPED:
-        codeGen->writeFunctionCall("setMoveSpeed", "nn", _params);
+        // TODO: QGears had av_b of mds1_2 set to 3.75, but how?
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":set_move_auto_speed", "nn", _params);
         break;
 
     case eOpcodes::MOVE:
