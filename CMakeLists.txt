@@ -159,6 +159,7 @@ decompiler/test/disassembler/pasc.h
 decompiler/test/disassembler/subopcode.cpp
 decompiler/test/disassembler/subopcode.h
 decompiler/test/main.cpp
+decompiler/test/ff7_field_all_opcodes_disassembler_test.cpp
 )
 
 target_link_libraries(Sudm_Test Sudm_Lib gmock ${Boost_LIBRARIES})

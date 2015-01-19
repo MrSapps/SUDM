@@ -106,7 +106,7 @@ namespace FF7
         FF7CodeGenerator(Engine *engine, std::ostream &output) 
             : CodeGenerator(engine, output, kFIFOArgOrder, kLIFOArgOrder)
         {
-
+            mTargetLang = std::make_unique<LuaTargetLanguage>();
         }
     protected:
         virtual std::string constructFuncSignature(const Function &func) override;

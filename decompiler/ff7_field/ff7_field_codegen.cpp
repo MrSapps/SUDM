@@ -8,25 +8,27 @@ void FF7::FF7CodeGenerator::onBeforeStartFunction(const Function& func)
     FunctionMetaData metaData(func._metadata);
     if (metaData.IsStart())
     {
-        addOutputLine("class " + metaData.EntityName() + " {", false, true);
+        addOutputLine("EntityContainer[ \"" + metaData.EntityName() + "\" ] = {", false, true);
+        addOutputLine(metaData.EntityName() + " = nil");
+        addOutputLine("");
     }
 }
 
 void FF7::FF7CodeGenerator::onEndFunction(const Function& func)
 {
     // End function
-    addOutputLine("}", true, false);
+    addOutputLine("end,", true, false);
     
     // End class
     FunctionMetaData metaData(func._metadata);
     if (metaData.IsEnd())
     {
-        addOutputLine("};", true, false);
+        addOutputLine("}", true, false);
     }
 }
 
 std::string FF7::FF7CodeGenerator::constructFuncSignature(const Function &func)
 {
     // Generate name
-    return "void " + func._name + "() {";
+    return func._name + " = function( self )";
 }

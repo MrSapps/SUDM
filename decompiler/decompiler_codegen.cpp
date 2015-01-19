@@ -392,7 +392,7 @@ void CodeGenerator::processCondJumpInst(const InstPtr inst)
         addOutputLine(s.str(), mCurGroup->_coalescedElse, true);
         break;
     case kWhileCondGroupType:
-        s << "while (" << _stack.pop()->negate() << ") {";
+        s << mTargetLang->WhileHeader(true) << _stack.pop()->negate() << mTargetLang->WhileHeader(false);
         addOutputLine(s.str(), false, true);
         break;
     case kDoWhileCondGroupType:

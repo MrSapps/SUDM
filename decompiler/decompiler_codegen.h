@@ -23,6 +23,7 @@
 
 #include "graph.h"
 #include "value.h"
+#include "unknown_opcode_exception.h"
 
 #include <ostream>
 #include <utility>
@@ -134,6 +135,82 @@ public:
     {
         std::stringstream s;
         s << boost::format("label_0x%X:") % addr;
+        return s.str();
+    }
+};
+
+class LuaTargetLanguage : public ITargetLanaguge
+{
+public:
+    virtual std::string LoopBreak() override
+    {
+        return "break";
+    }
+
+    virtual std::string LoopContinue() override
+    {
+        // LUA has no continue keyword
+        throw InternalDecompilerError();
+    }
+
+    virtual std::string Goto(uint32 target) override
+    {
+        std::stringstream s;
+        s << boost::format("goto label_0x%X") % target;
+        return s.str();
+    }
+
+    virtual std::string DoLoopHeader() override
+    {
+        return "repeat";
+    }
+
+    virtual std::string DoLoopFooter(bool beforeExpr) override
+    {
+        if (beforeExpr)
+        {
+            return "until (";
+        }
+        return ")";
+    }
+
+    virtual std::string If(bool beforeExpr) override
+    {
+        if (beforeExpr)
+        {
+            return "if (";
+        }
+        return ") then";
+    }
+
+    virtual std::string WhileHeader(bool beforeExpr) override
+    {
+        if (beforeExpr)
+        {
+            return "while (";
+        }
+        return ") do";
+    }
+
+    virtual std::string FunctionCallArgumentSeperator() override
+    {
+        return ",";
+    }
+
+    virtual std::string FunctionCallBegin() override
+    {
+        return "(";
+    }
+
+    virtual std::string FunctionCallEnd() override
+    {
+        return ")";
+    }
+
+    virtual std::string Label(uint32 addr) override
+    {
+        std::stringstream s;
+        s << boost::format("label_0x%X") % addr;
         return s.str();
     }
 };
