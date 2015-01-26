@@ -263,6 +263,9 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
         std::string opcodePrefix;
         switch (opcode)
         {
+			OPCODE(eOpcodes::REQ, "REQ", FF7KernelCallInstruction, 0, "BB");
+			OPCODE(eOpcodes::REQSW, "REQSW", FF7KernelCallInstruction, 0, "BB");
+			OPCODE(eOpcodes::REQEW, "REQEW", FF7KernelCallInstruction, 0, "BB");
             OPCODE(eOpcodes::IFUB, "IFUB", FF7CondJumpInstruction, 0, "NBBBB");
             OPCODE(eOpcodes::IFUBL, "IFUBL", FF7CondJumpInstruction, 0, "NBBBw");
             OPCODE(eOpcodes::IFSW, "IFSW", FF7CondJumpInstruction, 0, "NwsBB");
@@ -327,7 +330,7 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(eOpcodes::SETWORD, "SETWORD", FF7StoreInstruction, 0, "NBs");
             OPCODE(0x02, "REQSW", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0x03, "REQEW", FF7KernelCallInstruction, 0, "BB");
-            OPCODE(0x04, "PREQ", FF7KernelCallInstruction, 0, "BB");
+			OPCODE(eOpcodes::PREQ, "PREQ", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0x05, "PRQSW", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0x42, "MPRA2", FF7KernelCallInstruction, 0, "BBBw");
             OPCODE(0xef, "ADPAL2", FF7KernelCallInstruction, 0, "BBBBBBBBB");
