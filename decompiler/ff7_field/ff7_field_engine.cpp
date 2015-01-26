@@ -465,7 +465,7 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
         codeGen->writeFunctionCall("self." + md.EntityName() + ":set_solid", "b", _params);
         break;
 
-    case eOpcodes::TALKON:
+    case eOpcodes::TLKON:
         codeGen->writeFunctionCall("self." + md.EntityName() + ":set_talkable", "b", _params);
         break;
 
