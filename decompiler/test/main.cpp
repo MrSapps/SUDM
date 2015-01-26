@@ -14,6 +14,112 @@
 
 #define GET(vertex) (boost::get(boost::vertex_name, g, vertex))
 
+
+class TestReadParameterDisassembler : public SimpleDisassembler
+{
+public:
+    TestReadParameterDisassembler(std::vector<unsigned char>&& data, InstVec& insts)
+        : SimpleDisassembler(insts)
+    {
+        mStream = std::make_unique<BinaryReader>(std::move(data));
+    }
+
+    void readParams(InstPtr inst, const char *typeString)
+    {
+        return SimpleDisassembler::readParams(inst, typeString);
+    }
+
+
+    virtual void doDisassemble() throw(std::exception) override final
+    {
+        // NOP
+    }
+
+};
+
+static InstPtr DoReadParameterTest(boost::string_ref str, std::vector<unsigned char> data)
+{
+    InstVec insts;
+    TestReadParameterDisassembler d(std::move(data), insts);
+    InstPtr inst = new FF7::FF7NoOutputInstruction();
+    d.readParams(inst, str.to_string().c_str());
+    return inst;
+}
+
+TEST(SimpleDisassembler, readParameter_U)
+{
+    std::vector<unsigned char> data = { 0xAA };
+    InstPtr inst = DoReadParameterTest("U", data);
+
+    ASSERT_EQ(inst->_params.size(), 2);
+    ASSERT_EQ(inst->_params[0]->getSigned(), 0x5);
+    ASSERT_EQ(inst->_params[1]->getSigned(), 0xA);
+}
+
+TEST(SimpleDisassembler, readParameter_N)
+{
+    std::vector<unsigned char> data = { 0xAB };
+    InstPtr inst = DoReadParameterTest("N", data);
+
+    ASSERT_EQ(inst->_params.size(), 2);
+    ASSERT_EQ(inst->_params[0]->getSigned(), 0xA);
+    ASSERT_EQ(inst->_params[1]->getSigned(), 0xB);
+}
+
+TEST(SimpleDisassembler, readParameter_b)
+{
+    std::vector<unsigned char> data = { (unsigned char)-100 };
+    InstPtr inst = DoReadParameterTest("b", data);
+
+    ASSERT_EQ(inst->_params.size(), 1);
+    ASSERT_EQ(inst->_params[0]->getSigned(), -100);
+}
+
+TEST(SimpleDisassembler, readParameter_B)
+{
+    std::vector<unsigned char> data = { 100 };
+    InstPtr inst = DoReadParameterTest("B", data);
+
+    ASSERT_EQ(inst->_params.size(), 1);
+    ASSERT_EQ(inst->_params[0]->getSigned(), 100);
+}
+
+TEST(SimpleDisassembler, readParameter_s)
+{
+    std::vector<unsigned char> data = { (unsigned char)-40 };
+    InstPtr inst = DoReadParameterTest("s", data);
+
+    ASSERT_EQ(inst->_params.size(), 1);
+    ASSERT_EQ(inst->_params[0]->getSigned(), 216); // TODO: Casting removes the sign
+}
+
+TEST(SimpleDisassembler, readParameter_w)
+{
+    std::vector<unsigned char> data = { 0xFE, 0xAA };
+    InstPtr inst = DoReadParameterTest("w", data);
+
+    ASSERT_EQ(inst->_params.size(), 1);
+    ASSERT_EQ(inst->_params[0]->getSigned(), 0xAAFE);
+}
+
+TEST(SimpleDisassembler, readParameter_i)
+{
+    std::vector<unsigned char> data = { (unsigned char)-0x30 };
+    InstPtr inst = DoReadParameterTest("i", data);
+
+    ASSERT_EQ(inst->_params.size(), 1);
+    ASSERT_EQ(inst->_params[0]->getSigned(), 208); // TODO: Casting removes the sign
+}
+
+TEST(SimpleDisassembler, readParameter_d)
+{
+    std::vector<unsigned char> data = { 0xde, 0xad, 0xbe, 0xef };
+    InstPtr inst = DoReadParameterTest("d", data);
+
+    ASSERT_EQ(inst->_params.size(), 1);
+    ASSERT_EQ(inst->_params[0]->getUnsigned(), 0xEFBEADDE);
+}
+
 TEST(FF7Field, FunctionMetaData_Parse_Empty)
 {
     FF7::FunctionMetaData meta("");
@@ -198,7 +304,6 @@ TEST(FF7World, DisAsm)
         ASSERT_TRUE(output.empty() == false);
     }
 }
-
 
 int main(int argc, char** argv)
 {

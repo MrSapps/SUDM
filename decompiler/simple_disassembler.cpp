@@ -54,6 +54,13 @@ void SimpleDisassembler::readParams(InstPtr inst, const char *typeString)
             inst->_params.push_back(new IntValue(Nib2(byte), false));
             _address++;
         }
+        else if (typeStr == "U")
+        {
+            const uint8 byte = mStream->ReadU8();
+            inst->_params.push_back( new IntValue((byte >> 5) & 0x7, false));
+            inst->_params.push_back( new IntValue((byte & 0x1F), false));
+            _address++;
+        }
         else
         {
             inst->_params.push_back(readParameter(inst, typeStr));
@@ -80,21 +87,9 @@ ValuePtr SimpleDisassembler::readParameter(InstPtr inst, boost::string_ref type)
         retval = new IntValue(mStream->ReadS16(), true);
         _address += 2;
     }
-    else if (type == "S") // 16-bit signed integer (short), big-endian
-    {
-        abort();
-        retval = new IntValue(mStream->ReadS16BE(), true);
-        _address += 2;
-    }
     else if (type == "w") // 16-bit unsigned integer (word), little-endian
     {
         retval = new IntValue((uint32)mStream->ReadU16(), false);
-        _address += 2;
-    }
-    else if (type == "W") // 16-bit unsigned integer (word), big-endian
-    {
-        abort();
-        retval = new IntValue((uint32)mStream->ReadU16BE(), false);
         _address += 2;
     }
     else if (type == "i") // 32-bit signed integer (int), little-endian
@@ -102,21 +97,9 @@ ValuePtr SimpleDisassembler::readParameter(InstPtr inst, boost::string_ref type)
         retval = new IntValue(mStream->ReadS32(), true);
         _address += 4;
     }
-    else if (type == "I") // 32-bit signed integer (int), big-endian
-    {
-        abort();
-        retval = new IntValue(mStream->ReadS32BE(), true);
-        _address += 4;
-    }
     else if (type == "d") // 32-bit unsigned integer (dword), little-endian
     {
         retval = new IntValue(mStream->ReadU32(), false);
-        _address += 4;
-    }
-    else if (type == "D") // 32-bit unsigned integer (dword), big-endian
-    {
-        abort();
-        retval = new IntValue(mStream->ReadU32BE(), false);
         _address += 4;
     }
     else
