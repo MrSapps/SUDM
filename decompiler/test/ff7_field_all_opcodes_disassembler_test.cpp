@@ -6,6 +6,8 @@
 #include "util.h"
 #include "make_unique.h"
 
+#define MAKE_SUBOPCODE(high, low) ((uint16)(((uint8)(low)) | ((uint16)((uint8)(high))) << 8))
+
 // Remove DISABLED_ to make it execute
 TEST(FF7Field, AllOpcodesDisassembler)
 {
@@ -72,6 +74,78 @@ TEST(FF7Field, AllOpcodesDisassembler)
 	ASSERT_EQ(insts[8]->_params[5]->getSigned(), 6);
 	ASSERT_EQ(insts[8]->_params[6]->getSigned(), 7);
 	ASSERT_EQ(insts[8]->_params[7]->getSigned(), 8);
+	ASSERT_EQ(insts[8]->_params[8]->getSigned(), 9);
+	ASSERT_EQ(insts[8]->_params[9]->getSigned(), 10);
+	ASSERT_EQ(insts[8]->_params[10]->getSigned(), 11);
+	ASSERT_EQ(insts[8]->_params[11]->getSigned(), 12);
+	ASSERT_EQ(insts[8]->_params[12]->getSigned(), 13);
+
+	ASSERT_EQ(insts[9]->_opcode, FF7::eOpcodes::SPTYE);
+	ASSERT_EQ(insts[9]->_params.size(), 7);
+	ASSERT_EQ(insts[9]->_params[0]->getSigned(), 1);
+	ASSERT_EQ(insts[9]->_params[1]->getSigned(), 2);
+	ASSERT_EQ(insts[9]->_params[2]->getSigned(), 3);
+	ASSERT_EQ(insts[9]->_params[3]->getSigned(), 4);
+	ASSERT_EQ(insts[9]->_params[4]->getSigned(), 5);
+	ASSERT_EQ(insts[9]->_params[5]->getSigned(), 6);
+	ASSERT_EQ(insts[9]->_params[6]->getSigned(), 7);
+
+	ASSERT_EQ(insts[10]->_opcode, FF7::eOpcodes::GTPYE);
+	ASSERT_EQ(insts[10]->_params.size(), 7);
+	ASSERT_EQ(insts[10]->_params[0]->getSigned(), 1);
+	ASSERT_EQ(insts[10]->_params[1]->getSigned(), 2);
+	ASSERT_EQ(insts[10]->_params[2]->getSigned(), 3);
+	ASSERT_EQ(insts[10]->_params[3]->getSigned(), 4);
+	ASSERT_EQ(insts[10]->_params[4]->getSigned(), 5);
+	ASSERT_EQ(insts[10]->_params[5]->getSigned(), 6);
+	ASSERT_EQ(insts[10]->_params[6]->getSigned(), 7);
+
+	ASSERT_EQ(insts[11]->_opcode, FF7::eOpcodes::DSKCG);
+	ASSERT_EQ(insts[11]->_params.size(), 1);
+	ASSERT_EQ(insts[11]->_params[0]->getSigned(), 1);
+
+	
+	ASSERT_EQ(insts[12]->_opcode, MAKE_SUBOPCODE(FF7::eOpcodes::SPECIAL, FF7::eSpecialOpcodes::ARROW));
+	ASSERT_EQ(insts[12]->_params.size(), 1);
+	ASSERT_EQ(insts[12]->_params[0]->getSigned(), 1);
+
+	ASSERT_EQ(insts[13]->_opcode, MAKE_SUBOPCODE(FF7::eOpcodes::SPECIAL, FF7::eSpecialOpcodes::PNAME));
+	ASSERT_EQ(insts[13]->_params.size(), 1);
+	ASSERT_EQ(insts[13]->_params[0]->getSigned(), 1);
+
+	ASSERT_EQ(insts[14]->_opcode, MAKE_SUBOPCODE(FF7::eOpcodes::SPECIAL, FF7::eSpecialOpcodes::GMSPD));
+	ASSERT_EQ(insts[14]->_params.size(), 1);
+	ASSERT_EQ(insts[14]->_params[0]->getSigned(), 1);
+
+	ASSERT_EQ(insts[15]->_opcode, MAKE_SUBOPCODE(FF7::eOpcodes::SPECIAL, FF7::eSpecialOpcodes::SMSPD));
+	ASSERT_EQ(insts[15]->_params.size(), 2);
+	ASSERT_EQ(insts[15]->_params[0]->getSigned(), 1);
+	ASSERT_EQ(insts[15]->_params[1]->getSigned(), 2);
+
+	ASSERT_EQ(insts[16]->_opcode, MAKE_SUBOPCODE(FF7::eOpcodes::SPECIAL, FF7::eSpecialOpcodes::FLMAT));
+	ASSERT_EQ(insts[16]->_params.size(), 0);
+
+	ASSERT_EQ(insts[17]->_opcode, MAKE_SUBOPCODE(FF7::eOpcodes::SPECIAL, FF7::eSpecialOpcodes::FLITM));
+	ASSERT_EQ(insts[17]->_params.size(), 0);
+
+	ASSERT_EQ(insts[18]->_opcode, MAKE_SUBOPCODE(FF7::eOpcodes::SPECIAL, FF7::eSpecialOpcodes::BTLCK));
+	ASSERT_EQ(insts[18]->_params.size(), 1);
+	ASSERT_EQ(insts[18]->_params[0]->getSigned(), 1);
+
+	ASSERT_EQ(insts[19]->_opcode, MAKE_SUBOPCODE(FF7::eOpcodes::SPECIAL, FF7::eSpecialOpcodes::MVLCK));
+	ASSERT_EQ(insts[19]->_params.size(), 1);
+	ASSERT_EQ(insts[19]->_params[0]->getSigned(), 1);
+
+	ASSERT_EQ(insts[20]->_opcode, MAKE_SUBOPCODE(FF7::eOpcodes::SPECIAL, FF7::eSpecialOpcodes::SPCNM));
+	ASSERT_EQ(insts[20]->_params.size(), 2);
+	ASSERT_EQ(insts[20]->_params[0]->getSigned(), 1);
+	ASSERT_EQ(insts[20]->_params[1]->getSigned(), 2);
+
+	ASSERT_EQ(insts[21]->_opcode, MAKE_SUBOPCODE(FF7::eOpcodes::SPECIAL, FF7::eSpecialOpcodes::RSGLB));
+	ASSERT_EQ(insts[21]->_params.size(), 0);
+
+	ASSERT_EQ(insts[22]->_opcode, MAKE_SUBOPCODE(FF7::eOpcodes::SPECIAL, FF7::eSpecialOpcodes::CLITM));
+	ASSERT_EQ(insts[22]->_params.size(), 0);
 
 
     // If it had a value then check the values using:
