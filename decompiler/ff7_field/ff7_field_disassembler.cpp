@@ -263,9 +263,16 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
         std::string opcodePrefix;
         switch (opcode)
         {
-			OPCODE(eOpcodes::REQ, "REQ", FF7KernelCallInstruction, 0, "BB");
-			OPCODE(eOpcodes::REQSW, "REQSW", FF7KernelCallInstruction, 0, "BB");
-			OPCODE(eOpcodes::REQEW, "REQEW", FF7KernelCallInstruction, 0, "BB");
+			OPCODE(eOpcodes::RET, "RET", FF7KernelCallInstruction, 0, "");
+			OPCODE(eOpcodes::REQ, "REQ", FF7KernelCallInstruction, 0, "BN"); // TODO
+			OPCODE(eOpcodes::REQSW, "REQSW", FF7KernelCallInstruction, 0, "BN"); // TODO
+			OPCODE(eOpcodes::REQEW, "REQEW", FF7KernelCallInstruction, 0, "BN"); // TODO
+			OPCODE(eOpcodes::PREQ, "PREQ", FF7KernelCallInstruction, 0, "BN"); // TODO
+			OPCODE(eOpcodes::PREQSW, "PREQSW", FF7KernelCallInstruction, 0, "BN"); // TODO
+			OPCODE(eOpcodes::PREQEW, "PREQEW", FF7KernelCallInstruction, 0, "BN"); // TODO
+			OPCODE(eOpcodes::RETTO, "RETTO", FF7KernelCallInstruction, 0, "N"); // TODO
+			OPCODE(eOpcodes::JOIN, "JOIN", FF7KernelCallInstruction, 0, "B");
+			OPCODE(eOpcodes::SPLIT, "SPLIT", FF7KernelCallInstruction, 0, "NNNssBssBB");
             OPCODE(eOpcodes::IFUB, "IFUB", FF7CondJumpInstruction, 0, "NBBBB");
             OPCODE(eOpcodes::IFUBL, "IFUBL", FF7CondJumpInstruction, 0, "NBBBw");
             OPCODE(eOpcodes::IFSW, "IFSW", FF7CondJumpInstruction, 0, "NwsBB");
@@ -278,7 +285,6 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(eOpcodes::JMPF, "JMPF", FF7UncondJumpInstruction, 0, "B");
             OPCODE(eOpcodes::JMPB, "JMPB", FF7UncondJumpInstruction, 0, "B");
            
-            OPCODE(eOpcodes::RET, "RET", FF7KernelCallInstruction, 0, "");
             /*
             OPCODE_BASE(eOpcodes::KAWAI)
                 opcode = this->mStream->ReadU8(); // Annoyingly has the length here
@@ -323,21 +329,15 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(0xEC, "LDPLS", FF7KernelCallInstruction, 0, "BBBB");
             OPCODE(eOpcodes::RANDOM, "RANDOM", FF7StoreInstruction, 0, "BB");
             OPCODE(eOpcodes::MOD, "MOD", FF7StoreInstruction, 0, "NBB");
-            OPCODE(0x08, "JOIN", FF7KernelCallInstruction, 0, "B");
             OPCODE(0x6C, "FADEW", FF7KernelCallInstruction, 0, "");
             OPCODE(0x0b, "SPTYE", FF7KernelCallInstruction, 0, "BBBBB");
             OPCODE(0x0a, "GTPYE", FF7KernelCallInstruction, 0, "BBBBB");
             OPCODE(eOpcodes::SETWORD, "SETWORD", FF7StoreInstruction, 0, "NBs");
-            OPCODE(0x02, "REQSW", FF7KernelCallInstruction, 0, "BB");
-            OPCODE(0x03, "REQEW", FF7KernelCallInstruction, 0, "BB");
-			OPCODE(eOpcodes::PREQ, "PREQ", FF7KernelCallInstruction, 0, "BB");
-            OPCODE(0x05, "PRQSW", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0x42, "MPRA2", FF7KernelCallInstruction, 0, "BBBw");
             OPCODE(0xef, "ADPAL2", FF7KernelCallInstruction, 0, "BBBBBBBBB");
             OPCODE(0xe9, "ADPAL", FF7KernelCallInstruction, 0, "BBBBBBBBB");
             OPCODE(0xEA, "MPPAL2", FF7KernelCallInstruction, 0, "BBBBBBBBB");
             OPCODE(0x6b, "FADE", FF7KernelCallInstruction, 0, "BBBBBBBB");
-            OPCODE(0x09, "SPLIT", FF7KernelCallInstruction, 0, "BBBssBssBB");
             OPCODE(eOpcodes::INC, "INC", FF7StoreInstruction, 0, "BB");
             OPCODE(eOpcodes::DEC, "DEC", FF7StoreInstruction, 0, "BB");
             OPCODE(0xeb, "STPLS", FF7KernelCallInstruction, 0, "BBBB");
@@ -355,7 +355,6 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(0x0e, "DSKCG", FF7KernelCallInstruction, 0, "B");
             OPCODE(0x3E, "MHMMX", FF7KernelCallInstruction, 0, "");
             OPCODE(0xA4, "VISI", FF7KernelCallInstruction, 0, "B");
-            OPCODE(0x01, "REQ", ReturnInstruction, 0, "BB");
             OPCODE(0xE5, "STPAL", FF7KernelCallInstruction, 0, "BBBB");
             OPCODE(0x24, "WAIT", FF7KernelCallInstruction, 0, "w");
             OPCODE(0xE7, "CPPAL", FF7KernelCallInstruction, 0, "BBBB");
