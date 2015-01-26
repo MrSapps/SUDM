@@ -252,8 +252,23 @@ namespace FF7
         FMUSC = 0xFC,
 		CMUSC = 0xFD,
         CHMST = 0xFE,
-		GAMEOVER = 0xFF,
+		GAMEOVER = 0xFF
     };
+
+	enum eSpecialOpcodes
+	{ 
+		ARROW = 0xF5,
+		PNAME = 0xF6,
+		GMSPD = 0xF7,
+		SMSPD = 0xF8,
+		FLMAT = 0xF9,
+		FLITM = 0xFA,
+		BTLCK = 0xFB,
+		MVLCK = 0xFC,
+		SPCNM = 0xFD,
+		RSGLB = 0xFE,
+		CLITM = 0xFF
+	};
 
     class FF7FieldEngine;
     class FF7Disassembler : public SimpleDisassembler 

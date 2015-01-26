@@ -273,6 +273,29 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
 			OPCODE(eOpcodes::RETTO, "RETTO", FF7KernelCallInstruction, 0, "N"); // TODO
 			OPCODE(eOpcodes::JOIN, "JOIN", FF7KernelCallInstruction, 0, "B");
 			OPCODE(eOpcodes::SPLIT, "SPLIT", FF7KernelCallInstruction, 0, "NNNssBssBB");
+			OPCODE(eOpcodes::SPTYE, "SPTYE", FF7KernelCallInstruction, 0, "NNBBB");
+			OPCODE(eOpcodes::GTPYE, "GTPYE", FF7KernelCallInstruction, 0, "NNBBB");
+			OPCODE(eOpcodes::DSKCG, "DSKCG", FF7KernelCallInstruction, 0, "B");
+
+			START_SUBOPCODE(eOpcodes::SPECIAL) // TODO: This should be define in the header and not here
+				OPCODE(eSpecialOpcodes::ARROW, "ARROW", FF7KernelCallInstruction, 0, "B");
+				OPCODE(eSpecialOpcodes::PNAME, "PNAME", FF7KernelCallInstruction, 0, "B");
+				OPCODE(eSpecialOpcodes::GMSPD, "GMSPD", FF7KernelCallInstruction, 0, "B");
+				OPCODE(eSpecialOpcodes::SMSPD, "SMSPD", FF7KernelCallInstruction, 0, "BB");
+				OPCODE(eSpecialOpcodes::FLMAT, "FLMAT", FF7KernelCallInstruction, 0, "");
+				OPCODE(eSpecialOpcodes::FLITM, "FLITM", FF7KernelCallInstruction, 0, "");
+				OPCODE(eSpecialOpcodes::BTLCK, "BTLCK", FF7KernelCallInstruction, 0, "B");
+				OPCODE(eSpecialOpcodes::MVLCK, "MVLCK", FF7KernelCallInstruction, 0, "B");
+				OPCODE(eSpecialOpcodes::SPCNM, "SPCNM", FF7KernelCallInstruction, 0, "BB");
+				OPCODE(eSpecialOpcodes::RSGLB, "RSGLB", FF7KernelCallInstruction, 0, "");
+				OPCODE(eSpecialOpcodes::CLITM, "CLITM", FF7KernelCallInstruction, 0, "");
+                //OPCODE(0x24, "24Unknown", FF7KernelCallInstruction, 0, "");
+            END_SUBOPCODE
+
+			OPCODE(eOpcodes::JMPF, "JMPF", FF7UncondJumpInstruction, 0, "B");
+			OPCODE(eOpcodes::JMPFL, "JMPFL", FF7UncondJumpInstruction, 0, "s");
+			OPCODE(eOpcodes::JMPB, "JMPB", FF7UncondJumpInstruction, 0, "B");
+			OPCODE(eOpcodes::JMPBL, "JMPBL", FF7UncondJumpInstruction, 0, "s");
             OPCODE(eOpcodes::IFUB, "IFUB", FF7CondJumpInstruction, 0, "NBBBB");
             OPCODE(eOpcodes::IFUBL, "IFUBL", FF7CondJumpInstruction, 0, "NBBBw");
             OPCODE(eOpcodes::IFSW, "IFSW", FF7CondJumpInstruction, 0, "NwsBB");
@@ -282,8 +305,6 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
 
             OPCODE(eOpcodes::NOP, "NOP", FF7NoOutputInstruction, 0, "");
 
-            OPCODE(eOpcodes::JMPF, "JMPF", FF7UncondJumpInstruction, 0, "B");
-            OPCODE(eOpcodes::JMPB, "JMPB", FF7UncondJumpInstruction, 0, "B");
            
             /*
             OPCODE_BASE(eOpcodes::KAWAI)
@@ -293,10 +314,6 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
                 OPCODE(0x6e, "6eUnknown", FF7KernelCallInstruction, 0, "");
             END_SUBOPCODE
             */
-            START_SUBOPCODE(eOpcodes::SPECIAL)
-                OPCODE(0xF5, "ARROW", FF7KernelCallInstruction, 0, "B");
-                //OPCODE(0x24, "24Unknown", FF7KernelCallInstruction, 0, "");
-            END_SUBOPCODE
             OPCODE(eOpcodes::OFST, "OFST", FF7KernelCallInstruction, 0, "BBBBsssw");
             OPCODE(eOpcodes::MUL, "MUL", FF7KernelCallInstruction, 0, "BBB");
             OPCODE(0xAF, "ANIM!1", FF7KernelCallInstruction, 0, "BB");
@@ -330,8 +347,6 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(eOpcodes::RANDOM, "RANDOM", FF7StoreInstruction, 0, "BB");
             OPCODE(eOpcodes::MOD, "MOD", FF7StoreInstruction, 0, "NBB");
             OPCODE(0x6C, "FADEW", FF7KernelCallInstruction, 0, "");
-            OPCODE(0x0b, "SPTYE", FF7KernelCallInstruction, 0, "BBBBB");
-            OPCODE(0x0a, "GTPYE", FF7KernelCallInstruction, 0, "BBBBB");
             OPCODE(eOpcodes::SETWORD, "SETWORD", FF7StoreInstruction, 0, "NBs");
             OPCODE(0x42, "MPRA2", FF7KernelCallInstruction, 0, "BBBw");
             OPCODE(0xef, "ADPAL2", FF7KernelCallInstruction, 0, "BBBBBBBBB");
@@ -352,7 +367,6 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(0xA8, "MOVE", FF7KernelCallInstruction, 0, "Bss");
             OPCODE(0xA3, "ANIME1", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0x79, "MINUS2!", FF7KernelCallInstruction, 0, "BBw");
-            OPCODE(0x0e, "DSKCG", FF7KernelCallInstruction, 0, "B");
             OPCODE(0x3E, "MHMMX", FF7KernelCallInstruction, 0, "");
             OPCODE(0xA4, "VISI", FF7KernelCallInstruction, 0, "B");
             OPCODE(0xE5, "STPAL", FF7KernelCallInstruction, 0, "BBBB");
