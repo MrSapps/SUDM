@@ -264,13 +264,13 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
         switch (opcode)
         {
 			OPCODE(eOpcodes::RET, "RET", FF7KernelCallInstruction, 0, "");
-			OPCODE(eOpcodes::REQ, "REQ", FF7KernelCallInstruction, 0, "BN"); // TODO
-			OPCODE(eOpcodes::REQSW, "REQSW", FF7KernelCallInstruction, 0, "BN"); // TODO
-			OPCODE(eOpcodes::REQEW, "REQEW", FF7KernelCallInstruction, 0, "BN"); // TODO
-			OPCODE(eOpcodes::PREQ, "PREQ", FF7KernelCallInstruction, 0, "BN"); // TODO
-			OPCODE(eOpcodes::PREQSW, "PREQSW", FF7KernelCallInstruction, 0, "BN"); // TODO
-			OPCODE(eOpcodes::PREQEW, "PREQEW", FF7KernelCallInstruction, 0, "BN"); // TODO
-			OPCODE(eOpcodes::RETTO, "RETTO", FF7KernelCallInstruction, 0, "N"); // TODO
+			OPCODE(eOpcodes::REQ, "REQ", FF7KernelCallInstruction, 0, "BU");
+			OPCODE(eOpcodes::REQSW, "REQSW", FF7KernelCallInstruction, 0, "BU");
+			OPCODE(eOpcodes::REQEW, "REQEW", FF7KernelCallInstruction, 0, "BU");
+			OPCODE(eOpcodes::PREQ, "PREQ", FF7KernelCallInstruction, 0, "BU");
+			OPCODE(eOpcodes::PREQSW, "PREQSW", FF7KernelCallInstruction, 0, "BU");
+			OPCODE(eOpcodes::PREQEW, "PREQEW", FF7KernelCallInstruction, 0, "BU");
+			OPCODE(eOpcodes::RETTO, "RETTO", FF7KernelCallInstruction, 0, "U");
 			OPCODE(eOpcodes::JOIN, "JOIN", FF7KernelCallInstruction, 0, "B");
 			OPCODE(eOpcodes::SPLIT, "SPLIT", FF7KernelCallInstruction, 0, "NNNssBssBB");
 			OPCODE(eOpcodes::SPTYE, "SPTYE", FF7KernelCallInstruction, 0, "NNBBB");
