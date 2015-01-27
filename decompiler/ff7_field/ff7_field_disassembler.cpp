@@ -302,6 +302,9 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(eOpcodes::IFSWL, "IFSWL", FF7CondJumpInstruction, 0, "NwsBw");
             OPCODE(eOpcodes::IFUW, "IFUW", FF7CondJumpInstruction, 0, "NwwBB");
             OPCODE(eOpcodes::IFUWL, "IFUWL", FF7CondJumpInstruction, 0, "NwwBw");
+			OPCODE(eOpcodes::MINIGAME, "MINIGAME", FF7KernelCallInstruction, 0, "wsssBB");
+			OPCODE(eOpcodes::TUTOR, "TUTOR", FF7KernelCallInstruction, 0, "B");
+			OPCODE(eOpcodes::BTMD2, "BTMD2", FF7KernelCallInstruction, 0, "BBBB");
 
             OPCODE(eOpcodes::NOP, "NOP", FF7NoOutputInstruction, 0, "");
 
