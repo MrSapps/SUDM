@@ -147,6 +147,72 @@ TEST(FF7Field, AllOpcodesDisassembler)
 	ASSERT_EQ(insts[22]->_opcode, MAKE_SUBOPCODE(FF7::eOpcodes::SPECIAL, FF7::eSpecialOpcodes::CLITM));
 	ASSERT_EQ(insts[22]->_params.size(), 0);
 
+	ASSERT_EQ(insts[23]->_opcode, FF7::eOpcodes::JMPF);
+	ASSERT_EQ(insts[23]->_params.size(), 1);
+
+	ASSERT_EQ(insts[24]->_opcode, FF7::eOpcodes::JMPFL);
+	ASSERT_EQ(insts[24]->_params.size(), 1);
+
+	ASSERT_EQ(insts[25]->_opcode, FF7::eOpcodes::JMPB);
+	ASSERT_EQ(insts[25]->_params.size(), 1);
+
+	ASSERT_EQ(insts[26]->_opcode, FF7::eOpcodes::JMPBL);
+	ASSERT_EQ(insts[26]->_params.size(), 1);
+
+	ASSERT_EQ(insts[27]->_opcode, FF7::eOpcodes::IFUB);
+	ASSERT_EQ(insts[27]->_params.size(), 6);
+	ASSERT_EQ(insts[27]->_params[0]->getSigned(), 1);
+	ASSERT_EQ(insts[27]->_params[1]->getSigned(), 3);
+	ASSERT_EQ(insts[27]->_params[2]->getSigned(), 2);
+	ASSERT_EQ(insts[27]->_params[3]->getSigned(), 4);
+	ASSERT_EQ(insts[27]->_params[4]->getSigned(), 5);
+	ASSERT_EQ(insts[27]->_params[5]->getSigned(), 1);
+
+	ASSERT_EQ(insts[28]->_opcode, FF7::eOpcodes::IFUBL);
+	ASSERT_EQ(insts[28]->_params.size(), 6);
+	ASSERT_EQ(insts[28]->_params[0]->getSigned(), 1);
+	ASSERT_EQ(insts[28]->_params[1]->getSigned(), 3);
+	ASSERT_EQ(insts[28]->_params[2]->getSigned(), 2);
+	ASSERT_EQ(insts[28]->_params[3]->getSigned(), 4);
+	ASSERT_EQ(insts[28]->_params[4]->getSigned(), 5);
+	ASSERT_EQ(insts[28]->_params[5]->getSigned(), 2); // For some reason this one has to be 2
+
+	ASSERT_EQ(insts[29]->_opcode, FF7::eOpcodes::IFSW);
+	ASSERT_EQ(insts[29]->_params.size(), 6);
+	ASSERT_EQ(insts[29]->_params[0]->getSigned(), 1);
+	ASSERT_EQ(insts[29]->_params[1]->getSigned(), 3);
+	ASSERT_EQ(insts[29]->_params[2]->getSigned(), 2);
+	ASSERT_EQ(insts[29]->_params[3]->getSigned(), 4);
+	ASSERT_EQ(insts[29]->_params[4]->getSigned(), 5);
+	ASSERT_EQ(insts[29]->_params[5]->getSigned(), 1);
+
+	ASSERT_EQ(insts[30]->_opcode, FF7::eOpcodes::IFSWL);
+	ASSERT_EQ(insts[30]->_params.size(), 6);
+	ASSERT_EQ(insts[30]->_params[0]->getSigned(), 1);
+	ASSERT_EQ(insts[30]->_params[1]->getSigned(), 3);
+	ASSERT_EQ(insts[30]->_params[2]->getSigned(), 2);
+	ASSERT_EQ(insts[30]->_params[3]->getSigned(), 4);
+	ASSERT_EQ(insts[30]->_params[4]->getSigned(), 5);
+	ASSERT_EQ(insts[30]->_params[5]->getSigned(), 2); // For some reason this one has to be 2
+
+	ASSERT_EQ(insts[31]->_opcode, FF7::eOpcodes::IFUW);
+	ASSERT_EQ(insts[31]->_params.size(), 6);
+	ASSERT_EQ(insts[31]->_params[0]->getSigned(), 1);
+	ASSERT_EQ(insts[31]->_params[1]->getSigned(), 3);
+	ASSERT_EQ(insts[31]->_params[2]->getSigned(), 2);
+	ASSERT_EQ(insts[31]->_params[3]->getSigned(), 4);
+	ASSERT_EQ(insts[31]->_params[4]->getSigned(), 5);
+	ASSERT_EQ(insts[31]->_params[5]->getSigned(), 1);
+
+	ASSERT_EQ(insts[32]->_opcode, FF7::eOpcodes::IFUWL);
+	ASSERT_EQ(insts[32]->_params.size(), 6);
+	ASSERT_EQ(insts[32]->_params[0]->getSigned(), 1);
+	ASSERT_EQ(insts[32]->_params[1]->getSigned(), 3);
+	ASSERT_EQ(insts[32]->_params[2]->getSigned(), 2);
+	ASSERT_EQ(insts[32]->_params[3]->getSigned(), 4);
+	ASSERT_EQ(insts[32]->_params[4]->getSigned(), 5);
+	ASSERT_EQ(insts[32]->_params[5]->getSigned(), 2); // For some reason this one has to be 2
+
 
     // If it had a value then check the values using:
     //ASSERT_EQ(insts[0]->_params[0]->getSigned(), 1);

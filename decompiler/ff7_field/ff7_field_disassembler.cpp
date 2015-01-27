@@ -292,6 +292,10 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
                 //OPCODE(0x24, "24Unknown", FF7KernelCallInstruction, 0, "");
             END_SUBOPCODE
 
+			OPCODE(eOpcodes::JMPF, "JMPF", FF7UncondJumpInstruction, 0, "B");
+			OPCODE(eOpcodes::JMPFL, "JMPFL", FF7UncondJumpInstruction, 0, "s");
+			OPCODE(eOpcodes::JMPB, "JMPB", FF7UncondJumpInstruction, 0, "B");
+			OPCODE(eOpcodes::JMPBL, "JMPBL", FF7UncondJumpInstruction, 0, "s");
             OPCODE(eOpcodes::IFUB, "IFUB", FF7CondJumpInstruction, 0, "NBBBB");
             OPCODE(eOpcodes::IFUBL, "IFUBL", FF7CondJumpInstruction, 0, "NBBBw");
             OPCODE(eOpcodes::IFSW, "IFSW", FF7CondJumpInstruction, 0, "NwsBB");
@@ -301,8 +305,6 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
 
             OPCODE(eOpcodes::NOP, "NOP", FF7NoOutputInstruction, 0, "");
 
-            OPCODE(eOpcodes::JMPF, "JMPF", FF7UncondJumpInstruction, 0, "B");
-            OPCODE(eOpcodes::JMPB, "JMPB", FF7UncondJumpInstruction, 0, "B");
            
             /*
             OPCODE_BASE(eOpcodes::KAWAI)
