@@ -50,6 +50,16 @@ enum ArgOrder
 class ITargetLanaguge
 {
 public:
+    enum eContext
+    {
+        eToElseBlock,       // End of if/elseif block and about to start a final else
+        eBeginElse,
+        eEndOfIf,
+        eEndOfWhile,
+        eEndIfElseChain,
+        eBeginWhile,
+        eEndWhile
+    };
     virtual ~ITargetLanaguge() = default;
     virtual std::string LoopBreak() = 0;
     virtual std::string LoopContinue() = 0;
@@ -63,6 +73,9 @@ public:
     virtual std::string FunctionCallEnd() = 0;
     virtual std::string Label(uint32 addr) = 0;
     virtual std::string Else() = 0;
+    virtual std::string StartBlock(eContext) = 0;
+    virtual std::string EndBlock(eContext) = 0;
+    virtual std::string LineTerminator() = 0;
 };
 
 class CTargetLanguage : public ITargetLanaguge
@@ -143,6 +156,21 @@ public:
     {
         return "else";
     }
+
+    virtual std::string StartBlock(eContext) override
+    {
+        return "{";
+    }
+
+    virtual std::string EndBlock(eContext) override
+    {
+        return "}";
+    }
+
+    virtual std::string LineTerminator() override
+    {
+        return ";";
+    }
 };
 
 class LuaTargetLanguage : public ITargetLanaguge
@@ -216,13 +244,33 @@ public:
     virtual std::string Label(uint32 addr) override
     {
         std::stringstream s;
-        s << boost::format("label_0x%X") % addr;
+        s << boost::format("::label_0x%X::") % addr;
         return s.str();
     }
 
     virtual std::string Else() override
     {
         return "else";
+    }
+
+    virtual std::string StartBlock(eContext) override
+    {
+        return "";
+    }
+
+    virtual std::string EndBlock(eContext ctx) override
+    {
+        if (ctx == eToElseBlock)
+        {
+            // For the final else we don't need an end before it
+            return "";
+        }
+        return "end";
+    }
+
+    virtual std::string LineTerminator() override
+    {
+        return "";
     }
 };
 
@@ -283,6 +331,12 @@ protected:
     bool mIsLabelPass = true;
 
 public:
+    ITargetLanaguge& TargetLang()
+    {
+        assert(mTargetLang);
+        return *mTargetLang;
+    }
+
     void writeFunctionCall(std::string functionName, std::string paramsFormat, const std::vector<ValuePtr>& params);
 
     const ArgOrder _binOrder;  ///< Order of operands for binary operations.
