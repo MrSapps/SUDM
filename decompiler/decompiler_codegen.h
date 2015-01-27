@@ -62,6 +62,7 @@ public:
     virtual std::string FunctionCallBegin() = 0;
     virtual std::string FunctionCallEnd() = 0;
     virtual std::string Label(uint32 addr) = 0;
+    virtual std::string Else() = 0;
 };
 
 class CTargetLanguage : public ITargetLanaguge
@@ -113,7 +114,7 @@ public:
         {
             return "while (";
         }
-        return ") {";
+        return ")";
     }
 
     virtual std::string FunctionCallArgumentSeperator() override
@@ -136,6 +137,11 @@ public:
         std::stringstream s;
         s << boost::format("label_0x%X:") % addr;
         return s.str();
+    }
+
+    virtual std::string Else() override
+    {
+        return "else";
     }
 };
 
@@ -212,6 +218,11 @@ public:
         std::stringstream s;
         s << boost::format("label_0x%X") % addr;
         return s.str();
+    }
+
+    virtual std::string Else() override
+    {
+        return "else";
     }
 };
 

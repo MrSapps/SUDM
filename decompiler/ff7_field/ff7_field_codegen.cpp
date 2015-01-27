@@ -9,7 +9,7 @@ void FF7::FF7CodeGenerator::onBeforeStartFunction(const Function& func)
     if (metaData.IsStart())
     {
         addOutputLine("EntityContainer[ \"" + metaData.EntityName() + "\" ] = {", false, true);
-        addOutputLine(metaData.EntityName() + " = nil");
+        addOutputLine(metaData.EntityName() + " = nil,");
         addOutputLine("");
     }
 }

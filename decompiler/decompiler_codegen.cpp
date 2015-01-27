@@ -197,7 +197,7 @@ void CodeGenerator::process(Function& func, InstVec& insts, GraphVertex v)
     // Check if we should add else start
     if (mCurGroup->_startElse)
     {
-        addOutputLine("} else {", true, true);
+        addOutputLine("} " + mTargetLang->Else() + " {", true, true);
     }
 
     // Check ingoing edges to see if we want to add any extra output
@@ -399,18 +399,18 @@ void CodeGenerator::processCondJumpInst(const InstPtr inst)
             {
                 mCurGroup->_code.clear();
                 mCurGroup->_coalescedElse = true;
-                s << "} else ";
+                s << "} " << mTargetLang->Else() << " ";
             }
         }
-        s << "if (" << _stack.pop()->negate() << ") {";
+        s << mTargetLang->If(true) << _stack.pop()->negate() << mTargetLang->If(false);
         addOutputLine(s.str(), mCurGroup->_coalescedElse, true);
         break;
     case kWhileCondGroupType:
-        s << mTargetLang->WhileHeader(true) << _stack.pop()->negate() << mTargetLang->WhileHeader(false);
+        s << mTargetLang->WhileHeader(true) << _stack.pop()->negate() << mTargetLang->WhileHeader(false) << " {";
         addOutputLine(s.str(), false, true);
         break;
     case kDoWhileCondGroupType:
-        s << "} while (" << _stack.pop() << ")";
+        s << "} "<< mTargetLang->WhileHeader(true) << _stack.pop() << mTargetLang->WhileHeader(false);
         addOutputLine(s.str(), true, false);
         break;
     default:
