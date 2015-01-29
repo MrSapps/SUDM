@@ -185,7 +185,7 @@ void CodeGenerator::addOutputLine(std::string s, bool unindentBefore, bool inden
 void CodeGenerator::writeAssignment(ValuePtr dst, ValuePtr src) 
 {
     std::stringstream s;
-    s << dst << " = " << src << ";";
+    s << dst << " = " << src << mTargetLang->LineTerminator();
     addOutputLine(s.str());
 }
 
@@ -197,7 +197,7 @@ void CodeGenerator::process(Function& func, InstVec& insts, GraphVertex v)
     // Check if we should add else start
     if (mCurGroup->_startElse)
     {
-        addOutputLine("} else {", true, true);
+        addOutputLine(mTargetLang->EndBlock(ITargetLanaguge::eToElseBlock) + " " + mTargetLang->Else() + " " + mTargetLang->StartBlock(ITargetLanaguge::eBeginElse), true, true);
     }
 
     // Check ingoing edges to see if we want to add any extra output
@@ -212,7 +212,7 @@ void CodeGenerator::process(Function& func, InstVec& insts, GraphVertex v)
             continue;
         }
 
-        switch (inGroup->_type) 
+        switch (inGroup->_type)
         {
         case kDoWhileCondGroupType:
             addOutputLine(mTargetLang->DoLoopHeader(), false, true);
@@ -220,11 +220,11 @@ void CodeGenerator::process(Function& func, InstVec& insts, GraphVertex v)
         case kIfCondGroupType:
             if (!mCurGroup->_startElse)
             {
-                addOutputLine("}", true, false);
+                addOutputLine(mTargetLang->EndBlock(ITargetLanaguge::eEndOfIf), true, false);
             }
             break;
         case kWhileCondGroupType:
-            addOutputLine("}", true, false);
+            addOutputLine(mTargetLang->EndBlock(ITargetLanaguge::eEndOfWhile), true, false);
             break;
         default:
             break;
@@ -249,7 +249,7 @@ void CodeGenerator::process(Function& func, InstVec& insts, GraphVertex v)
     {
         if (!(*elseIt)->_coalescedElse)
         {
-            addOutputLine("}", true, false);
+            addOutputLine(mTargetLang->EndBlock(ITargetLanaguge::eEndIfElseChain), true, false);
         }
     }
 }
@@ -399,18 +399,18 @@ void CodeGenerator::processCondJumpInst(const InstPtr inst)
             {
                 mCurGroup->_code.clear();
                 mCurGroup->_coalescedElse = true;
-                s << "} else ";
+                s << mTargetLang->EndBlock(ITargetLanaguge::eToElseBlock) << " " << mTargetLang->Else() << " ";
             }
         }
-        s << "if (" << _stack.pop()->negate() << ") {";
+        s << mTargetLang->If(true) << _stack.pop()->negate() << mTargetLang->If(false);
         addOutputLine(s.str(), mCurGroup->_coalescedElse, true);
         break;
     case kWhileCondGroupType:
-        s << mTargetLang->WhileHeader(true) << _stack.pop()->negate() << mTargetLang->WhileHeader(false);
+        s << mTargetLang->WhileHeader(true) << _stack.pop()->negate() << mTargetLang->WhileHeader(false) << " " << mTargetLang->StartBlock(ITargetLanaguge::eBeginWhile);
         addOutputLine(s.str(), false, true);
         break;
     case kDoWhileCondGroupType:
-        s << "} while (" << _stack.pop() << ")";
+        s << mTargetLang->EndBlock(ITargetLanaguge::eEndWhile) <<  " " << mTargetLang->WhileHeader(true) << _stack.pop() << mTargetLang->WhileHeader(false);
         addOutputLine(s.str(), true, false);
         break;
     default:

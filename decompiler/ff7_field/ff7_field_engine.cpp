@@ -129,7 +129,7 @@ static std::string GetVarName(uint32 bank, uint32 addr)
     else if (bank == 1 || bank == 2 || bank == 3 || bank == 13 || bank == 15)
     {
         // TODO: Get the textual name of the var such as tifaLovePoints
-        return std::to_string(bank) + "_" + std::to_string(addr);
+        return "var_" + std::to_string(bank) + "_" + std::to_string(addr);
     }
     else if (bank == 5)
     {
@@ -161,7 +161,7 @@ void FF7::FF7StoreInstruction::processInst(Function&, ValueStack&, Engine*, Code
             const uint32 dstAddr = _params[2]->getUnsigned();
             auto d = GetVarName(dstBank, dstAddr);
 
-            codeGen->addOutputLine(d + " = " + s + ";");
+            codeGen->addOutputLine(d + " = " + s + codeGen->TargetLang().LineTerminator());
         }
         break;
 
@@ -175,7 +175,7 @@ void FF7::FF7StoreInstruction::processInst(Function&, ValueStack&, Engine*, Code
             const uint32 dstAddr = _params[3]->getUnsigned();
             auto d = GetVarName(dstBank, dstAddr);
 
-            codeGen->addOutputLine(s + " = " + s + " % " + d + ";");
+            codeGen->addOutputLine(s + " = " + s + " % " + d + codeGen->TargetLang().LineTerminator());
         }
         break;
 
@@ -184,7 +184,7 @@ void FF7::FF7StoreInstruction::processInst(Function&, ValueStack&, Engine*, Code
             const uint32 srcBank = _params[0]->getUnsigned();
             const uint32 srcAddrOrValue = _params[1]->getUnsigned();
             auto s = GetVarName(srcBank, srcAddrOrValue);
-            codeGen->addOutputLine(s + "++;");
+            codeGen->addOutputLine(s + " = " + s + " + 1" + codeGen->TargetLang().LineTerminator());
         }
         break;
 
@@ -193,7 +193,7 @@ void FF7::FF7StoreInstruction::processInst(Function&, ValueStack&, Engine*, Code
         const uint32 srcBank = _params[0]->getUnsigned();
         const uint32 srcAddrOrValue = _params[1]->getUnsigned();
         auto s = GetVarName(srcBank, srcAddrOrValue);
-        codeGen->addOutputLine(s + "--;");
+        codeGen->addOutputLine(s + " = " + s + " - 1" + codeGen->TargetLang().LineTerminator());
         }
         break;
 
@@ -202,7 +202,7 @@ void FF7::FF7StoreInstruction::processInst(Function&, ValueStack&, Engine*, Code
             const uint32 dstBank = _params[0]->getUnsigned();
             const uint32 dstAddr = _params[1]->getUnsigned();
             auto d = GetVarName(dstBank, dstAddr);
-            codeGen->addOutputLine(d + " = rand(); ");
+            codeGen->addOutputLine(d + " = rand()" + codeGen->TargetLang().LineTerminator());
         }
         break;
 
@@ -217,11 +217,14 @@ void FF7::FF7StoreInstruction::processInst(Function&, ValueStack&, Engine*, Code
         const uint32 dstAddr = _params[3]->getUnsigned();
         auto d = GetVarName(dstBank, dstAddr);
 
-
-        codeGen->addOutputLine(
-            s +
-            (_opcode == eOpcodes::MINUS ? " -= " : " += ") +
-            d);
+        if (_opcode == eOpcodes::MINUS)
+        {
+            codeGen->addOutputLine(s + " = " + s + " - " + d + codeGen->TargetLang().LineTerminator());
+        }
+        else
+        {
+            codeGen->addOutputLine(s + " = " + s + " + " + d + codeGen->TargetLang().LineTerminator());
+        }
     }
         break;
 
