@@ -324,8 +324,8 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
 			OPCODE(eOpcodes::PMOVA, "PMOVA", FF7KernelCallInstruction, 0, "B");
 			OPCODE(eOpcodes::SLIP, "SLIP", FF7KernelCallInstruction, 0, "B");
 			OPCODE(eOpcodes::BGPDH, "BGPDH", FF7KernelCallInstruction, 0, "NBw");
-			//OPCODE(eOpcodes::BGSCR, "BGSCR", FF7KernelCallInstruction, 0, "NBss");
-			//OPCODE(eOpcodes::WCLS, "WCLS", FF7KernelCallInstruction, 0, "B");		
+			OPCODE(eOpcodes::BGSCR, "BGSCR", FF7KernelCallInstruction, 0, "NBss");
+			OPCODE(eOpcodes::WCLS, "WCLS", FF7KernelCallInstruction, 0, "B");		
 			OPCODE(eOpcodes::WSIZW, "WSIZW", FF7KernelCallInstruction, 0, "Bwwww");
 
 

@@ -316,13 +316,13 @@ TEST(FF7Field, AllOpcodesDisassembler)
 	//ASSERT_EQ(insts[76]->_params[3]->getSigned(), 4);
 	//ASSERT_EQ(insts[76]->_params[4]->getSigned(), 5);
 
-	//ASSERT_EQ(insts[79]->_opcode, FF7::eOpcodes::WSIZW);
-	//ASSERT_EQ(insts[79]->_params.size(), 5);
-	//ASSERT_EQ(insts[79]->_params[0]->getSigned(), 1);
-	//ASSERT_EQ(insts[79]->_params[1]->getSigned(), 2);
-	//ASSERT_EQ(insts[79]->_params[2]->getSigned(), 3);
-	//ASSERT_EQ(insts[79]->_params[3]->getSigned(), 4);
-	//ASSERT_EQ(insts[79]->_params[4]->getSigned(), 5);
+	ASSERT_EQ(insts[78]->_opcode, FF7::eOpcodes::WSIZW);
+	ASSERT_EQ(insts[78]->_params.size(), 5);
+	ASSERT_EQ(insts[78]->_params[0]->getSigned(), 1);
+	ASSERT_EQ(insts[78]->_params[1]->getSigned(), 2);
+	ASSERT_EQ(insts[78]->_params[2]->getSigned(), 3);
+	ASSERT_EQ(insts[78]->_params[3]->getSigned(), 4);
+	ASSERT_EQ(insts[78]->_params[4]->getSigned(), 5);
 
 
     // If it had a value then check the values using:
