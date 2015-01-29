@@ -60,6 +60,6 @@ after_success:
   
 script: 
   - cmake ..
-  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make -j2; fi
-  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then ctest --output-on-failure; fi
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make -j2; fi
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ctest --output-on-failure; fi
 
