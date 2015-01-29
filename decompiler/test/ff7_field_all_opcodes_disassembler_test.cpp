@@ -213,6 +213,53 @@ TEST(FF7Field, AllOpcodesDisassembler)
 	ASSERT_EQ(insts[32]->_params[4]->getSigned(), 5);
 	ASSERT_EQ(insts[32]->_params[5]->getSigned(), 2); // For some reason this one has to be 2
 
+	ASSERT_EQ(insts[33]->_opcode, FF7::eOpcodes::MINIGAME);
+	ASSERT_EQ(insts[33]->_params.size(), 6);
+	ASSERT_EQ(insts[33]->_params[0]->getSigned(), 1);
+	ASSERT_EQ(insts[33]->_params[1]->getSigned(), 2);
+	ASSERT_EQ(insts[33]->_params[2]->getSigned(), 3);
+	ASSERT_EQ(insts[33]->_params[3]->getSigned(), 4);
+	ASSERT_EQ(insts[33]->_params[4]->getSigned(), 5);
+	ASSERT_EQ(insts[33]->_params[5]->getSigned(), 6);
+
+	ASSERT_EQ(insts[34]->_opcode, FF7::eOpcodes::TUTOR);
+	ASSERT_EQ(insts[34]->_params.size(), 1);
+	ASSERT_EQ(insts[34]->_params[0]->getSigned(), 1);
+
+	// BATTLE MODE STATES START
+
+	ASSERT_EQ(insts[35]->_opcode, FF7::eOpcodes::BTMD2);
+	ASSERT_EQ(insts[35]->_params.size(), 4);
+	ASSERT_EQ(insts[35]->_params[0]->getSigned(), 0x80);
+
+	ASSERT_EQ(insts[36]->_opcode, FF7::eOpcodes::BTMD2);
+	ASSERT_EQ(insts[36]->_params.size(), 4);
+	ASSERT_EQ(insts[36]->_params[0]->getSigned(), 0x40);
+
+	ASSERT_EQ(insts[37]->_opcode, FF7::eOpcodes::BTMD2);
+	ASSERT_EQ(insts[37]->_params.size(), 4);
+	ASSERT_EQ(insts[37]->_params[0]->getSigned(), 0x20);
+
+	ASSERT_EQ(insts[38]->_opcode, FF7::eOpcodes::BTMD2);
+	ASSERT_EQ(insts[38]->_params.size(), 4);
+	ASSERT_EQ(insts[38]->_params[0]->getSigned(), 0x10);
+
+	ASSERT_EQ(insts[39]->_opcode, FF7::eOpcodes::BTMD2);
+	ASSERT_EQ(insts[39]->_params.size(), 4);
+	ASSERT_EQ(insts[39]->_params[0]->getSigned(), 0x08);
+
+	ASSERT_EQ(insts[40]->_opcode, FF7::eOpcodes::BTMD2);
+	ASSERT_EQ(insts[40]->_params.size(), 4);
+	ASSERT_EQ(insts[40]->_params[0]->getSigned(), 0x04);
+
+	ASSERT_EQ(insts[41]->_opcode, FF7::eOpcodes::BTMD2);
+	ASSERT_EQ(insts[41]->_params.size(), 4);
+	ASSERT_EQ(insts[41]->_params[0]->getSigned(), 0x02);
+
+	ASSERT_EQ(insts[42]->_opcode, FF7::eOpcodes::BTMD2);
+	ASSERT_EQ(insts[42]->_params.size(), 4);
+	ASSERT_EQ(insts[42]->_params[1]->getSigned(), 0x80);
+
 
     // If it had a value then check the values using:
     //ASSERT_EQ(insts[0]->_params[0]->getSigned(), 1);
