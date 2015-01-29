@@ -77,30 +77,6 @@ public:
         return InternalRead<signed char>();
     }
 
-    signed short int ReadS16BE()
-    {
-        // TODO
-        abort();
-    }
-
-    unsigned short int ReadU16BE()
-    {
-        // TODO
-        abort();
-    }
-
-    unsigned int ReadU32BE()
-    {
-        // TODO
-        abort();
-    }
-
-    signed int ReadS32BE()
-    {
-        // TODO
-        abort();
-    }
-
 private:
     template<class T>
     T InternalRead()
