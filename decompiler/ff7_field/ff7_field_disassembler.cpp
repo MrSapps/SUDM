@@ -328,6 +328,10 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
 			OPCODE(eOpcodes::WCLS, "WCLS", FF7KernelCallInstruction, 0, "B");		
 			OPCODE(eOpcodes::WSIZW, "WSIZW", FF7KernelCallInstruction, 0, "Bwwww");
 			OPCODE(eOpcodes::IFKEY, "IFKEY", FF7CondJumpInstruction, 0, "wB");
+			OPCODE(eOpcodes::IFKEYON, "IFKEYON", FF7CondJumpInstruction, 0, "wB");
+			OPCODE(eOpcodes::IFKEYOFF, "IFKEYOFF", FF7CondJumpInstruction, 0, "wB");
+			OPCODE(eOpcodes::UC, "UC", FF7KernelCallInstruction, 0, "B");
+			OPCODE(eOpcodes::PDIRA, "PDIRA", FF7KernelCallInstruction, 0, "B");
 
 
 			OPCODE(eOpcodes::NOP, "NOP", FF7NoOutputInstruction, 0, "");
@@ -350,7 +354,6 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(0x50, "WINDOW", FF7KernelCallInstruction, 0, "Bwwww");
             OPCODE(0xf1, "SOUND", FF7KernelCallInstruction, 0, "BwB");
             OPCODE(0x4a, "MENU2", FF7KernelCallInstruction, 0, "B");
-            OPCODE(0x33, "UC", FF7KernelCallInstruction, 0, "B");
             OPCODE(0xE4, "BGCLR", FF7KernelCallInstruction, 0, "BB");
             OPCODE(eOpcodes::BGON, "BGON", FF7KernelCallInstruction, 0, "NBB");
             OPCODE(0xE1, "BGOFF", FF7KernelCallInstruction, 0, "NBB");

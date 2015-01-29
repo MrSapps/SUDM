@@ -332,21 +332,29 @@ TEST(FF7Field, AllOpcodesDisassembler)
 	//ASSERT_EQ(insts[80]->_params.size(), 2);
 	//ASSERT_EQ(0x8000, insts[78]->_params[0]->getSigned());
 
-	//ASSERT_EQ(insts[79]->_opcode, FF7::eOpcodes::IFKEYON); // TODO
-	//ASSERT_EQ(insts[79]->_params.size(), 2);
-	//ASSERT_EQ(0x0001, insts[79]->_params[0]->getSigned());
+	//ASSERT_EQ(insts[81]->_opcode, FF7::eOpcodes::IFKEYON); // TODO
+	//ASSERT_EQ(insts[81]->_params.size(), 2);
+	//ASSERT_EQ(0x0001, insts[81]->_params[0]->getSigned());
 
-	//ASSERT_EQ(insts[80]->_opcode, FF7::eOpcodes::IFKEYON); // TODO
-	//ASSERT_EQ(insts[80]->_params.size(), 2);
-	//ASSERT_EQ(0x8000, insts[78]->_params[0]->getSigned());
+	//ASSERT_EQ(insts[82]->_opcode, FF7::eOpcodes::IFKEYON); // TODO
+	//ASSERT_EQ(insts[82]->_params.size(), 2);
+	//ASSERT_EQ(0x8000, insts[82]->_params[0]->getSigned());
 
-	//ASSERT_EQ(insts[79]->_opcode, FF7::eOpcodes::IFKEYOFF); // TODO
-	//ASSERT_EQ(insts[79]->_params.size(), 2);
-	//ASSERT_EQ(0x0001, insts[79]->_params[0]->getSigned());
+	//ASSERT_EQ(insts[83]->_opcode, FF7::eOpcodes::IFKEYOFF); // TODO
+	//ASSERT_EQ(insts[83]->_params.size(), 2);
+	//ASSERT_EQ(0x0001, insts[83]->_params[0]->getSigned());
 
-	//ASSERT_EQ(insts[80]->_opcode, FF7::eOpcodes::IFKEYOFF); // TODO
-	//ASSERT_EQ(insts[80]->_params.size(), 2);
-	//ASSERT_EQ(0x8000, insts[78]->_params[0]->getSigned());
+	//ASSERT_EQ(insts[84]->_opcode, FF7::eOpcodes::IFKEYOFF); // TODO
+	//ASSERT_EQ(insts[84]->_params.size(), 2);
+	//ASSERT_EQ(0x8000, insts[84]->_params[0]->getSigned());
+
+	ASSERT_EQ(insts[85]->_opcode, FF7::eOpcodes::UC);
+	ASSERT_EQ(insts[85]->_params.size(), 1);
+	ASSERT_EQ(1, insts[85]->_params[0]->getSigned());
+
+	ASSERT_EQ(insts[86]->_opcode, FF7::eOpcodes::PDIRA);
+	ASSERT_EQ(insts[86]->_params.size(), 1);
+	ASSERT_EQ(1, insts[86]->_params[0]->getSigned());
 
 
     // If it had a value then check the values using:
