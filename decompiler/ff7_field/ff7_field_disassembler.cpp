@@ -207,7 +207,7 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
                 // We only ever expect 2 return statements in script 0
                 // the first gives us the "init" script, the second gives
                 // us the "main" script, anymore is an error
-                abort();
+                throw TooManyReturnStatementsException();
             }
 
             std::string metaData;

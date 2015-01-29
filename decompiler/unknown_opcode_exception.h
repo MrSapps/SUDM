@@ -39,6 +39,18 @@ public:
     TooManyReturnStatementsException() = default;
 };
 
+class FF7ScriptHeaderInvalidException : public InternalDecompilerError
+{
+public:
+    FF7ScriptHeaderInvalidException() = default;
+};
+
+class UnknownBankException : public InternalDecompilerError
+{
+public:
+    UnknownBankException() = default;
+};
+
 class UnknownOpcodeParameterException : public InternalDecompilerError
 {
 public:
@@ -99,6 +111,23 @@ public:
 
 private:
     virtual const char* Type() const { return "Opcode"; }
+};
+
+class UnknownJumpTypeException : public InternalDecompilerError
+{
+public:
+    UnknownJumpTypeException(uint32 address, uint32 opcode)
+    {
+        mWhat = "unknown jump type: " + std::to_string(opcode) + " at address " + std::to_string(address);
+    }
+
+    virtual const char *what() const throw() override
+    {
+        return mWhat.c_str();
+    }
+
+private:
+    std::string mWhat;
 };
 
 class UnknownSubOpcodeException : public UnknownOpcodeException
