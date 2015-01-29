@@ -39,6 +39,12 @@ public:
     TooManyReturnStatementsException() = default;
 };
 
+class FF7ScriptHeaderInvalidException : public InternalDecompilerError
+{
+public:
+    FF7ScriptHeaderInvalidException() = default;
+};
+
 class UnknownOpcodeParameterException : public InternalDecompilerError
 {
 public:

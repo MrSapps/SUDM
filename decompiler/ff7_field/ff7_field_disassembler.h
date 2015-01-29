@@ -337,7 +337,7 @@ namespace FF7
                 mMagic = r.ReadU16();
                 if (mMagic != kMagic)
                 {
-                    throw TooManyReturnStatementsException();
+                    throw FF7ScriptHeaderInvalidException();
                 }
                 mNumberOfEntities = r.ReadU8();
                 mNumberOfModels = r.ReadU8();
