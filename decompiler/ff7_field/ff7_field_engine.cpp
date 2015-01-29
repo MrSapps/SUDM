@@ -141,7 +141,7 @@ static std::string GetVarName(uint32 bank, uint32 addr)
     }
     else
     {
-        throw InternalDecompilerError();
+        throw UnknownBankException();
     }
 
 }
@@ -333,8 +333,13 @@ uint32 FF7::FF7CondJumpInstruction::getDestAddress() const
         paramsSize = 8;
         break;
 
+    case eOpcodes::IFKEY:
+    case eOpcodes::IFKEYOFF:
+    case eOpcodes::IFKEYON:
+        return _address + _params[1]->getUnsigned() + 2;
+
     default:
-        throw UnknownOpcodeException(_address, _opcode);
+        throw UnknownJumpTypeException(_address, _opcode);
     }
 
     return _address + _params[5]->getUnsigned() + paramsSize;
