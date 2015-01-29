@@ -324,6 +324,14 @@ TEST(FF7Field, AllOpcodesDisassembler)
 	ASSERT_EQ(insts[78]->_params[3]->getSigned(), 4);
 	ASSERT_EQ(insts[78]->_params[4]->getSigned(), 5);
 
+	ASSERT_EQ(insts[79]->_opcode, FF7::eOpcodes::IFKEY);
+	ASSERT_EQ(insts[79]->_params.size(), 2);
+	ASSERT_EQ(insts[79]->_params[0]->getSigned(), 0x0001);
+
+	ASSERT_EQ(insts[80]->_opcode, FF7::eOpcodes::IFKEY);
+	ASSERT_EQ(insts[80]->_params.size(), 2);
+	ASSERT_EQ(insts[80]->_params[0]->getSigned(), 0x8000);
+
 
     // If it had a value then check the values using:
     //ASSERT_EQ(insts[0]->_params[0]->getSigned(), 1);
