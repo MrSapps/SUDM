@@ -33,6 +33,12 @@ public:
 
 };
 
+class TooManyReturnStatementsException : public InternalDecompilerError
+{
+public:
+    TooManyReturnStatementsException() = default;
+};
+
 class UnknownOpcodeParameterException : public InternalDecompilerError
 {
 public:
