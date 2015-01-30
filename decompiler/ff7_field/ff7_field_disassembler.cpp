@@ -332,6 +332,13 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
 			OPCODE(eOpcodes::IFKEYOFF, "IFKEYOFF", FF7CondJumpInstruction, 0, "wB");
 			OPCODE(eOpcodes::UC, "UC", FF7KernelCallInstruction, 0, "B");
 			OPCODE(eOpcodes::PDIRA, "PDIRA", FF7KernelCallInstruction, 0, "B");
+			OPCODE(eOpcodes::PTURA, "PTURA", FF7KernelCallInstruction, 0, "BBB");
+			OPCODE(eOpcodes::WSPCL, "WSPCL", FF7KernelCallInstruction, 0, "BBBB");
+			OPCODE(eOpcodes::WNUMB, "WNUMB", FF7KernelCallInstruction, 0, "NBwB");
+			OPCODE(eOpcodes::STTIM, "STTIM", FF7KernelCallInstruction, 0, "NNBBB");
+			OPCODE(eOpcodes::GOLDU, "GOLDU", FF7KernelCallInstruction, 0, "Nd");
+            OPCODE(eOpcodes::GOLDD, "GOLDD", FF7KernelCallInstruction, 0, "Nd");
+            OPCODE(eOpcodes::CHGLD, "CHGLD", FF7KernelCallInstruction, 0, "NBB");
 
 
 			OPCODE(eOpcodes::NOP, "NOP", FF7NoOutputInstruction, 0, "");
@@ -372,7 +379,6 @@ void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
             OPCODE(eOpcodes::INC, "INC", FF7StoreInstruction, 0, "BB");
             OPCODE(eOpcodes::DEC, "DEC", FF7StoreInstruction, 0, "BB");
             OPCODE(0xeb, "STPLS", FF7KernelCallInstruction, 0, "BBBB");
-            OPCODE(0x35, "PTURA", FF7KernelCallInstruction, 0, "BBB");
             OPCODE(0x7D, "DEC2!", FF7KernelCallInstruction, 0, "BB");
             OPCODE(0xD8, "PMJMP", FF7KernelCallInstruction, 0, "w");
             OPCODE(0xFF, "GAMEOVER", FF7KernelCallInstruction, 0, "");

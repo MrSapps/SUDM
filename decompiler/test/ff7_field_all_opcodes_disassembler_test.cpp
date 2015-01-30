@@ -349,12 +349,67 @@ TEST(FF7Field, AllOpcodesDisassembler)
 	//ASSERT_EQ(0x8000, insts[84]->_params[0]->getSigned());
 
 	ASSERT_EQ(insts[85]->_opcode, FF7::eOpcodes::UC);
-	ASSERT_EQ(insts[85]->_params.size(), 1);
+	ASSERT_EQ(1, insts[85]->_params.size());
 	ASSERT_EQ(1, insts[85]->_params[0]->getSigned());
 
 	ASSERT_EQ(insts[86]->_opcode, FF7::eOpcodes::PDIRA);
-	ASSERT_EQ(insts[86]->_params.size(), 1);
+	ASSERT_EQ(1, insts[86]->_params.size());
 	ASSERT_EQ(1, insts[86]->_params[0]->getSigned());
+
+	ASSERT_EQ(insts[87]->_opcode, FF7::eOpcodes::PTURA);
+	ASSERT_EQ(3, insts[87]->_params.size());
+	ASSERT_EQ(1, insts[87]->_params[0]->getSigned());
+	ASSERT_EQ(2, insts[87]->_params[1]->getSigned());
+	ASSERT_EQ(3, insts[87]->_params[2]->getSigned());
+
+	ASSERT_EQ(insts[88]->_opcode, FF7::eOpcodes::WSPCL);
+	ASSERT_EQ(4, insts[88]->_params.size());
+	ASSERT_EQ(1, insts[88]->_params[0]->getSigned());
+	ASSERT_EQ(2, insts[88]->_params[1]->getSigned());
+	ASSERT_EQ(3, insts[88]->_params[2]->getSigned());
+	ASSERT_EQ(4, insts[88]->_params[3]->getSigned());
+
+	ASSERT_EQ(insts[89]->_opcode, FF7::eOpcodes::STTIM);
+	ASSERT_EQ(7, insts[89]->_params.size());
+	ASSERT_EQ(1, insts[89]->_params[0]->getSigned());
+	ASSERT_EQ(2, insts[89]->_params[1]->getSigned());
+	ASSERT_EQ(3, insts[89]->_params[2]->getSigned());
+	ASSERT_EQ(4, insts[89]->_params[3]->getSigned());
+	ASSERT_EQ(5, insts[89]->_params[4]->getSigned());
+	ASSERT_EQ(6, insts[89]->_params[5]->getSigned());
+	ASSERT_EQ(7, insts[89]->_params[6]->getSigned());
+
+    ASSERT_EQ(insts[90]->_opcode, FF7::eOpcodes::GOLDU);
+    ASSERT_EQ(3, insts[90]->_params.size());
+    ASSERT_EQ(0, insts[90]->_params[0]->getSigned());
+    ASSERT_EQ(0, insts[90]->_params[1]->getSigned());
+    ASSERT_EQ(1, insts[90]->_params[2]->getSigned());
+
+    ASSERT_EQ(insts[91]->_opcode, FF7::eOpcodes::GOLDU);
+    ASSERT_EQ(3, insts[91]->_params.size());
+    ASSERT_EQ(1, insts[91]->_params[0]->getSigned());
+    ASSERT_EQ(2, insts[91]->_params[1]->getSigned());
+    ASSERT_EQ(0, insts[91]->_params[2]->getSigned());
+
+    ASSERT_EQ(insts[92]->_opcode, FF7::eOpcodes::GOLDD);
+    ASSERT_EQ(3, insts[92]->_params.size());
+    ASSERT_EQ(0, insts[92]->_params[0]->getSigned());
+    ASSERT_EQ(0, insts[92]->_params[1]->getSigned());
+    ASSERT_EQ(1, insts[92]->_params[2]->getSigned());
+
+    ASSERT_EQ(insts[93]->_opcode, FF7::eOpcodes::GOLDD);
+    ASSERT_EQ(3, insts[93]->_params.size());
+    ASSERT_EQ(1, insts[93]->_params[0]->getSigned());
+    ASSERT_EQ(2, insts[93]->_params[1]->getSigned());
+    ASSERT_EQ(0, insts[93]->_params[2]->getSigned());
+
+    ASSERT_EQ(insts[94]->_opcode, FF7::eOpcodes::CHGLD);
+    ASSERT_EQ(4, insts[94]->_params.size());
+    ASSERT_EQ(1, insts[94]->_params[0]->getSigned());
+    ASSERT_EQ(2, insts[94]->_params[1]->getSigned());
+    ASSERT_EQ(3, insts[94]->_params[2]->getSigned());
+    ASSERT_EQ(4, insts[94]->_params[3]->getSigned());
+
 
 
     // If it had a value then check the values using:
