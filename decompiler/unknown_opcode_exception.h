@@ -33,6 +33,12 @@ public:
 
 };
 
+class NotImplementedException : public InternalDecompilerError
+{
+public:
+    NotImplementedException() = default;
+};
+
 class TooManyReturnStatementsException : public InternalDecompilerError
 {
 public:

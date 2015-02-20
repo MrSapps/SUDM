@@ -2,7 +2,12 @@ cmake_minimum_required(VERSION 2.6)
 
 project(SUDM)
 
-enable_testing()
+# Set to true when using SUDM as a submodule of another project such that only the lib is compiled
+option(SUDM_AS_LIB     "Build only lib"     FALSE)
+
+if (NOT SUDM_AS_LIB)
+	enable_testing()
+endif()
 
 # The version number
 set(VERSION_MAJOR 0)
@@ -14,21 +19,25 @@ if (CMAKE_BUILD_TYPE STREQUAL "")
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: None (CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif ()
 
-# On Linux gtest needs pthreads
-if (UNIX)
-	find_package (Threads)
+if (NOT SUDM_AS_LIB)
+	# On Linux gtest needs pthreads
+	if (UNIX)
+		find_package (Threads)
+	endif()
+
+	include_directories(
+		${CMAKE_CURRENT_SOURCE_DIR}/googlemock
+		${CMAKE_CURRENT_SOURCE_DIR}/googlemock/include
+		${CMAKE_CURRENT_SOURCE_DIR}/googlemock/gtest/include
+		${CMAKE_CURRENT_SOURCE_DIR}/googlemock/gtest
+	)
+
+	SET(gmock_src
+	${CMAKE_CURRENT_SOURCE_DIR}/googlemock/src/gmock-all.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/googlemock/gtest/src/gtest-all.cc)
+	
+	add_library(gmock STATIC ${gmock_src})
 endif()
-
-include_directories(
-	${CMAKE_CURRENT_SOURCE_DIR}/googlemock
-    ${CMAKE_CURRENT_SOURCE_DIR}/googlemock/include
-	${CMAKE_CURRENT_SOURCE_DIR}/googlemock/gtest/include
-	${CMAKE_CURRENT_SOURCE_DIR}/googlemock/gtest
-)
-
-SET(gmock_src
-${CMAKE_CURRENT_SOURCE_DIR}/googlemock/src/gmock-all.cc
-${CMAKE_CURRENT_SOURCE_DIR}/googlemock/gtest/src/gtest-all.cc)
 
 if (MSVC)
 	# Build cpp files on all cores
@@ -74,9 +83,9 @@ else()
 	endif()
 endif()
 
-add_library(gmock STATIC ${gmock_src})
-
 SET(source
+decompiler/sudm.cpp
+decompiler/sudm.h
 decompiler/decompiler_codegen.cpp
 decompiler/decompiler_codegen.h
 decompiler/control_flow.cpp
@@ -145,25 +154,25 @@ endif()
 
 ADD_LIBRARY(Sudm_Lib STATIC ${source})
 
-add_executable(Sudm
-decompiler/decompiler.cpp
-)
-target_link_libraries(Sudm Sudm_Lib ${Boost_LIBRARIES})
+if (NOT SUDM_AS_LIB)
+	add_executable(Sudm
+	decompiler/decompiler.cpp
+	)
+	target_link_libraries(Sudm Sudm_Lib ${Boost_LIBRARIES})
 
-add_executable(Sudm_Test 
-decompiler/test/cfg_test.cpp
-decompiler/test/codegen.cpp
-decompiler/test/disassembler_test.cpp
-decompiler/test/disassembler/pasc.cpp
-decompiler/test/disassembler/pasc.h
-decompiler/test/disassembler/subopcode.cpp
-decompiler/test/disassembler/subopcode.h
-decompiler/test/main.cpp
-decompiler/test/ff7_field_all_opcodes_disassembler_test.cpp
-)
+	add_executable(Sudm_Test 
+	decompiler/test/cfg_test.cpp
+	decompiler/test/codegen.cpp
+	decompiler/test/disassembler_test.cpp
+	decompiler/test/disassembler/pasc.cpp
+	decompiler/test/disassembler/pasc.h
+	decompiler/test/disassembler/subopcode.cpp
+	decompiler/test/disassembler/subopcode.h
+	decompiler/test/main.cpp
+	decompiler/test/ff7_field_all_opcodes_disassembler_test.cpp
+	)
 
-target_link_libraries(Sudm_Test Sudm_Lib gmock ${Boost_LIBRARIES})
+	target_link_libraries(Sudm_Test Sudm_Lib gmock ${Boost_LIBRARIES})
 
-add_test(NAME Sudm_Test COMMAND Sudm_Test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-
-
+	add_test(NAME Sudm_Test COMMAND Sudm_Test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
