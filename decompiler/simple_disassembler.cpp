@@ -45,7 +45,7 @@ void SimpleDisassembler::readParams(InstPtr inst, const char *typeString)
 
     while (*typeString)
     {
-        boost::string_ref typeStr = boost::string_ref(typeString, 1);
+        std::string typeStr(typeString, 1);
         if (typeStr == "N") // Read nibbles 
         {
             const uint8 byte = mStream->ReadU8();
@@ -69,7 +69,7 @@ void SimpleDisassembler::readParams(InstPtr inst, const char *typeString)
     }
 }
 
-ValuePtr SimpleDisassembler::readParameter(InstPtr inst, boost::string_ref type) {
+ValuePtr SimpleDisassembler::readParameter(InstPtr inst, std::string type) {
     ValuePtr retval = NULL;
 
     if (type == "b") // signed byte

@@ -43,7 +43,7 @@ public:
 
 	void doDisassemble() throw(std::exception);
 
-	virtual ValuePtr readParameter(InstPtr inst, boost::string_ref type);
+	virtual ValuePtr readParameter(InstPtr inst, std::string type);
 
 	/**
 	 * Determines the actual stack effect of an opcode with a variable stack effect.

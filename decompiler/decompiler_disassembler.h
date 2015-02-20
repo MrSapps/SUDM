@@ -29,7 +29,6 @@
 #include "common/binaryreader.h"
 #include "unknown_opcode_exception.h"
 #include "objectFactory.h"
-#include <boost/utility/string_ref.hpp>
 
 /**
  * Base class for disassemblers.

@@ -46,7 +46,7 @@ protected:
 	 * @param type Character describing the type of the parameter.
 	 * @return The read data as a ValuePtr.
 	 */
-	virtual ValuePtr readParameter(InstPtr inst, boost::string_ref type);
+    virtual ValuePtr readParameter(InstPtr inst, std::string type);
 
 public:
 	/**

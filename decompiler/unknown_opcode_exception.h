@@ -23,7 +23,6 @@
 
 #include <exception>
 #include <string>
-#include <boost/utility/string_ref.hpp>
 
 class InternalDecompilerError : public std::exception
 {
@@ -58,9 +57,9 @@ public:
 class UnknownOpcodeParameterException : public InternalDecompilerError
 {
 public:
-    UnknownOpcodeParameterException(boost::string_ref param)
+    UnknownOpcodeParameterException(std::string param)
     {
-        mWhat = "unknown opcode parameter string: " + std::string(param.data(), param.length());
+        mWhat = "unknown opcode parameter string: " + param;
     }
 
     virtual const char *what() const throw() override

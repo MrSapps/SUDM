@@ -2,7 +2,6 @@
 
 #include "decompiler_codegen.h"
 #include <boost/algorithm/string.hpp>
-#include <boost/utility/string_ref.hpp>
 #include <deque>
 #include "make_unique.h"
 
@@ -15,7 +14,7 @@ namespace FF7
         // start_end_entityname
         // start_entityname
         // end_entity_name
-        FunctionMetaData(boost::string_ref metaData)
+        FunctionMetaData(std::string metaData)
         {
             Parse(metaData);
         }
@@ -36,7 +35,7 @@ namespace FF7
         }
 
     private:
-        void Parse(boost::string_ref str)
+        void Parse(std::string str)
         {
             std::deque<std::string> strs;
             boost::split(strs, str, boost::is_any_of("_"), boost::token_compress_on);
