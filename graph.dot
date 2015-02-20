@@ -1,6 +1,0 @@
-digraph G {
-node [shape=record]
-XXX0 [shape=none, label="", height=0]
-XXX0 -> 0
-0[label="{Block type: Normal\nExpected stack level: 0\n|00000200: return (0)\n}"];
-}
