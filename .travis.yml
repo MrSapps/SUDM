@@ -3,13 +3,31 @@ os:
  - linux
  - osx
  
+matrix:
+ exclude:
+# Don't build using gcc on mac
+  - os: osx
+    compiler: gcc
+# Don't try to do Coverity or coverage builds on mac
+  - os: osx
+    env: COVERITY=1
+    env: COVERAGE=1
+# Only do coverity or coverage build on Linux when the compiler is gcc
+  - os: linux
+    compiler: clang
+    env: COVERITY=1
+    env: COVERAGE=1
+ 
 env:
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
    - secure: "A4JeyJ/faUkHRFCwKD/l7I6/zY4Jzs9SFxrRxxcvqFCawisCZDK3myw1ZMSEFp6bNBC1onWrEbBp7wgQ3aW5bf+xVtNaHvxvGvwOQMY8enFsTfgZ8YA4WTBwqeaFa6tUOC4/u7cQwTK2vlNZxpbATIOJhseOSi0ExD+8igyi4WU="
    - secure: "lbql5U+YxidgVE9xyyL78hhkYMI1TfVfl1JYsV8zLwhiEF7hvi2cKYzJEuQjzc4nlAzKXP2iBrCzy5aE4mh/0P7wnHMGuD4l/ixdAlz+QQedK0siw3G9lt8j7Fsn/IucRhFu0k8kwltQsHtq2+E5eCsAqJkwxNPX0xshuV2x6Mk="
-
+matrix:
+  - COVERAGE=0
+  - COVERAGE=1
+    
 addons:
   coverity_scan:
     project:
