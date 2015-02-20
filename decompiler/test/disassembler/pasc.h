@@ -28,7 +28,7 @@ class PasCDisassembler : public SimpleDisassembler {
 public:
 	PasCDisassembler(InstVec &insts);
 	virtual void doDisassemble() throw(std::exception) override;
-    virtual ValuePtr readParameter(InstPtr inst, boost::string_ref type) override;
+    virtual ValuePtr readParameter(InstPtr inst, std::string type) override;
 };
 
 class PasCFakeInstruction : public Instruction {

@@ -130,7 +130,7 @@ void PasCDisassembler::doDisassemble() throw(std::exception) {
 	END_OPCODES;
 }
 
-ValuePtr PasCDisassembler::readParameter(InstPtr inst, boost::string_ref type)
+ValuePtr PasCDisassembler::readParameter(InstPtr inst, std::string type)
 {
     ValuePtr retval = NULL;
     if (type == "a")

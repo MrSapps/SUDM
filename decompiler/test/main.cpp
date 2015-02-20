@@ -37,12 +37,12 @@ public:
 
 };
 
-static InstPtr DoReadParameterTest(boost::string_ref str, std::vector<unsigned char> data)
+static InstPtr DoReadParameterTest(std::string str, std::vector<unsigned char> data)
 {
     InstVec insts;
     TestReadParameterDisassembler d(std::move(data), insts);
     InstPtr inst = new FF7::FF7NoOutputInstruction();
-    d.readParams(inst, str.to_string().c_str());
+    d.readParams(inst, str.c_str());
     return inst;
 }
 
