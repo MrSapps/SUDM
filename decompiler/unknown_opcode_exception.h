@@ -19,12 +19,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef DEC_UNKNOWN_OPCODE_H
-#define DEC_UNKNOWN_OPCODE_H
+#pragma once
 
 #include <exception>
 #include <string>
-#include "common/scummsys.h"
 #include <boost/utility/string_ref.hpp>
 
 class InternalDecompilerError : public std::exception
@@ -77,7 +75,7 @@ private:
 class UnknownConditionalOperatorException : public InternalDecompilerError
 {
 public:
-    UnknownConditionalOperatorException(uint32 address, uint32 op)
+    UnknownConditionalOperatorException(unsigned int address, unsigned int op)
     {
         mWhat = "unknown conditional operator: " + std::to_string(op) + " at address " + std::to_string(address);
     }
@@ -97,8 +95,8 @@ private:
  */
 class UnknownOpcodeException : public InternalDecompilerError
 {
-	uint32 _address; ///< Address where the invalid opcode was found.
-	uint32 _opcode;   ///< The value of the invalid opcode.
+    unsigned int _address; ///< Address where the invalid opcode was found.
+    unsigned int _opcode;   ///< The value of the invalid opcode.
 	mutable char _buf[255];  ///< Buffer for formatting the error message.
 
 public:
@@ -108,7 +106,7 @@ public:
 	 * @param address Address where the invalid opcode was found.
 	 * @param opcode  The value of the invalid opcode.
 	 */
-    UnknownOpcodeException(uint32 address, uint32 opcode);
+    UnknownOpcodeException(unsigned int address, unsigned int opcode);
 
 	/**
 	 * Description of the exception.
@@ -122,7 +120,7 @@ private:
 class UnknownJumpTypeException : public InternalDecompilerError
 {
 public:
-    UnknownJumpTypeException(uint32 address, uint32 opcode)
+    UnknownJumpTypeException(unsigned int address, unsigned int opcode)
     {
         mWhat = "unknown jump type: " + std::to_string(opcode) + " at address " + std::to_string(address);
     }
@@ -139,7 +137,7 @@ private:
 class UnknownSubOpcodeException : public UnknownOpcodeException
 {
 public:
-    UnknownSubOpcodeException(uint32 address, uint32 opcode)
+    UnknownSubOpcodeException(unsigned int address, unsigned int opcode)
         : UnknownOpcodeException(address, opcode)
     {
 
@@ -148,5 +146,3 @@ private:
     virtual const char* Type() const override { return "SubOpcode"; }
 
 };
-
-#endif

@@ -20,6 +20,7 @@
  */
 
 #include "unknown_opcode_exception.h"
+#include "common/scummsys.h"
 
 UnknownOpcodeException::UnknownOpcodeException(uint32 address, uint32 opcode) {
 	_address = address;
