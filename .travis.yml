@@ -5,20 +5,11 @@ os:
  
 matrix:
  exclude:
-# Don't build using gcc on mac
-  - os: osx
-    compiler: gcc
-# Don't try to do Coverity or coverage builds on mac
-  - os: osx
-    env: COVERITY=1
+  - compiler: clang
     env: COVERAGE=1
-  - os: linux
-    compiler: clang
-    env: COVERAGE=1
-  - os: linux
-    compiler: gcc
+  - os: gcc
     env: COVERAGE=0
- 
+    
 env:
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
