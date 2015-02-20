@@ -12,16 +12,12 @@ matrix:
   - os: osx
     env: COVERITY=1
     env: COVERAGE=1
-# Don't do coverity or coverage builds on clang
   - os: linux
     compiler: clang
-    env: COVERITY=1
     env: COVERAGE=1
-# Only do coverage builds on gcc
   - os: linux
     compiler: gcc
-    env: COVERAGE=1
-    env: COVERITY=0
+    env: COVERAGE=0
  
 env:
   global:
