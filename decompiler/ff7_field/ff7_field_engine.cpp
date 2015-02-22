@@ -9,6 +9,11 @@
 
 #define GET(vertex) (boost::get(boost::vertex_name, g, vertex))
 
+std::unique_ptr<Disassembler> FF7::FF7FieldEngine::getDisassembler(InstVec &insts, const std::vector<unsigned char>& rawScriptData)
+{
+    return std::make_unique<FF7Disassembler>(this, insts, rawScriptData);
+}
+
 std::unique_ptr<Disassembler> FF7::FF7FieldEngine::getDisassembler(InstVec &insts)
 {
     return std::make_unique<FF7Disassembler>(this, insts);

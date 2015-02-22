@@ -5,6 +5,16 @@
 #include "lzs.h"
 #include "make_unique.h"
 
+FF7::FF7Disassembler::FF7Disassembler(FF7FieldEngine* engine, InstVec& insts, const std::vector<unsigned char>& rawScriptData)
+    : SimpleDisassembler(insts),
+    mEngine(engine)
+{
+    mbFromRaw = true;
+    kSectionPointersSize = 0; // If loading a raw section then we don't have a "sections header" to skip
+    auto dataCopy = rawScriptData;
+    mStream = std::make_unique<BinaryReader>(std::move(dataCopy));
+}
+
 FF7::FF7Disassembler::FF7Disassembler(FF7FieldEngine *engine, InstVec &insts)
   : SimpleDisassembler(insts), 
     mEngine(engine)
@@ -71,21 +81,24 @@ struct ScriptInfo
 
 void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
 {
-    // First read the file section pointers
-    for (int i = 0; i < kNumSections; i++)
+    if (!mbFromRaw)
     {
-        mSections[i] = mStream->ReadU32();
-    }
+        // First read the file section pointers
+        for (int i = 0; i < kNumSections; i++)
+        {
+            mSections[i] = mStream->ReadU32();
+        }
 
-    // Now fix up from PSX RAM pointers to simple file offsets
-    const uint32 basePtr = mSections[0];
-    for (int i = 0; i < kNumSections; i++)
-    {
-        mSections[i] = (mSections[i] - basePtr) + kSectionPointersSize;
-    }
+        // Now fix up from PSX RAM pointers to simple file offsets
+        const uint32 basePtr = mSections[0];
+        for (int i = 0; i < kNumSections; i++)
+        {
+            mSections[i] = (mSections[i] - basePtr) + kSectionPointersSize;
+        }
 
-    // Now seek to the script section
-    mStream->Seek(mSections[eScript]);
+        // Now seek to the script section
+        mStream->Seek(mSections[eScript]);
+    }
 
     // Read the script header
     mHeader.Read(*mStream);
@@ -136,7 +149,10 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
     bool isStart,
     bool isEnd)
 {
+
     scriptEntryPoint += kSectionPointersSize;
+  
+
     mStream->Seek(scriptEntryPoint);
 
     _addressBase = mStream->Position();

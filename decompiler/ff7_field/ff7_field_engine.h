@@ -13,6 +13,7 @@ namespace FF7
         {
             setOutputStackEffect(false);
         }
+        virtual std::unique_ptr<Disassembler> getDisassembler(InstVec &insts, const std::vector<unsigned char>& rawScriptData) override;
         virtual std::unique_ptr<Disassembler> getDisassembler(InstVec &insts) override;
         virtual std::unique_ptr<CodeGenerator> getCodeGenerator(std::ostream &output) override;
         virtual void postCFG(InstVec &insts, Graph g) override;

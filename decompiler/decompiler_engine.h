@@ -75,6 +75,11 @@ class Engine
 public:
     virtual ~Engine() = default;
 
+    virtual std::unique_ptr<Disassembler> getDisassembler(InstVec &, const std::vector<unsigned char>& )
+    {
+        throw NotImplementedException();
+    }
+
 	/**
 	 * Retrieve the disassembler for the engine.
 	 *

@@ -275,6 +275,7 @@ namespace FF7
     {
     public:
         FF7Disassembler(FF7FieldEngine* engine, InstVec& insts);
+        FF7Disassembler(FF7FieldEngine* engine, InstVec& insts, const std::vector<unsigned char>& rawScriptData);
         ~FF7Disassembler();
         virtual void open(const char *filename) override;
 	    virtual void doDisassemble() throw(std::exception) override;
@@ -300,7 +301,7 @@ namespace FF7
 
         const static int kMagic = 0x0502;
         const static int kNumSections = 7;
-        const static int kSectionPointersSize = sizeof(uint32) * kNumSections;
+        int kSectionPointersSize = sizeof(uint32) * kNumSections;
         enum eSections
         {
             eScript = 0,
@@ -387,6 +388,7 @@ namespace FF7
             }
         };
         ScriptHeader mHeader;
+        bool mbFromRaw = false;
     };
 
 } 
