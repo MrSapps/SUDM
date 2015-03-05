@@ -8,6 +8,21 @@ namespace SUDM
 {
     namespace FF7
     {
+        namespace Animation
+        {
+            // TODO
+        }
+
+        namespace AI
+        {
+            // TODO
+        }
+
+        namespace World
+        {
+            // TODO
+        }
+
         namespace Field
         {
             std::string Decompile(std::string scriptName, 
@@ -37,6 +52,22 @@ namespace SUDM
                 cg->generate(insts, graph);               
                 return textToAppend + output.str() + textToPrepend;
             }
+        }
+    }
+
+    namespace FF8
+    {
+        namespace Field
+        {
+            // TODO
+        }
+    }
+
+    namespace FF9
+    {
+        namespace Field
+        {
+            // TODO
         }
     }
 }

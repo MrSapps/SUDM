@@ -301,7 +301,7 @@ namespace FF7
 
         const static int kMagic = 0x0502;
         const static int kNumSections = 7;
-        int kSectionPointersSize = sizeof(uint32) * kNumSections;
+        int16 kSectionPointersSize = sizeof(uint32) * kNumSections;
         enum eSections
         {
             eScript = 0,

@@ -173,6 +173,7 @@ if (NOT SUDM_AS_LIB)
 	decompiler/test/disassembler/subopcode.h
 	decompiler/test/main.cpp
 	decompiler/test/ff7_field_all_opcodes_disassembler_test.cpp
+    decompiler/test/ff7_field_control_flow_test.cpp
 	)
 
 	target_link_libraries(Sudm_Test Sudm_Lib gmock ${Boost_LIBRARIES})

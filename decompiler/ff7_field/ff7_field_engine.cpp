@@ -312,6 +312,7 @@ void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engi
 uint32 FF7::FF7CondJumpInstruction::getDestAddress() const
 {
     uint32 paramsSize = 0;
+    uint32 jumpParamIndex = 5;
     switch (_opcode)
     {
     case eOpcodes::IFUB:
@@ -327,7 +328,7 @@ uint32 FF7::FF7CondJumpInstruction::getDestAddress() const
         break;
 
     case eOpcodes::IFSWL:
-        paramsSize = 8;
+        paramsSize = 7;
         break;
 
     case eOpcodes::IFUW:
@@ -338,16 +339,24 @@ uint32 FF7::FF7CondJumpInstruction::getDestAddress() const
         paramsSize = 8;
         break;
 
-    case eOpcodes::IFKEY:
-    case eOpcodes::IFKEYOFF:
     case eOpcodes::IFKEYON:
-        return _address + _params[1]->getUnsigned() + 2;
+    case eOpcodes::IFKEYOFF:
+    case eOpcodes::IFKEY:
+        paramsSize = 3;
+        jumpParamIndex = 1;
+        break;
+
+    case eOpcodes::IFPRTYQ:
+    case eOpcodes::IFMEMBQ:
+        paramsSize = 2;
+        jumpParamIndex = 1;
+        break;
 
     default:
         throw UnknownJumpTypeException(_address, _opcode);
     }
 
-    return _address + _params[5]->getUnsigned() + paramsSize;
+    return _address + _params[jumpParamIndex]->getUnsigned() + paramsSize;
 }
 
 std::ostream& FF7::FF7CondJumpInstruction::print(std::ostream &output) const
@@ -371,13 +380,13 @@ bool FF7::FF7UncondJumpInstruction::isUncondJump() const
 
 uint32 FF7::FF7UncondJumpInstruction::getDestAddress() const
 {
-    if (static_cast<eOpcodes>(_opcode) == eOpcodes::JMPF)
+    if (static_cast<eOpcodes>(_opcode) == eOpcodes::JMPF || static_cast<eOpcodes>(_opcode) == eOpcodes::JMPFL)
     {
-        // Forward jump
-        return _address + _params[0]->getUnsigned()+1;
+        // Short or long forward jump 
+        return _address + _params[0]->getUnsigned() + 1;
     }
-   
-    // Backwards jump,  eOpcodes::JMPBL
+
+    // Backwards jump,  eOpcodes::JMPB/L
 	return _address - _params[0]->getUnsigned();
 }
 
