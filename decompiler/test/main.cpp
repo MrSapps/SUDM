@@ -11,6 +11,8 @@
 #include "util.h"
 #include "graph.h"
 #include "make_unique.h"
+#include "sudm.h"
+#include "lzs.h"
 
 #define GET(vertex) (boost::get(boost::vertex_name, g, vertex))
 
@@ -169,67 +171,36 @@ TEST(FF7Field, FunctionMetaData_Parse_StartEnd)
     ASSERT_EQ(true, meta.IsStart());
 }
 
+class DummyFormatter : public SUDM::IScriptFormatter
+{
+public:
+
+    // Return false to drop this function from the decompiled output
+    virtual bool ExcludeFunction(const std::string& )
+    {
+        return false;
+    }
+
+    // Used to rename any identifier
+    virtual std::string RenameIdentifer(const std::string& name)
+    {
+        return name;
+    }
+};
+
+
 TEST(FF7Field, DisAsm)
 {
     FF7::FF7FieldEngine engine;
 
 
-    InstVec insts;
-    FF7::FF7Disassembler d(&engine, insts);
-    d.open("decompiler/test/md1_2.dat");
-    d.disassemble();
+    auto scriptBytes = Lzs::Decompress(BinaryReader::ReadAll("decompiler/test/md1_2.dat"));
+    scriptBytes.erase(scriptBytes.begin(), scriptBytes.begin() + 7 * sizeof(uint32)); // Remove section pointers, leave everything after the script data as this dosen't matter
+    DummyFormatter formatter;
+    std::string decompiledData = SUDM::FF7::Field::Decompile("md1_2", scriptBytes, formatter);
+    ASSERT_FALSE(decompiledData.empty());
+    std::cout << decompiledData << std::endl;
 
-    d.dumpDisassembly(std::cout);
-    std::cout << std::endl;
-
-    auto c = std::make_unique<ControlFlow>(insts, engine);
-    c->createGroups();
-
-
-
-
-    Graph g = c->analyze();
-
-    engine.postCFG(insts, g);
-
-
-    onullstream ns;
-    auto cg = engine.getCodeGenerator(std::cout);
-
-    std::ofstream out;
-    out.open("graph.dot");
-    if (out.is_open())
-    {
-        auto& g = c->getGraph();
-        boost::write_graphviz(
-            out, g, boost::make_label_writer(get(boost::vertex_name, g)), 
-            boost::makeArrowheadWriter(get(boost::edge_attribute, g)), GraphProperties(&engine, g));
-    }
-    out.close();
-
-    cg->generate(insts, g);
-
-    VertexIterator v = boost::vertices(g).first;
-    GroupPtr gr = GET(*v);
-
-    // Find first node
-    while (gr->_prev != NULL)
-    {
-        gr = gr->_prev;
-    }
-
-    // Copy out all lines of code
-    std::vector<std::string> output;
-    while (gr != NULL) 
-    {
-        for (std::vector<CodeLine>::iterator it = gr->_code.begin(); it != gr->_code.end(); ++it)
-        {
-            output.push_back(it->_line);
-        }
-        gr = gr->_next;
-    }
-
-    ASSERT_TRUE(output.empty() == false);
 }
 
 TEST(FF7World, DisAsm)
