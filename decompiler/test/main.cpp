@@ -13,6 +13,7 @@
 #include "make_unique.h"
 #include "sudm.h"
 #include "lzs.h"
+#include "ff7_field_dummy_formatter.h"
 
 #define GET(vertex) (boost::get(boost::vertex_name, g, vertex))
 
@@ -171,31 +172,13 @@ TEST(FF7Field, FunctionMetaData_Parse_StartEnd)
     ASSERT_EQ(true, meta.IsStart());
 }
 
-class DummyFormatter : public SUDM::IScriptFormatter
-{
-public:
-
-    // Return false to drop this function from the decompiled output
-    virtual bool ExcludeFunction(const std::string& )
-    {
-        return false;
-    }
-
-    // Used to rename any identifier
-    virtual std::string RenameIdentifer(const std::string& name)
-    {
-        return name;
-    }
-};
-
-
 TEST(FF7Field, DisAsm)
 {
-    FF7::FF7FieldEngine engine;
-
-
     auto scriptBytes = Lzs::Decompress(BinaryReader::ReadAll("decompiler/test/md1_2.dat"));
-    scriptBytes.erase(scriptBytes.begin(), scriptBytes.begin() + 7 * sizeof(uint32)); // Remove section pointers, leave everything after the script data as this dosen't matter
+
+    // Remove section pointers, leave everything after the script data as this doesn't matter
+    const int kNumSections = 7;
+    scriptBytes.erase(scriptBytes.begin(), scriptBytes.begin() + kNumSections * sizeof(uint32));
     DummyFormatter formatter;
     std::string decompiledData = SUDM::FF7::Field::Decompile("md1_2", scriptBytes, formatter);
     ASSERT_FALSE(decompiledData.empty());

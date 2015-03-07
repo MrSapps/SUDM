@@ -11,11 +11,20 @@ namespace SUDM
     public:
         virtual ~IScriptFormatter() = default;
 
-        // Return false to drop this function from the decompiled output
-        virtual bool ExcludeFunction(const std::string& functionName) = 0;
+        // Renames a variable, return empty string for generated name
+        virtual std::string VarName(unsigned int bank, unsigned int addr) = 0;
 
-        // Used to rename any identifier
-        virtual std::string RenameIdentifer(const std::string& name) = 0;
+        // Renames an entity
+        virtual std::string EntityName(const std::string& entity) = 0;
+
+        // Renames an animation, return empty string for generated name
+        virtual std::string AnimationName(int id) = 0;
+
+        // Renames a function in an entity
+        virtual std::string FunctionName(const std::string& entity, const std::string& funcName) = 0;
+
+        // Sets the header comment for a function in an entity
+        virtual std::string FunctionComment(const std::string& entity, const std::string& funcName) = 0;
     };
 
     namespace FF7

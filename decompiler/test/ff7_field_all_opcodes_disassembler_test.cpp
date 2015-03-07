@@ -5,14 +5,15 @@
 #include "control_flow.h"
 #include "util.h"
 #include "make_unique.h"
+#include "ff7_field_dummy_formatter.h"
 
 #define MAKE_SUBOPCODE(high, low) ((uint16)(((uint8)(low)) | ((uint16)((uint8)(high))) << 8))
 
-// Remove DISABLED_ to make it execute
 TEST(FF7Field, AllOpcodesDisassembler)
 {
     InstVec insts;
-    FF7::FF7FieldEngine engine;
+    DummyFormatter formatter;
+    FF7::FF7FieldEngine engine(formatter);
 
     auto d = engine.getDisassembler(insts);
     d->open("decompiler/test/ff7_all_opcodes.dat");

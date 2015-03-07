@@ -32,7 +32,7 @@ namespace SUDM
                                   std::string textToPrepend)
             {
                 // Disassemble the script
-                ::FF7::FF7FieldEngine engine;
+                ::FF7::FF7FieldEngine engine(formatter);
                 InstVec insts;
 
                 auto disassembler = engine.getDisassembler(insts, scriptBytes);
@@ -49,7 +49,7 @@ namespace SUDM
                 // Generate code and return it
                 std::stringstream output;
                 auto cg = engine.getCodeGenerator(output);
-                cg->generate(insts, graph);               
+                cg->generate(insts, graph);
                 return textToAppend + output.str() + textToPrepend;
             }
         }

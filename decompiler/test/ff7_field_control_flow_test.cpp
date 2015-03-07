@@ -5,6 +5,7 @@
 #include "control_flow.h"
 #include "util.h"
 #include "make_unique.h"
+#include "ff7_field_dummy_formatter.h"
 
 // Verify next 3 instructions are NOP's and return address of final NOP
 static uint32 Is3Nops(InstVec& insts, uint32& pos)
@@ -67,7 +68,8 @@ static void CheckBackwardJump(FF7::eOpcodes opCode, size_t paramsSize, InstVec& 
 TEST(FF7Field, ControlFlow)
 {
     InstVec insts;
-    FF7::FF7FieldEngine engine;
+    DummyFormatter formatter;
+    FF7::FF7FieldEngine engine(formatter);
 
     auto d = engine.getDisassembler(insts);
     d->open("decompiler/test/ff7_control_flow_test.dat");

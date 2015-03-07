@@ -3,13 +3,18 @@
 #include "decompiler/decompiler_engine.h"
 #include <string>
 #include <vector>
+#include "sudm.h"
 
 namespace FF7
 {
     class FF7FieldEngine : public Engine
     {
     public:
-        FF7FieldEngine()
+        FF7FieldEngine(const FF7FieldEngine&) = delete;
+        FF7FieldEngine& operator = (const FF7FieldEngine&) = delete;
+
+        FF7FieldEngine(SUDM::IScriptFormatter& formatter)
+            : mFormatter(formatter)
         {
             setOutputStackEffect(false);
         }
@@ -22,6 +27,8 @@ namespace FF7
         void RemoveExtraneousReturnStatements(InstVec& insts, Graph g);
         void RemoveTrailingInfiniteLoops(InstVec& insts, Graph g);
         void MarkInfiniteLoopGroups(InstVec& insts, Graph g);
+    private:
+        SUDM::IScriptFormatter& mFormatter;
     };
 
     class FF7StoreInstruction : public StoreInstruction
