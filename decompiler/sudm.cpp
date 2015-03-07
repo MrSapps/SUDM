@@ -25,7 +25,7 @@ namespace SUDM
 
         namespace Field
         {
-            std::string Decompile(std::string scriptName, 
+            DecompiledScript Decompile(std::string scriptName,
                                   const std::vector<unsigned char>& scriptBytes,
                                   IScriptFormatter& formatter, 
                                   std::string textToAppend,
@@ -46,11 +46,18 @@ namespace SUDM
                 Graph graph = controlFlow->analyze();
                 engine.postCFG(insts, graph);
 
+                DecompiledScript ds;
+
                 // Generate code and return it
                 std::stringstream output;
                 auto cg = engine.getCodeGenerator(output);
                 cg->generate(insts, graph);
-                return textToAppend + output.str() + textToPrepend;
+                ds.luaScript = textToAppend + output.str() + textToPrepend;
+
+                // TODO
+                //ds.entities = engine.GetEntities(insts);
+
+                return ds;
             }
         }
     }

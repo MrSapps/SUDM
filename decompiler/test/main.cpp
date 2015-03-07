@@ -180,9 +180,9 @@ TEST(FF7Field, DisAsm)
     const int kNumSections = 7;
     scriptBytes.erase(scriptBytes.begin(), scriptBytes.begin() + kNumSections * sizeof(uint32));
     DummyFormatter formatter;
-    std::string decompiledData = SUDM::FF7::Field::Decompile("md1_2", scriptBytes, formatter);
-    ASSERT_FALSE(decompiledData.empty());
-    std::cout << decompiledData << std::endl;
+    SUDM::FF7::Field::DecompiledScript ds = SUDM::FF7::Field::Decompile("md1_2", scriptBytes, formatter);
+    ASSERT_FALSE(ds.luaScript.empty());
+    std::cout << ds.luaScript << std::endl;
 
 }
 

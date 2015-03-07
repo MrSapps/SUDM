@@ -31,6 +31,15 @@ namespace SUDM
     {
         namespace Field
         {
+            // Entities list, with entity type of
+            // entity_script
+            // entity_model, which somehow links to model loader
+            struct DecompiledScript
+            {
+                std::string luaScript;
+                std::vector<std::pair<std::string, int>> entities;
+            };
+
             /*
             * Throws ::InternalDecompilerError on failure.
             * scriptName - name of the script to be converted, should match file name.
@@ -40,7 +49,7 @@ namespace SUDM
             * textToPrepend - raw text that is glued to to the start of the decompiled output.
             * returns a string containing [textToPrepend] [decompiled script] [textToAppend]
             */
-            std::string Decompile(std::string scriptName, 
+            DecompiledScript Decompile(std::string scriptName,
                                   const std::vector<unsigned char>& scriptBytes,
                                   IScriptFormatter& formatter, 
                                   std::string textToAppend = "", 
