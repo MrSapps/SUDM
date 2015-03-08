@@ -15,8 +15,8 @@ namespace FF7
         REQSW = 0x02,
         REQEW = 0x03,
         PREQ = 0x04,
-        PREQSW = 0x05,
-        PREQEW = 0x06,
+        PRQSW = 0x05,
+        PRQEW = 0x06,
         RETTO = 0x07,
         JOIN = 0x08,
         SPLIT = 0x09,
@@ -275,8 +275,16 @@ namespace FF7
         EYETX = 0x00,
         TRNSP = 0x01,
         AMBNT = 0x02,
+        Unknown03 = 0x03, // Makou Reactor can write these unknowns, so we'll include them for now
+        Unknown04 = 0x04,
+        Unknown05 = 0x05,
         LIGHT = 0x06,
+        Unknown07 = 0x07,
+        Unknown08 = 0x08,
+        Unknown09 = 0x09,
         SBOBJ = 0x0A,
+        Unknown0B = 0x0B,
+        Unknown0C = 0x0C,
         SHINE = 0x0D,
         RESET = 0xFF
     };
