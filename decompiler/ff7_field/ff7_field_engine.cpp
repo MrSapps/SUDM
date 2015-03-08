@@ -227,12 +227,12 @@ void FF7::FF7StoreInstruction::processInst(Function&, ValueStack&, Engine*, Code
         }
         break;
 
-    case eOpcodes::RANDOM:
+    case eOpcodes::RANDOM: // 8-bit random value 
         {
             const uint32 dstBank = _params[0]->getUnsigned();
             const uint32 dstAddr = _params[1]->getUnsigned();
             auto d = GetVarName(dstBank, dstAddr);
-            codeGen->addOutputLine(d + " = rand()" + codeGen->TargetLang().LineTerminator());
+            codeGen->addOutputLine(d + " = math.random(0, 255)" + codeGen->TargetLang().LineTerminator());
         }
         break;
 
@@ -440,35 +440,35 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
     switch (_opcode)
     {
     case eOpcodes::RET:
-        codeGen->addOutputLine("return;");
+        codeGen->addOutputLine("return");
         break;
 
     case eOpcodes::WAIT:
-        codeGen->writeFunctionCall("script:wait", "f", _params);
+        WriteTodo(codeGen, md.EntityName(), "script:wait");
         break;
 
     case eOpcodes::STPAL:
-        codeGen->writeFunctionCall("setPalette", "nnnn", _params);
+        WriteTodo(codeGen, md.EntityName(), "setPalette");
         break;
 
     case eOpcodes::MPPAL2:
-        codeGen->writeFunctionCall("mulitplyPallete", "", _params);
+        WriteTodo(codeGen, md.EntityName(), "mulitplyPallete");
         break;
 
     case eOpcodes::CPPAL:
-        codeGen->writeFunctionCall("copyPallete", "", _params);
+        WriteTodo(codeGen, md.EntityName(), "copyPallete");
         break;
 
     case eOpcodes::LDPAL:
-        codeGen->writeFunctionCall("loadPallete", "", _params);
+        WriteTodo(codeGen, md.EntityName(), "loadPallete");
         break;
 
     case eOpcodes::REQEW:
-        codeGen->writeFunctionCall("callScriptBlocking", "", _params);
+        WriteTodo(codeGen, md.EntityName(), "callScriptBlocking");
         break;
 
     case eOpcodes::BGCLR:
-        codeGen->writeFunctionCall("backgroundClear", "nn", _params);
+        WriteTodo(codeGen, md.EntityName(), "backgroundClear");
         break;
 
     case eOpcodes::BGOFF:
@@ -481,8 +481,8 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
         const uint32 dstAddrOrValue = _params[3]->getUnsigned();
         auto d = GetVarName(dstBank, dstAddrOrValue);
 
-        std::string line = "backgroundOff(" + d + ", " + s + ");";
-        codeGen->addOutputLine(line);
+        std::string line = "backgroundOff(" + d + ", " + s + ")";
+        WriteTodo(codeGen, md.EntityName(), line);
     }
         break;
 
@@ -496,8 +496,8 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
         const uint32 dstAddrOrValue = _params[3]->getUnsigned();
         auto d = GetVarName(dstBank, dstAddrOrValue);
         
-        std::string line = "backgroundOn(" + d + ", " + s + ");";
-        codeGen->addOutputLine(line);
+        std::string line = "backgroundOn(" + d + ", " + s + ")";
+        WriteTodo(codeGen, md.EntityName(), line);
     }
         break;
 
@@ -531,31 +531,33 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
         break;
 
     case eOpcodes::MOVE:
-        codeGen->writeFunctionCall("move", "nnn", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":move_to_position", "nnn", _params);
         break;
 
     case eOpcodes::ANIME1:
-        codeGen->writeFunctionCall("playBlockingAnimation", "nn", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":play_animation", "nn", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":animation_sync", "", _params);
         break;
 
     case eOpcodes::DFANM:
-        codeGen->writeFunctionCall("playAnimationLoop", "nn", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":set_default_animation", "nn", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":play_animation", "nn", _params);
         break;
 
     case eOpcodes::DIR:
-        codeGen->writeFunctionCall("turnToEntity", "nn", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":set_rotation", "nn", _params);
         break;
 
     case eOpcodes::STPLS:
-        codeGen->writeFunctionCall("STPLS", "", _params);
+        WriteTodo(codeGen, md.EntityName(), "STPLS");
         break;
 
     case eOpcodes::ADPAL:
-        codeGen->writeFunctionCall("ADPAL", "", _params);
+        WriteTodo(codeGen, md.EntityName(), "ADPAL");
         break;
 
     case eOpcodes::LDPLS:
-        codeGen->writeFunctionCall("LDPLS", "", _params);
+        WriteTodo(codeGen, md.EntityName(), "LDPLS");
         break;
 
     case eOpcodes::BTLMD:
@@ -577,13 +579,13 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
         const uint32 dstAddrOrValue = _params[2]->getUnsigned();
         auto d = GetVarName(dstBank, dstAddrOrValue);
 
-        std::string line = "getEntityTriangleId(" + d + ", " + std::to_string(_params[1]->getUnsigned()) + ");";
-        codeGen->addOutputLine(line);
+        std::string line = "getEntityTriangleId(" + d + ", " + std::to_string(_params[1]->getUnsigned()) + ")";
+        WriteTodo(codeGen, md.EntityName(), line);
     }
         break;
 
     default:
-        codeGen->addOutputLine("UnknownKernelFunction_" + std::to_string(_opcode) + "();");
+        WriteTodo(codeGen, md.EntityName(), "UnknownKernelFunction_" + std::to_string(_opcode));
         break;
     }
 }
