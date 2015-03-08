@@ -270,6 +270,17 @@ namespace FF7
         CLITM = 0xFF
     };
 
+    enum eKawaiOpcodes
+    {
+        EYETX = 0x00,
+        TRNSP = 0x01,
+        AMBNT = 0x02,
+        LIGHT = 0x06,
+        SBOBJ = 0x0A,
+        SHINE = 0x0D,
+        RESET = 0xFF
+    };
+
     class FF7FieldEngine;
     class FF7Disassembler : public SimpleDisassembler
     {
@@ -325,7 +336,7 @@ namespace FF7
             uint16 mNumberOfAkaoOffsets; // Specifies the number of Akao/tuto blocks/offsets
             uint16 mScale; // Scale of field. For move and talk calculation (9bit fixed point).
             std::array<uint16, 3> mBlank;
-            std::array<uint8, 8> mCreator;// Field creator (never shown)
+            std::array<char, 8> mCreator;// Field creator (never shown)
             std::array<char, 8> mName;// Field name (never shown)
             std::vector<std::array<char, 8>> mFieldEntityNames;  // Count is mNumberOfEntities
             std::vector<uint32> mAkaoOffsets; // Akao/Tuto block offsets, count is mNumberOfAkaoOffsets
