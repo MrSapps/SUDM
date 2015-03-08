@@ -54,9 +54,7 @@ namespace SUDM
                 cg->generate(insts, graph);
                 ds.luaScript = textToAppend + output.str() + textToPrepend;
 
-                // TODO
-                //ds.entities = engine.GetEntities(insts);
-
+                ds.entities = engine.GetEntities();
                 return ds;
             }
         }

@@ -23,6 +23,7 @@ namespace FF7
         virtual std::unique_ptr<CodeGenerator> getCodeGenerator(std::ostream &output) override;
         virtual void postCFG(InstVec &insts, Graph g) override;
         virtual bool usePureGrouping() const override { return false; }
+        std::map<std::string, int> GetEntities() const;
     private:
         void RemoveExtraneousReturnStatements(InstVec& insts, Graph g);
         void RemoveTrailingInfiniteLoops(InstVec& insts, Graph g);

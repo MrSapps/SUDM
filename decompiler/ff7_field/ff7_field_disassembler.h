@@ -287,7 +287,9 @@ namespace FF7
             bool isStart,
             bool isEnd);
 
-        void ReadOpCodes(size_t endPos);
+        void AddFunc(std::string entityName, size_t scriptIndex, uint32 nextScriptEntryPoint, const bool isStart, const bool isEnd, bool toReturnOnly, std::string funcName);
+
+        void ReadOpCodesToPositionOrReturn(size_t endPos);
         std::unique_ptr<Function> StartFunction(size_t scriptIndex);
 
         FF7FieldEngine* mEngine;

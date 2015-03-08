@@ -34,6 +34,11 @@ namespace FF7
             return mEntityName;
         }
 
+        int CharacterId()
+        {
+            return mCharacterId;
+        }
+
     private:
         void Parse(std::string str)
         {
@@ -74,12 +79,26 @@ namespace FF7
                 {
                     auto tmp = strs.front();
                     strs.pop_front();
-                    ParseEntity(tmp, strs);
+                    ParseCharId(tmp, strs);
                 }
             }
             else
             {
-                ParseEntity(item, strs);
+                ParseCharId(item, strs);
+            }
+        }
+
+        void ParseCharId(const std::string& item, std::deque<std::string>& strs)
+        {
+            if (!item.empty())
+            {
+                mCharacterId = std::stoi(item);
+            }
+            if (!strs.empty())
+            {
+                auto tmp = strs.front();
+                strs.pop_front();
+                ParseEntity(tmp, strs);
             }
         }
 
@@ -98,6 +117,7 @@ namespace FF7
         bool mEnd = false;
         bool mStart = false;
         std::string mEntityName;
+        int mCharacterId = -1;
     };
 
     class FF7CodeGenerator : public CodeGenerator

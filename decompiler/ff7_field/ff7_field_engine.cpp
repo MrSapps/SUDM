@@ -39,6 +39,31 @@ void FF7::FF7FieldEngine::postCFG(InstVec& insts, Graph g)
     RemoveExtraneousReturnStatements(insts, g);
 }
 
+std::map<std::string, int> FF7::FF7FieldEngine::GetEntities() const
+{
+    std::map<std::string, int> r;
+    for (auto& f : _functions)
+    {
+        const Function& func = f.second;
+        FF7::FunctionMetaData meta(func._metadata);
+        auto it = r.find(meta.EntityName());
+        if (it != std::end(r))
+        {
+            // Try to find a function in this entity has that has a char id
+            // don't overwrite a valid char id with a "blank" one
+            if (it->second == -1)
+            {
+                it->second = meta.CharacterId();
+            }
+        }
+        else
+        {
+            r[meta.EntityName()] = meta.CharacterId();
+        }
+    }
+    return r;
+}
+
 void FF7::FF7FieldEngine::RemoveExtraneousReturnStatements(InstVec& insts, Graph g)
 {
     for (auto& f : _functions)
