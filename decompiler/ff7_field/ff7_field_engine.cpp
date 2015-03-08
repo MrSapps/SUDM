@@ -11,12 +11,12 @@
 
 std::unique_ptr<Disassembler> FF7::FF7FieldEngine::getDisassembler(InstVec &insts, const std::vector<unsigned char>& rawScriptData)
 {
-    return std::make_unique<FF7Disassembler>(this, insts, rawScriptData);
+    return std::make_unique<FF7Disassembler>(mFormatter, this, insts, rawScriptData);
 }
 
 std::unique_ptr<Disassembler> FF7::FF7FieldEngine::getDisassembler(InstVec &insts)
 {
-    return std::make_unique<FF7Disassembler>(this, insts);
+    return std::make_unique<FF7Disassembler>(mFormatter, this, insts);
 }
 
 std::unique_ptr<CodeGenerator> FF7::FF7FieldEngine::getCodeGenerator(std::ostream &output)
@@ -428,6 +428,11 @@ void FF7::FF7UncondJumpInstruction::processInst(Function&, ValueStack&, Engine*,
 
 }
 
+static void WriteTodo(CodeGenerator *codeGen, std::string entityName, std::string opCode)
+{
+    codeGen->addOutputLine("self." + entityName + ":Todo(\"" + opCode + "\")");
+}
+
 void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Engine*, CodeGenerator *codeGen)
 {
     FunctionMetaData md(func._metadata);
@@ -497,15 +502,15 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
         break;
 
     case eOpcodes::opCodeCHAR:
-        codeGen->writeFunctionCall("Char", "n", _params);
+        codeGen->addOutputLine("self." + md.EntityName() + " = entity_manager:get_entity(\"" + md.EntityName() + "\")");
         break;
 
     case eOpcodes::PC:
-        codeGen->writeFunctionCall("setPlayableChar", "n", _params);
+        codeGen->addOutputLine("set_entity_to_character(\"" + md.EntityName() + "\", \"" + md.EntityName() + "\")");
         break;
 
     case eOpcodes::XYZI:
-        codeGen->writeFunctionCall("placeObject", "nnnnn", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":set_position", "nnnnn", _params);
         break;
 
     case eOpcodes::SOLID:
@@ -554,15 +559,15 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
         break;
 
     case eOpcodes::BTLMD:
-        codeGen->writeFunctionCall("BTLMD", "n", _params);
+        WriteTodo(codeGen, md.EntityName(), "BTLMD");
         break;
 
     case eOpcodes::MUSIC:
-        codeGen->writeFunctionCall("MUSIC", "n", _params);
+        WriteTodo(codeGen, md.EntityName(), "MUSIC");
         break;
 
     case eOpcodes::MPNAM:
-        codeGen->writeFunctionCall("setMapName", "n", _params);
+        WriteTodo(codeGen, md.EntityName(), "MPNAM");
         break;
 
     case eOpcodes::GETAI:

@@ -38,6 +38,8 @@ namespace SUDM
                 auto disassembler = engine.getDisassembler(insts, scriptBytes);
                 disassembler->disassemble();
 
+                //disassembler->dumpDisassembly(std::cout);
+
                 // Create CFG
                 auto controlFlow = std::make_unique<ControlFlow>(insts, engine);
                 controlFlow->createGroups();
@@ -52,7 +54,7 @@ namespace SUDM
                 std::stringstream output;
                 auto cg = engine.getCodeGenerator(output);
                 cg->generate(insts, graph);
-                ds.luaScript = textToAppend + output.str() + textToPrepend;
+                ds.luaScript = textToPrepend + output.str() + textToAppend;
 
                 ds.entities = engine.GetEntities();
                 return ds;

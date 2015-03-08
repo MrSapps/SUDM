@@ -5,9 +5,10 @@
 #include "lzs.h"
 #include "make_unique.h"
 
-FF7::FF7Disassembler::FF7Disassembler(FF7FieldEngine* engine, InstVec& insts, const std::vector<unsigned char>& rawScriptData)
-    : SimpleDisassembler(insts),
-    mEngine(engine)
+FF7::FF7Disassembler::FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7FieldEngine* engine, InstVec& insts, const std::vector<unsigned char>& rawScriptData)
+  : SimpleDisassembler(insts),
+    mEngine(engine),
+    mFormatter(formatter)
 {
     mbFromRaw = true;
     kSectionPointersSize = 0; // If loading a raw section then we don't have a "sections header" to skip
@@ -15,9 +16,10 @@ FF7::FF7Disassembler::FF7Disassembler(FF7FieldEngine* engine, InstVec& insts, co
     mStream = std::make_unique<BinaryReader>(std::move(dataCopy));
 }
 
-FF7::FF7Disassembler::FF7Disassembler(FF7FieldEngine *engine, InstVec &insts)
+FF7::FF7Disassembler::FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7FieldEngine *engine, InstVec &insts)
   : SimpleDisassembler(insts), 
-    mEngine(engine)
+    mEngine(engine),
+    mFormatter(formatter)
 {
 
 }
@@ -106,7 +108,7 @@ void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
     // Loop through the scripts for each entity
     for (size_t entityNumber = 0; entityNumber < mHeader.mEntityScripts.size(); entityNumber++)
     {
-        std::string entityName = mHeader.mFieldEntityNames[entityNumber].data();
+        const std::string entityName = mFormatter.EntityName(mHeader.mFieldEntityNames[entityNumber].data());
 
         // Only parse each script one
         std::set<uint16> parsedScripts;
