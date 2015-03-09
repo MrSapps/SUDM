@@ -6,7 +6,7 @@
 #include "make_unique.h"
 
 FF7::FF7Disassembler::FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7FieldEngine* engine, InstVec& insts, const std::vector<unsigned char>& rawScriptData)
-  : SimpleDisassembler(insts),
+    : SimpleDisassembler(insts),
     mEngine(engine),
     mFormatter(formatter)
 {
@@ -17,7 +17,7 @@ FF7::FF7Disassembler::FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7Fiel
 }
 
 FF7::FF7Disassembler::FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7FieldEngine *engine, InstVec &insts)
-  : SimpleDisassembler(insts), 
+    : SimpleDisassembler(insts),
     mEngine(engine),
     mFormatter(formatter)
 {
@@ -46,13 +46,15 @@ uint32 FF7::FF7Disassembler::GetEndOfScriptOffset(uint16 curEntryPoint, size_t e
             {
                 // This is the very last script, so use the end of its data which is the offset to strings
                 return mHeader.mOffsetToStrings;
-            } else
+            }
+            else
             {
                 // Wrap around to the next entity
                 entityIndex++;
                 scriptIndex = 0;
             }
-        } else
+        }
+        else
         {
             // Get the next script in the same entity
             scriptIndex++;
@@ -245,7 +247,7 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
 
         // Read the init script, which means stop at the first return
         AddFunc(entityName, scriptIndex, nextScriptEntryPoint, isStart, isEnd, true, "init");
-        
+
         // Not at the end of this script? Then the remaining data is the "main" script
         auto streamPos = mStream->Position();
         if (streamPos != endPos)
@@ -275,29 +277,29 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
         switch (opcode)
         {
             // Flow
-            OPCODE(eOpcodes::RET, "RET", FF7KernelCallInstruction, 0, ""); // impl
+            OPCODE(eOpcodes::RET, "RET", FF7KernelCallInstruction, 0, "");
             OPCODE(eOpcodes::REQ, "REQ", FF7KernelCallInstruction, 0, "BU");
             OPCODE(eOpcodes::REQSW, "REQSW", FF7KernelCallInstruction, 0, "BU");
-            OPCODE(eOpcodes::REQEW, "REQEW", FF7KernelCallInstruction, 0, "BU"); // impl
+            OPCODE(eOpcodes::REQEW, "REQEW", FF7KernelCallInstruction, 0, "BU");
             OPCODE(eOpcodes::PREQ, "PREQ", FF7KernelCallInstruction, 0, "BU");
             OPCODE(eOpcodes::PRQSW, "PRQSW", FF7KernelCallInstruction, 0, "BU");
             OPCODE(eOpcodes::PRQEW, "PRQEW", FF7KernelCallInstruction, 0, "BU");
             OPCODE(eOpcodes::RETTO, "RETTO", FF7KernelCallInstruction, 0, "U");
-            OPCODE(eOpcodes::JMPF, "JMPF", FF7UncondJumpInstruction, 0, "B"); // impl
-            OPCODE(eOpcodes::JMPFL, "JMPFL", FF7UncondJumpInstruction, 0, "w"); // impl
-            OPCODE(eOpcodes::JMPB, "JMPB", FF7UncondJumpInstruction, 0, "B"); // impl
-            OPCODE(eOpcodes::JMPBL, "JMPBL", FF7UncondJumpInstruction, 0, "w"); // impl
-            OPCODE(eOpcodes::IFUB, "IFUB", FF7CondJumpInstruction, 0, "NBBBB"); // impl
-            OPCODE(eOpcodes::IFUBL, "IFUBL", FF7CondJumpInstruction, 0, "NBBBw"); // impl
-            OPCODE(eOpcodes::IFSW, "IFSW", FF7CondJumpInstruction, 0, "NwwBB"); // impl
-            OPCODE(eOpcodes::IFSWL, "IFSWL", FF7CondJumpInstruction, 0, "NwwBw"); // impl
-            OPCODE(eOpcodes::IFUW, "IFUW", FF7CondJumpInstruction, 0, "NwwBB"); // impl
-            OPCODE(eOpcodes::IFUWL, "IFUWL", FF7CondJumpInstruction, 0, "NwwBw"); // impl
-            OPCODE(eOpcodes::WAIT, "WAIT", FF7KernelCallInstruction, 0, "w"); // impl
+            OPCODE(eOpcodes::JMPF, "JMPF", FF7UncondJumpInstruction, 0, "B");
+            OPCODE(eOpcodes::JMPFL, "JMPFL", FF7UncondJumpInstruction, 0, "w");
+            OPCODE(eOpcodes::JMPB, "JMPB", FF7UncondJumpInstruction, 0, "B");
+            OPCODE(eOpcodes::JMPBL, "JMPBL", FF7UncondJumpInstruction, 0, "w");
+            OPCODE(eOpcodes::IFUB, "IFUB", FF7CondJumpInstruction, 0, "NBBBB");
+            OPCODE(eOpcodes::IFUBL, "IFUBL", FF7CondJumpInstruction, 0, "NBBBw");
+            OPCODE(eOpcodes::IFSW, "IFSW", FF7CondJumpInstruction, 0, "NwwBB");
+            OPCODE(eOpcodes::IFSWL, "IFSWL", FF7CondJumpInstruction, 0, "NwwBw");
+            OPCODE(eOpcodes::IFUW, "IFUW", FF7CondJumpInstruction, 0, "NwwBB");
+            OPCODE(eOpcodes::IFUWL, "IFUWL", FF7CondJumpInstruction, 0, "NwwBw");
+            OPCODE(eOpcodes::WAIT, "WAIT", FF7KernelCallInstruction, 0, "w");
             OPCODE(eOpcodes::IFKEY, "IFKEY", FF7CondJumpInstruction, 0, "wB"); // TODO: new category or update existing
             OPCODE(eOpcodes::IFKEYON, "IFKEYON", FF7CondJumpInstruction, 0, "wB"); // TODO: new category or update existing
             OPCODE(eOpcodes::IFKEYOFF, "IFKEYOFF", FF7CondJumpInstruction, 0, "wB"); // TODO: new category or update existing
-            OPCODE(eOpcodes::NOP, "NOP", FF7NoOutputInstruction, 0, ""); // impl
+            OPCODE(eOpcodes::NOP, "NOP", FF7NoOutputInstruction, 0, "");
             OPCODE(eOpcodes::IFPRTYQ, "IFPRTYQ", FF7CondJumpInstruction, 0, "BB"); // TODO: new category or update existing
             OPCODE(eOpcodes::IFMEMBQ, "IFMEMBQ", FF7CondJumpInstruction, 0, "BB"); // TODO: new category or update existing
 
@@ -324,7 +326,7 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             OPCODE(eOpcodes::LSTMP, "LSTMP", FF7KernelCallInstruction, 0, "NB");
             OPCODE(eOpcodes::BATTLE, "BATTLE", FF7KernelCallInstruction, 0, "Nw");
             OPCODE(eOpcodes::BTLON, "BTLON", FF7KernelCallInstruction, 0, "B");
-            OPCODE(eOpcodes::BTLMD, "BTLMD", FF7KernelCallInstruction, 0, "w"); // impl
+            OPCODE(eOpcodes::BTLMD, "BTLMD", FF7KernelCallInstruction, 0, "w");
             OPCODE(eOpcodes::MPJPO, "MPJPO", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::PMJMP, "PMJMP", FF7KernelCallInstruction, 0, "w");
             OPCODE(eOpcodes::PMJMP2, "PMJMP2", FF7KernelCallInstruction, 0, "");
@@ -334,26 +336,26 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             OPCODE(eOpcodes::PLUS_, "PLUS!", FF7KernelCallInstruction, 0, "NBB");
             OPCODE(eOpcodes::PLUS2_, "PLUS2!", FF7KernelCallInstruction, 0, "NBw");
             OPCODE(eOpcodes::MINUS_, "MINUS!", FF7KernelCallInstruction, 0, "NBB");
-            OPCODE(eOpcodes::MINUS2_, "MINUS2!", FF7KernelCallInstruction, 0, "BBw");
+            OPCODE(eOpcodes::MINUS2_, "MINUS2!", FF7KernelCallInstruction, 0, "NBw");
             OPCODE(eOpcodes::INC_, "INC!", FF7KernelCallInstruction, 0, "BB");
             OPCODE(eOpcodes::INC2_, "INC2!", FF7KernelCallInstruction, 0, "BB");
             OPCODE(eOpcodes::DEC_, "DEC!", FF7KernelCallInstruction, 0, "BB");
             OPCODE(eOpcodes::DEC2_, "DEC2!", FF7KernelCallInstruction, 0, "BB");
-            OPCODE(eOpcodes::RDMSD, "RDMSD", FF7KernelCallInstruction, 0, "BB");
-            OPCODE(eOpcodes::SETBYTE, "SETBYTE", FF7StoreInstruction, 0, "NBB"); // impl
-            OPCODE(eOpcodes::SETWORD, "SETWORD", FF7StoreInstruction, 0, "NBs"); // impl
+            OPCODE(eOpcodes::RDMSD, "RDMSD", FF7KernelCallInstruction, 0, "NB");
+            OPCODE(eOpcodes::SETBYTE, "SETBYTE", FF7StoreInstruction, 0, "NBB");
+            OPCODE(eOpcodes::SETWORD, "SETWORD", FF7StoreInstruction, 0, "NBw");
             OPCODE(eOpcodes::BITON, "BITON", FF7StoreInstruction, 0, "NBB");
             OPCODE(eOpcodes::BITOFF, "BITOFF", FF7StoreInstruction, 0, "NBB");
             OPCODE(eOpcodes::BITXOR, "BITXOR", FF7StoreInstruction, 0, "NBB");
-            OPCODE(eOpcodes::PLUS, "PLUS", FF7StoreInstruction, 0, "NBB"); // impl
+            OPCODE(eOpcodes::PLUS, "PLUS", FF7StoreInstruction, 0, "NBB");
             OPCODE(eOpcodes::PLUS2, "PLUS2", FF7StoreInstruction, 0, "NBw");
-            OPCODE(eOpcodes::MINUS, "MINUS", FF7StoreInstruction, 0, "NBB"); // impl
+            OPCODE(eOpcodes::MINUS, "MINUS", FF7StoreInstruction, 0, "NBB");
             OPCODE(eOpcodes::MINUS2, "MINUS2", FF7StoreInstruction, 0, "NBw");
-            OPCODE(eOpcodes::MUL, "MUL", FF7KernelCallInstruction, 0, "BBB"); // NBB?
+            OPCODE(eOpcodes::MUL, "MUL", FF7KernelCallInstruction, 0, "NBB");
             OPCODE(eOpcodes::MUL2, "MUL2", FF7KernelCallInstruction, 0, "NBw");
             OPCODE(eOpcodes::DIV, "DIV", FF7KernelCallInstruction, 0, "NBB");
             OPCODE(eOpcodes::DIV2, "DIV2", FF7KernelCallInstruction, 0, "NBw");
-            OPCODE(eOpcodes::MOD, "MOD", FF7StoreInstruction, 0, "NBB"); // impl
+            OPCODE(eOpcodes::MOD, "MOD", FF7StoreInstruction, 0, "NBB");
             OPCODE(eOpcodes::MOD2, "MOD2", FF7StoreInstruction, 0, "NBw");
             OPCODE(eOpcodes::AND, "AND", FF7StoreInstruction, 0, "NBB");
             OPCODE(eOpcodes::AND2, "AND2", FF7StoreInstruction, 0, "NBw");
@@ -361,14 +363,14 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             OPCODE(eOpcodes::OR2, "OR2", FF7StoreInstruction, 0, "NBw");
             OPCODE(eOpcodes::XOR, "XOR", FF7StoreInstruction, 0, "NBB");
             OPCODE(eOpcodes::XOR2, "XOR2", FF7StoreInstruction, 0, "NBw");
-            OPCODE(eOpcodes::INC, "INC", FF7StoreInstruction, 0, "BB"); // impl
+            OPCODE(eOpcodes::INC, "INC", FF7StoreInstruction, 0, "BB");
             OPCODE(eOpcodes::INC2, "INC2", FF7StoreInstruction, 0, "BB");
-            OPCODE(eOpcodes::DEC, "DEC", FF7StoreInstruction, 0, "BB"); // impl
+            OPCODE(eOpcodes::DEC, "DEC", FF7StoreInstruction, 0, "BB");
             OPCODE(eOpcodes::DEC2, "DEC2", FF7StoreInstruction, 0, "BB");
-            OPCODE(eOpcodes::RANDOM, "RANDOM", FF7StoreInstruction, 0, "BB"); // impl
+            OPCODE(eOpcodes::RANDOM, "RANDOM", FF7StoreInstruction, 0, "BB");
             OPCODE(eOpcodes::LBYTE, "LBYTE", FF7StoreInstruction, 0, "NBB");
             OPCODE(eOpcodes::HBYTE, "HBYTE", FF7StoreInstruction, 0, "NBw");
-            OPCODE(eOpcodes::TWOBYTE, "2BYTE", FF7StoreInstruction, 0, "NBBBB");
+            OPCODE(eOpcodes::TWOBYTE, "2BYTE", FF7StoreInstruction, 0, "NNBBB");
             OPCODE(eOpcodes::SIN, "SIN", FF7StoreInstruction, 0, "NNwwwB");
             OPCODE(eOpcodes::COS, "COS", FF7StoreInstruction, 0, "NNwwwB");
 
@@ -377,14 +379,14 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             OPCODE(eOpcodes::WCLS, "WCLS", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::WSIZW, "WSIZW", FF7KernelCallInstruction, 0, "Bwwww");
             OPCODE(eOpcodes::WSPCL, "WSPCL", FF7KernelCallInstruction, 0, "BBBB");
-            OPCODE(eOpcodes::WNUMB, "WNUMB", FF7KernelCallInstruction, 0, "NBdB");
+            OPCODE(eOpcodes::WNUMB, "WNUMB", FF7KernelCallInstruction, 0, "NBwwB"); // NBdB when N == 0
             OPCODE(eOpcodes::STTIM, "STTIM", FF7KernelCallInstruction, 0, "NNBBB");
             OPCODE(eOpcodes::MESSAGE, "MESSAGE", FF7KernelCallInstruction, 0, "BB");
-            OPCODE(eOpcodes::MPARA, "MPARA", FF7KernelCallInstruction, 0, "BBBB");
-            OPCODE(eOpcodes::MPRA2, "MPRA2", FF7KernelCallInstruction, 0, "BBBw");
-            OPCODE(eOpcodes::MPNAM, "MPNAM", FF7KernelCallInstruction, 0, "B"); // impl
-            OPCODE(eOpcodes::ASK, "ASK", FF7KernelCallInstruction, 0, "BBBBBB");
-            OPCODE(eOpcodes::MENU, "MENU", FF7KernelCallInstruction, 0, "BBB");
+            OPCODE(eOpcodes::MPARA, "MPARA", FF7KernelCallInstruction, 0, "NBBB");
+            OPCODE(eOpcodes::MPRA2, "MPRA2", FF7KernelCallInstruction, 0, "NBBw");
+            OPCODE(eOpcodes::MPNAM, "MPNAM", FF7KernelCallInstruction, 0, "B");
+            OPCODE(eOpcodes::ASK, "ASK", FF7KernelCallInstruction, 0, "NBBBBB");
+            OPCODE(eOpcodes::MENU, "MENU", FF7KernelCallInstruction, 0, "NBB");
             OPCODE(eOpcodes::MENU2, "MENU2", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::WINDOW, "WINDOW", FF7KernelCallInstruction, 0, "Bwwww");
             OPCODE(eOpcodes::WMOVE, "WMOVE", FF7KernelCallInstruction, 0, "Bss");
@@ -398,24 +400,24 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             // Party
             OPCODE(eOpcodes::SPTYE, "SPTYE", FF7KernelCallInstruction, 0, "NNBBB");
             OPCODE(eOpcodes::GTPYE, "GTPYE", FF7KernelCallInstruction, 0, "NNBBB");
-            OPCODE(eOpcodes::GOLDU, "GOLDU", FF7KernelCallInstruction, 0, "Nd");
-            OPCODE(eOpcodes::GOLDD, "GOLDD", FF7KernelCallInstruction, 0, "Nd");
+            OPCODE(eOpcodes::GOLDU, "GOLDU", FF7KernelCallInstruction, 0, "Nww"); // Nd when N == 0
+            OPCODE(eOpcodes::GOLDD, "GOLDD", FF7KernelCallInstruction, 0, "Nww"); // Nd when N == 0
             OPCODE(eOpcodes::CHGLD, "CHGLD", FF7KernelCallInstruction, 0, "NBB");
             OPCODE(eOpcodes::HMPMAX1, "HMPMAX1", FF7KernelCallInstruction, 0, "");
             OPCODE(eOpcodes::HMPMAX2, "HMPMAX2", FF7KernelCallInstruction, 0, "");
             OPCODE(eOpcodes::MHMMX, "MHMMX", FF7KernelCallInstruction, 0, "");
             OPCODE(eOpcodes::HMPMAX3, "HMPMAX3", FF7KernelCallInstruction, 0, "");
-            OPCODE(eOpcodes::MPU, "MPU", FF7KernelCallInstruction, 0, "BBw");
-            OPCODE(eOpcodes::MPD, "MPD", FF7KernelCallInstruction, 0, "BBw");
-            OPCODE(eOpcodes::HPU, "HPU", FF7KernelCallInstruction, 0, "BBw");
-            OPCODE(eOpcodes::HPD, "HPD", FF7KernelCallInstruction, 0, "BBw");
+            OPCODE(eOpcodes::MPU, "MPU", FF7KernelCallInstruction, 0, "NBw");
+            OPCODE(eOpcodes::MPD, "MPD", FF7KernelCallInstruction, 0, "NBw");
+            OPCODE(eOpcodes::HPU, "HPU", FF7KernelCallInstruction, 0, "NBw");
+            OPCODE(eOpcodes::HPD, "HPD", FF7KernelCallInstruction, 0, "NBw");
             OPCODE(eOpcodes::STITM, "STITM", FF7KernelCallInstruction, 0, "NwB");
             OPCODE(eOpcodes::DLITM, "DLITM", FF7KernelCallInstruction, 0, "NwB");
-            OPCODE(eOpcodes::CKITM, "CKITM", FF7KernelCallInstruction, 0, "BwB");
-            OPCODE(eOpcodes::SMTRA, "SMTRA", FF7KernelCallInstruction, 0, "NNd");
-            OPCODE(eOpcodes::DMTRA, "DMTRA", FF7KernelCallInstruction, 0, "NNdB");
-            OPCODE(eOpcodes::CMTRA, "CMTRA", FF7KernelCallInstruction, 0, "NNBdBB");
-            OPCODE(eOpcodes::GETPC, "GETPC", FF7KernelCallInstruction, 0, "BBB");
+            OPCODE(eOpcodes::CKITM, "CKITM", FF7KernelCallInstruction, 0, "NwB");
+            OPCODE(eOpcodes::SMTRA, "SMTRA", FF7KernelCallInstruction, 0, "NNBBBB");
+            OPCODE(eOpcodes::DMTRA, "DMTRA", FF7KernelCallInstruction, 0, "NNBBBBB");
+            OPCODE(eOpcodes::CMTRA, "CMTRA", FF7KernelCallInstruction, 0, "NNNBBBBBB");
+            OPCODE(eOpcodes::GETPC, "GETPC", FF7KernelCallInstruction, 0, "NBB");
             OPCODE(eOpcodes::PRTYP, "PRTYP", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::PRTYM, "PRTYM", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::PRTYE, "PRTYE", FF7KernelCallInstruction, 0, "BBB");
@@ -457,19 +459,19 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             OPCODE(eOpcodes::PMOVA, "PMOVA", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::PDIRA, "PDIRA", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::PTURA, "PTURA", FF7KernelCallInstruction, 0, "BBB");
-            OPCODE(eOpcodes::PGTDR, "PGTDR", FF7KernelCallInstruction, 0, "BBB");
+            OPCODE(eOpcodes::PGTDR, "PGTDR", FF7KernelCallInstruction, 0, "NBB");
             OPCODE(eOpcodes::PXYZI, "PXYZI", FF7KernelCallInstruction, 0, "NNBBBBB");
-            OPCODE(eOpcodes::TLKON, "TLKON", FF7KernelCallInstruction, 0, "B"); // impl
-            OPCODE(eOpcodes::PC, "PC", FF7KernelCallInstruction, 0, "B"); // impl
-            OPCODE(eOpcodes::opCodeCHAR, "CHAR", FF7KernelCallInstruction, 0, "B"); // impl
-            OPCODE(eOpcodes::DFANM, "DFANM", FF7KernelCallInstruction, 0, "BB"); // impl
-            OPCODE(eOpcodes::ANIME1, "ANIME1", FF7KernelCallInstruction, 0, "BB"); // impl
-            OPCODE(eOpcodes::VISI, "VISI", FF7KernelCallInstruction, 0, "B"); // impl
-            OPCODE(eOpcodes::XYZI, "XYZI", FF7KernelCallInstruction, 0, "BBsssw"); // impl
+            OPCODE(eOpcodes::TLKON, "TLKON", FF7KernelCallInstruction, 0, "B");
+            OPCODE(eOpcodes::PC, "PC", FF7KernelCallInstruction, 0, "B");
+            OPCODE(eOpcodes::opCodeCHAR, "CHAR", FF7KernelCallInstruction, 0, "B");
+            OPCODE(eOpcodes::DFANM, "DFANM", FF7KernelCallInstruction, 0, "BB");
+            OPCODE(eOpcodes::ANIME1, "ANIME1", FF7KernelCallInstruction, 0, "BB");
+            OPCODE(eOpcodes::VISI, "VISI", FF7KernelCallInstruction, 0, "B");
+            OPCODE(eOpcodes::XYZI, "XYZI", FF7KernelCallInstruction, 0, "NNsssw");
             OPCODE(eOpcodes::XYI, "XYI", FF7KernelCallInstruction, 0, "NNssw");
             OPCODE(eOpcodes::XYZ, "XYZ", FF7KernelCallInstruction, 0, "NNsss");
-            OPCODE(eOpcodes::MOVE, "MOVE", FF7KernelCallInstruction, 0, "Bss"); // impl
-            OPCODE(eOpcodes::CMOVE, "CMOVE", FF7KernelCallInstruction, 0, "Bss");
+            OPCODE(eOpcodes::MOVE, "MOVE", FF7KernelCallInstruction, 0, "Nss");
+            OPCODE(eOpcodes::CMOVE, "CMOVE", FF7KernelCallInstruction, 0, "Nss");
             OPCODE(eOpcodes::MOVA, "MOVA", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::TURA, "TURA", FF7KernelCallInstruction, 0, "BBB");
             OPCODE(eOpcodes::ANIMW, "ANIMW", FF7KernelCallInstruction, 0, "");
@@ -478,29 +480,29 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             OPCODE(eOpcodes::ANIM_1, "ANIM!1", FF7KernelCallInstruction, 0, "BB");
             OPCODE(eOpcodes::CANIM1, "CANIM1", FF7KernelCallInstruction, 0, "BBBB");
             OPCODE(eOpcodes::CANM_1, "CANM!1", FF7KernelCallInstruction, 0, "BBBB");
-            OPCODE(eOpcodes::MSPED, "MSPED", FF7KernelCallInstruction, 0, "Bw"); // impl
-            OPCODE(eOpcodes::DIR, "DIR", FF7KernelCallInstruction, 0, "BB"); // impl
-            OPCODE(eOpcodes::TURNGEN, "TURNGEN", FF7KernelCallInstruction, 0, "BBBBB");
-            OPCODE(eOpcodes::TURN, "TURN", FF7KernelCallInstruction, 0, "BBBBB");
+            OPCODE(eOpcodes::MSPED, "MSPED", FF7KernelCallInstruction, 0, "Nw");
+            OPCODE(eOpcodes::DIR, "DIR", FF7KernelCallInstruction, 0, "NB");
+            OPCODE(eOpcodes::TURNGEN, "TURNGEN", FF7KernelCallInstruction, 0, "NBBBB");
+            OPCODE(eOpcodes::TURN, "TURN", FF7KernelCallInstruction, 0, "NBBBB");
             OPCODE(eOpcodes::DIRA, "DIRA", FF7KernelCallInstruction, 0, "B");
-            OPCODE(eOpcodes::GETDIR, "GETDIR", FF7KernelCallInstruction, 0, "BBB");
+            OPCODE(eOpcodes::GETDIR, "GETDIR", FF7KernelCallInstruction, 0, "NBB");
             OPCODE(eOpcodes::GETAXY, "GETAXY", FF7KernelCallInstruction, 0, "NBBB");
-            OPCODE(eOpcodes::GETAI, "GETAI", FF7KernelCallInstruction, 0, "BBB"); // impl
+            OPCODE(eOpcodes::GETAI, "GETAI", FF7KernelCallInstruction, 0, "NBB");
             OPCODE(eOpcodes::ANIM_2, "ANIM!2", FF7KernelCallInstruction, 0, "BB");
             OPCODE(eOpcodes::CANIM2, "CANIM2", FF7KernelCallInstruction, 0, "BBBB");
             OPCODE(eOpcodes::CANM_2, "CANM!2", FF7KernelCallInstruction, 0, "BBBB");
-            OPCODE(eOpcodes::ASPED, "ASPED", FF7KernelCallInstruction, 0, "Bw");
+            OPCODE(eOpcodes::ASPED, "ASPED", FF7KernelCallInstruction, 0, "Nw");
             OPCODE(eOpcodes::CC, "CC", FF7KernelCallInstruction, 0, "B");
-            OPCODE(eOpcodes::JUMP, "JUMP", FF7KernelCallInstruction, 0, "NNsssw");
+            OPCODE(eOpcodes::JUMP, "JUMP", FF7KernelCallInstruction, 0, "NNssww");
             OPCODE(eOpcodes::AXYZI, "AXYZI", FF7KernelCallInstruction, 0, "NNBBBBB");
             OPCODE(eOpcodes::LADER, "LADER", FF7KernelCallInstruction, 0, "NNssswBBBB");
-            OPCODE(eOpcodes::OFST, "OFST", FF7KernelCallInstruction, 0, "BBBsssw");
+            OPCODE(eOpcodes::OFST, "OFST", FF7KernelCallInstruction, 0, "NNBsssw");
             OPCODE(eOpcodes::OFSTW, "OFSTW", FF7KernelCallInstruction, 0, "");
-            OPCODE(eOpcodes::TALKR, "TALKR", FF7KernelCallInstruction, 0, "BB");
-            OPCODE(eOpcodes::SLIDR, "SLIDR", FF7KernelCallInstruction, 0, "BB");
-            OPCODE(eOpcodes::SOLID, "SOLID", FF7KernelCallInstruction, 0, "B"); // impl
-            OPCODE(eOpcodes::TLKR2, "TLKR2", FF7KernelCallInstruction, 0, "Bw");
-            OPCODE(eOpcodes::SLDR2, "SLDR2", FF7KernelCallInstruction, 0, "Bw");
+            OPCODE(eOpcodes::TALKR, "TALKR", FF7KernelCallInstruction, 0, "NB");
+            OPCODE(eOpcodes::SLIDR, "SLIDR", FF7KernelCallInstruction, 0, "NB");
+            OPCODE(eOpcodes::SOLID, "SOLID", FF7KernelCallInstruction, 0, "B");
+            OPCODE(eOpcodes::TLKR2, "TLKR2", FF7KernelCallInstruction, 0, "Nw");
+            OPCODE(eOpcodes::SLDR2, "SLDR2", FF7KernelCallInstruction, 0, "Nw");
             OPCODE(eOpcodes::CCANM, "CCANM", FF7KernelCallInstruction, 0, "BBB");
             OPCODE(eOpcodes::FCFIX, "FCFIX", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::ANIMB, "ANIMB", FF7KernelCallInstruction, 0, "");
@@ -515,28 +517,28 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             OPCODE(eOpcodes::SLINE, "SLINE", FF7KernelCallInstruction, 0, "NNNssssss");
 
             // Backgnd
-            OPCODE(eOpcodes::BGPDH, "BGPDH", FF7KernelCallInstruction, 0, "NBw");
+            OPCODE(eOpcodes::BGPDH, "BGPDH", FF7KernelCallInstruction, 0, "NBs");
             OPCODE(eOpcodes::BGSCR, "BGSCR", FF7KernelCallInstruction, 0, "NBss");
             OPCODE(eOpcodes::MPPAL, "MPPAL", FF7KernelCallInstruction, 0, "NNNBBBBBBB");
-            OPCODE(eOpcodes::BGON, "BGON", FF7KernelCallInstruction, 0, "NBB"); // impl
-            OPCODE(eOpcodes::BGOFF, "BGOFF", FF7KernelCallInstruction, 0, "NBB"); // impl
-            OPCODE(eOpcodes::BGROL, "BGROL", FF7KernelCallInstruction, 0, "BB");
-            OPCODE(eOpcodes::BGROL2, "BGROL2", FF7KernelCallInstruction, 0, "BB");
-            OPCODE(eOpcodes::BGCLR, "BGCLR", FF7KernelCallInstruction, 0, "BB"); // impl
-            OPCODE(eOpcodes::STPAL, "STPAL", FF7KernelCallInstruction, 0, "BBBB"); // impl
-            OPCODE(eOpcodes::LDPAL, "LDPAL", FF7KernelCallInstruction, 0, "BBBB"); // impl
-            OPCODE(eOpcodes::CPPAL, "CPPAL", FF7KernelCallInstruction, 0, "BBBB"); // impl
-            OPCODE(eOpcodes::RTPAL, "RTPAL", FF7KernelCallInstruction, 0, "BBBBBB"); // ?
-            OPCODE(eOpcodes::ADPAL, "ADPAL", FF7KernelCallInstruction, 0, "BBBBBBBBB"); // impl
-            OPCODE(eOpcodes::MPPAL2, "MPPAL2", FF7KernelCallInstruction, 0, "BBBBBBBBB"); // impl
-            OPCODE(eOpcodes::STPLS, "STPLS", FF7KernelCallInstruction, 0, "BBBB"); // impl
-            OPCODE(eOpcodes::LDPLS, "LDPLS", FF7KernelCallInstruction, 0, "BBBB"); // impl
+            OPCODE(eOpcodes::BGON, "BGON", FF7KernelCallInstruction, 0, "NBB");
+            OPCODE(eOpcodes::BGOFF, "BGOFF", FF7KernelCallInstruction, 0, "NBB");
+            OPCODE(eOpcodes::BGROL, "BGROL", FF7KernelCallInstruction, 0, "NB");
+            OPCODE(eOpcodes::BGROL2, "BGROL2", FF7KernelCallInstruction, 0, "NB");
+            OPCODE(eOpcodes::BGCLR, "BGCLR", FF7KernelCallInstruction, 0, "NB");
+            OPCODE(eOpcodes::STPAL, "STPAL", FF7KernelCallInstruction, 0, "NBBB");
+            OPCODE(eOpcodes::LDPAL, "LDPAL", FF7KernelCallInstruction, 0, "NBBB");
+            OPCODE(eOpcodes::CPPAL, "CPPAL", FF7KernelCallInstruction, 0, "NBBB");
+            OPCODE(eOpcodes::RTPAL, "RTPAL", FF7KernelCallInstruction, 0, "NNBBBB");
+            OPCODE(eOpcodes::ADPAL, "ADPAL", FF7KernelCallInstruction, 0, "NNNBBBBBB");
+            OPCODE(eOpcodes::MPPAL2, "MPPAL2", FF7KernelCallInstruction, 0, "NNNBBBBBB");
+            OPCODE(eOpcodes::STPLS, "STPLS", FF7KernelCallInstruction, 0, "BBBB");
+            OPCODE(eOpcodes::LDPLS, "LDPLS", FF7KernelCallInstruction, 0, "BBBB");
             OPCODE(eOpcodes::CPPAL2, "CPPAL2", FF7KernelCallInstruction, 0, "BBBBBBB");
             OPCODE(eOpcodes::RTPAL2, "RTPAL2", FF7KernelCallInstruction, 0, "BBBBBBB");
             OPCODE(eOpcodes::ADPAL2, "ADPAL2", FF7KernelCallInstruction, 0, "BBBBBBBBBB");
 
             // Camera
-            OPCODE(eOpcodes::NFADE, "NFADE", FF7KernelCallInstruction, 0, "BBBBBBBB");
+            OPCODE(eOpcodes::NFADE, "NFADE", FF7KernelCallInstruction, 0, "NNBBBBBB");
             OPCODE(eOpcodes::SHAKE, "SHAKE", FF7KernelCallInstruction, 0, "BBBBBBB");
             OPCODE(eOpcodes::SCRLO, "SCRLO", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::SCRLC, "SCRLC", FF7KernelCallInstruction, 0, "BBBB");
@@ -547,17 +549,17 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             OPCODE(eOpcodes::SCRLW, "SCRLW", FF7KernelCallInstruction, 0, "");
             OPCODE(eOpcodes::SCR2DL, "SCR2DL", FF7KernelCallInstruction, 0, "NNssw");
             OPCODE(eOpcodes::VWOFT, "VWOFT", FF7KernelCallInstruction, 0, "NssB");
-            OPCODE(eOpcodes::FADE, "FADE", FF7KernelCallInstruction, 0, "BBBBBBBB");
+            OPCODE(eOpcodes::FADE, "FADE", FF7KernelCallInstruction, 0, "NNBBBBBB");
             OPCODE(eOpcodes::FADEW, "FADEW", FF7KernelCallInstruction, 0, "");
-            OPCODE(eOpcodes::SCRLP, "SCRLP", FF7KernelCallInstruction, 0, "BwBB");
+            OPCODE(eOpcodes::SCRLP, "SCRLP", FF7KernelCallInstruction, 0, "NwBB");
             OPCODE(eOpcodes::MVCAM, "MVCAM", FF7KernelCallInstruction, 0, "B");
 
             // AV
             OPCODE(eOpcodes::BGMOVIE, "BGMOVIE", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::AKAO2, "AKAO2", FF7KernelCallInstruction, 0, "NNNBwwwww");
-            OPCODE(eOpcodes::MUSIC, "MUSIC", FF7KernelCallInstruction, 0, "B"); // impl
-            OPCODE(eOpcodes::SOUND, "SOUND", FF7KernelCallInstruction, 0, "BwB");
-            OPCODE(eOpcodes::AKAO, "AKAO", FF7KernelCallInstruction, 0, "BBBBBwwww");
+            OPCODE(eOpcodes::MUSIC, "MUSIC", FF7KernelCallInstruction, 0, "B");
+            OPCODE(eOpcodes::SOUND, "SOUND", FF7KernelCallInstruction, 0, "NwB");
+            OPCODE(eOpcodes::AKAO, "AKAO", FF7KernelCallInstruction, 0, "NNNBBwwww");
             OPCODE(eOpcodes::MUSVT, "MUSVT", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::MUSVM, "MUSVM", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::MULCK, "MULCK", FF7KernelCallInstruction, 0, "B");
@@ -565,7 +567,7 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             OPCODE(eOpcodes::CHMPH, "CHMPH", FF7KernelCallInstruction, 0, "BBB");
             OPCODE(eOpcodes::PMVIE, "PMVIE", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::MOVIE, "MOVIE", FF7KernelCallInstruction, 0, "");
-            OPCODE(eOpcodes::MVIEF, "MVIEF", FF7KernelCallInstruction, 0, "BB");
+            OPCODE(eOpcodes::MVIEF, "MVIEF", FF7KernelCallInstruction, 0, "NB");
             OPCODE(eOpcodes::FMUSC, "FMUSC", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::CMUSC, "CMUSC", FF7KernelCallInstruction, 0, "BBBBBBB");
             OPCODE(eOpcodes::CHMST, "CHMST", FF7KernelCallInstruction, 0, "NB");
@@ -580,7 +582,7 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             throw UnknownOpcodeException(this->_address, opcode);
         }
         INC_ADDR;
-        if (full_opcode == 0x0000)
+        if (full_opcode == eOpcodes::RET)
         {
             return;
         }
