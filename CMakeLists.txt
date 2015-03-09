@@ -172,7 +172,8 @@ if (NOT SUDM_AS_LIB)
 	decompiler/test/disassembler/subopcode.cpp
 	decompiler/test/disassembler/subopcode.h
 	decompiler/test/main.cpp
-	decompiler/test/ff7_field_all_opcodes_disassembler_test.cpp
+	#decompiler/test/ff7_field_all_opcodes_disassembler_test.cpp
+	decompiler/test/ff7_field_disasm_all_opcodes_by_category_test.cpp
     decompiler/test/ff7_field_control_flow_test.cpp
     decompiler/test/ff7_field_dummy_formatter.h
 	)

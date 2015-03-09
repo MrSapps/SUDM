@@ -345,7 +345,9 @@ uint32 FF7::FF7CondJumpInstruction::getDestAddress() const
         break;
 
     case eOpcodes::IFUBL:
-        paramsSize = 6;
+        // dessert: i think the jumps are relative to the start of the jump offset. otherwise they jump into to the middle of the instruction
+        //paramsSize = 6;
+        paramsSize = 5;
         break;
 
     case eOpcodes::IFSW:
@@ -361,7 +363,9 @@ uint32 FF7::FF7CondJumpInstruction::getDestAddress() const
         break;
 
     case eOpcodes::IFUWL:
-        paramsSize = 8;
+        // dessert: as above
+        //paramsSize = 8;
+        paramsSize = 7;
         break;
 
     case eOpcodes::IFKEYON:
