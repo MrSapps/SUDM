@@ -12,6 +12,26 @@ public:
     // Renames an entity
     virtual std::string EntityName(const std::string& entity) override
     {
+        if (entity == "dir")
+        {
+            return "Director";
+        }
+        else if (entity == "cl")
+        {
+            return "Cloud";
+        }
+        else if (entity == "av_b")
+        {
+            return "Biggs";
+        }
+        else if (entity == "av_c")
+        {
+            return "Jessie";
+        }
+        else if (entity == "av_w")
+        {
+            return "Wedge";
+        }
         return entity;
     }
 

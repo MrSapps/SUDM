@@ -141,7 +141,7 @@ TEST(FF7Field, FunctionMetaData_Parse_Empties)
 
 TEST(FF7Field, FunctionMetaData_Parse_Start)
 {
-    FF7::FunctionMetaData meta("start_entity");
+    FF7::FunctionMetaData meta("start_-1_entity");
     ASSERT_EQ("entity", meta.EntityName());
     ASSERT_EQ(false, meta.IsEnd());
     ASSERT_EQ(true, meta.IsStart());
@@ -149,16 +149,28 @@ TEST(FF7Field, FunctionMetaData_Parse_Start)
 
 TEST(FF7Field, FunctionMetaData_Parse_End)
 {
-    FF7::FunctionMetaData meta("end_entity");
+    FF7::FunctionMetaData meta("end_-1_entity");
     ASSERT_EQ("entity", meta.EntityName());
     ASSERT_EQ(true, meta.IsEnd());
     ASSERT_EQ(false, meta.IsStart());
 }
 
-TEST(FF7Field, FunctionMetaData_Parse_EntityNameWithUnderscores)
+TEST(FF7Field, FunctionMetaData_Parse_EntityName)
 {
-    FF7::FunctionMetaData meta("end_entity_name");
-    ASSERT_EQ("entity_name", meta.EntityName());
+    FF7::FunctionMetaData meta("end_-1_TheName");
+    ASSERT_EQ("TheName", meta.EntityName());
+    ASSERT_EQ(true, meta.IsEnd());
+    ASSERT_EQ(false, meta.IsStart());
+    ASSERT_EQ(-1, meta.CharacterId());
+
+}
+
+TEST(FF7Field, FunctionMetaData_Parse_EntityNameAndId)
+{
+    FF7::FunctionMetaData meta("end_99_The_Name");
+    ASSERT_EQ("The_Name", meta.EntityName());
+    ASSERT_EQ(99, meta.CharacterId());
+
     ASSERT_EQ(true, meta.IsEnd());
     ASSERT_EQ(false, meta.IsStart());
 }
@@ -166,7 +178,7 @@ TEST(FF7Field, FunctionMetaData_Parse_EntityNameWithUnderscores)
 
 TEST(FF7Field, FunctionMetaData_Parse_StartEnd)
 {
-    FF7::FunctionMetaData meta("start_end_entity");
+    FF7::FunctionMetaData meta("start_end_-1_entity");
     ASSERT_EQ("entity", meta.EntityName());
     ASSERT_EQ(true, meta.IsEnd());
     ASSERT_EQ(true, meta.IsStart());
@@ -180,9 +192,19 @@ TEST(FF7Field, DisAsm)
     const int kNumSections = 7;
     scriptBytes.erase(scriptBytes.begin(), scriptBytes.begin() + kNumSections * sizeof(uint32));
     DummyFormatter formatter;
-    SUDM::FF7::Field::DecompiledScript ds = SUDM::FF7::Field::Decompile("md1_2", scriptBytes, formatter);
+    SUDM::FF7::Field::DecompiledScript ds = SUDM::FF7::Field::Decompile("md1_2", scriptBytes, formatter, "", "EntityContainer = {}\n\n");
     ASSERT_FALSE(ds.luaScript.empty());
-    std::cout << ds.luaScript << std::endl;
+
+
+    std::ofstream tmp("output.lua");
+    if (!tmp.is_open())
+    {
+        throw std::runtime_error("Can't open output.lua for writing");
+    }
+
+    tmp << ds.luaScript;
+
+    //std::cout << ds.luaScript << std::endl;
 
 }
 

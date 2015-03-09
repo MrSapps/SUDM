@@ -1,6 +1,7 @@
 #pragma once
 
 #include "simple_disassembler.h"
+#include "sudm.h"
 #include <array>
 
 class BinaryReader;
@@ -293,8 +294,8 @@ namespace FF7
     class FF7Disassembler : public SimpleDisassembler
     {
     public:
-        FF7Disassembler(FF7FieldEngine* engine, InstVec& insts);
-        FF7Disassembler(FF7FieldEngine* engine, InstVec& insts, const std::vector<unsigned char>& rawScriptData);
+        FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7FieldEngine* engine, InstVec& insts);
+        FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7FieldEngine* engine, InstVec& insts, const std::vector<unsigned char>& rawScriptData);
         ~FF7Disassembler();
         virtual void open(const char *filename) override;
         virtual void doDisassemble() throw(std::exception) override;
@@ -306,7 +307,9 @@ namespace FF7
             bool isStart,
             bool isEnd);
 
-        void ReadOpCodes(size_t endPos);
+        void AddFunc(std::string entityName, size_t scriptIndex, uint32 nextScriptEntryPoint, const bool isStart, const bool isEnd, bool toReturnOnly, std::string funcName);
+
+        void ReadOpCodesToPositionOrReturn(size_t endPos);
         std::unique_ptr<Function> StartFunction(size_t scriptIndex);
 
         FF7FieldEngine* mEngine;
@@ -408,6 +411,7 @@ namespace FF7
         };
         ScriptHeader mHeader;
         bool mbFromRaw = false;
+        SUDM::IScriptFormatter& mFormatter;
     };
 
 }

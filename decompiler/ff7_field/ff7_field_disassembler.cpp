@@ -5,9 +5,10 @@
 #include "lzs.h"
 #include "make_unique.h"
 
-FF7::FF7Disassembler::FF7Disassembler(FF7FieldEngine* engine, InstVec& insts, const std::vector<unsigned char>& rawScriptData)
-    : SimpleDisassembler(insts),
-    mEngine(engine)
+FF7::FF7Disassembler::FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7FieldEngine* engine, InstVec& insts, const std::vector<unsigned char>& rawScriptData)
+  : SimpleDisassembler(insts),
+    mEngine(engine),
+    mFormatter(formatter)
 {
     mbFromRaw = true;
     kSectionPointersSize = 0; // If loading a raw section then we don't have a "sections header" to skip
@@ -15,9 +16,10 @@ FF7::FF7Disassembler::FF7Disassembler(FF7FieldEngine* engine, InstVec& insts, co
     mStream = std::make_unique<BinaryReader>(std::move(dataCopy));
 }
 
-FF7::FF7Disassembler::FF7Disassembler(FF7FieldEngine *engine, InstVec &insts)
-    : SimpleDisassembler(insts),
-    mEngine(engine)
+FF7::FF7Disassembler::FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7FieldEngine *engine, InstVec &insts)
+  : SimpleDisassembler(insts), 
+    mEngine(engine),
+    mFormatter(formatter)
 {
 
 }
@@ -104,7 +106,7 @@ void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
     // Loop through the scripts for each entity
     for (size_t entityNumber = 0; entityNumber < mHeader.mEntityScripts.size(); entityNumber++)
     {
-        std::string entityName = mHeader.mFieldEntityNames[entityNumber].data();
+        const std::string entityName = mFormatter.EntityName(mHeader.mFieldEntityNames[entityNumber].data());
 
         // Only parse each script one
         std::set<uint16> parsedScripts;
@@ -140,6 +142,83 @@ void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
     }
 }
 
+static int FindId(uint32 startAddr, uint32 endAddr, const InstVec& insts)
+{
+    for (const InstPtr& instruction : insts)
+    {
+        if (instruction->_address >= startAddr && instruction->_address <= endAddr)
+        {
+            if (instruction->_opcode == FF7::eOpcodes::opCodeCHAR)
+            {
+                return instruction->_params[0]->getSigned();
+            }
+        }
+    }
+    return -1;
+}
+
+void FF7::FF7Disassembler::AddFunc(std::string entityName, size_t scriptIndex, uint32 nextScriptEntryPoint, const bool isStart, bool isEnd, bool toReturnOnly, std::string funcName)
+{
+
+    const auto kScriptEntryPoint = mStream->Position();
+
+    // Read each block of opcodes up to a return
+    const size_t oldNumInstructions = _insts.size();
+
+    auto func = StartFunction(scriptIndex);
+    if (toReturnOnly)
+    {
+        // Read opcodes to the end or bail at the first return
+        ReadOpCodesToPositionOrReturn(nextScriptEntryPoint + kSectionPointersSize);
+        auto streamPos = mStream->Position();
+        const size_t endPos = nextScriptEntryPoint + kSectionPointersSize;
+        if (streamPos != endPos)
+        {
+            // Can't be the end if there is more data
+            isEnd = false;
+        }
+    }
+    else
+    {
+        while (mStream->Position() != nextScriptEntryPoint + kSectionPointersSize)
+        {
+            // Keep going till we have all of the script, i.e if we bail at a return then call
+            // again till we have everything
+            ReadOpCodesToPositionOrReturn(nextScriptEntryPoint + kSectionPointersSize);
+        }
+    }
+
+    std::string metaData;
+    if (isStart && isEnd)
+    {
+        metaData = "start_end_";
+    }
+    else if (isStart)
+    {
+        metaData = "start_";
+    }
+    else if (isEnd)
+    {
+        metaData = "end_";
+    }
+
+
+    const size_t newNumInstructions = _insts.size();
+    func->mNumInstructions = newNumInstructions - oldNumInstructions;
+    func->mEndAddr = _insts.back()->_address;
+    if (!funcName.empty())
+    {
+        func->_name = funcName;
+    }
+
+    const int id = FindId(func->mStartAddr, func->mEndAddr, _insts);
+    metaData += std::to_string(id) + "_" + entityName;
+    func->_metadata = metaData;
+
+    mEngine->_functions[kScriptEntryPoint] = *func;
+
+}
+
 void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
     size_t scriptIndex,
     int16 scriptEntryPoint,
@@ -150,68 +229,29 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
 
     scriptEntryPoint += kSectionPointersSize;
 
-
     mStream->Seek(scriptEntryPoint);
 
     _addressBase = mStream->Position();
     _address = _addressBase;
 
+    // "Normal" script
     if (scriptIndex > 0)
     {
-        // Read each block of opcodes up to a return
-        const size_t oldNumInstructions = _insts.size();
-
-        auto func = StartFunction(scriptIndex);
-        while (mStream->Position() != nextScriptEntryPoint + kSectionPointersSize)
-        {
-            // Keep going till we have all of the script
-            ReadOpCodes(nextScriptEntryPoint + kSectionPointersSize);
-        }
-
-        std::string metaData;
-        if (isStart && isEnd)
-        {
-            metaData = "start_end_" + entityName;
-        } else if (isStart)
-        {
-            metaData = "start_" + entityName;
-        } else if (isEnd)
-        {
-            metaData = "end_" + entityName;
-        }
-        func->_metadata = metaData;
-        func->mEndAddr = _insts.back()->_address;
-
-        const size_t newNumInstructions = _insts.size();
-
-        func->mNumInstructions = newNumInstructions - oldNumInstructions;
-
-        mEngine->_functions[scriptEntryPoint] = *func;
-    } else
+        AddFunc(entityName, scriptIndex, nextScriptEntryPoint, isStart, isEnd, false, "");
+    }
+    else
     {
-        // Read the init script
         const size_t endPos = nextScriptEntryPoint + kSectionPointersSize;
-        const size_t oldNumInstructionsInit = _insts.size();
-        auto initFunc = StartFunction(scriptIndex);
-        initFunc->_name = "init";
-        ReadOpCodes(endPos);
-        initFunc->mEndAddr = _insts.back()->_address;
-        initFunc->_metadata = "";
 
-        // See if there anymore script data, if yes then this is the main script
-        size_t streamPos = mStream->Position();
+        // Read the init script, which means stop at the first return
+        AddFunc(entityName, scriptIndex, nextScriptEntryPoint, isStart, isEnd, true, "init");
+        
+        // Not at the end of this script? Then the remaining data is the "main" script
+        auto streamPos = mStream->Position();
         if (streamPos != endPos)
         {
-            // Main entry point is the current pos
-            uint16 mainScriptEntryPoint = static_cast<uint16>(streamPos);
-            const size_t oldNumInstructionsMain = _insts.size();
-            auto mainFunc = StartFunction(scriptIndex);
-            mainFunc->_name = "main";
-
-            // Read the main script
-            ReadOpCodes(endPos);
-            mainFunc->mEndAddr = _insts.back()->_address;
-
+            // The "main" script we should also only have 1 return statement
+            AddFunc(entityName, scriptIndex, nextScriptEntryPoint, false, isEnd, true, "main");
             streamPos = mStream->Position();
             if (streamPos != endPos)
             {
@@ -220,48 +260,12 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
                 // us the "main" script, anymore is an error
                 throw TooManyReturnStatementsException();
             }
-
-            std::string metaData;
-            if (isStart)
-            {
-                metaData = "start_" + entityName;
-            }
-            initFunc->_metadata = metaData;
-            initFunc->mNumInstructions = oldNumInstructionsMain - oldNumInstructionsInit;
-            mEngine->_functions[scriptEntryPoint] = *initFunc;
-
-            metaData = "";
-            if (isEnd)
-            {
-                metaData = "end_" + entityName;
-            } else
-            {
-                metaData = entityName;
-            }
-            mainFunc->_metadata = metaData;
-            mainFunc->mNumInstructions = _insts.size() - oldNumInstructionsMain;
-            mEngine->_functions[mainScriptEntryPoint] = *mainFunc;
-        } else
-        {
-            std::string metaData;
-            if (isStart && isEnd)
-            {
-                metaData = "start_end_" + entityName;
-            } else if (isStart)
-            {
-                metaData = "start_" + entityName;
-            } else if (isEnd)
-            {
-                metaData = "end_" + entityName;
-            }
-            initFunc->_metadata = metaData;
-            initFunc->mNumInstructions = _insts.size() - oldNumInstructionsInit;
-            mEngine->_functions[scriptEntryPoint] = *initFunc;
         }
+
     }
 }
 
-void FF7::FF7Disassembler::ReadOpCodes(size_t endPos)
+void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
 {
     while (mStream->Position() < endPos)
     {

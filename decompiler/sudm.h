@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <vector>
 #include <string>
 #include "unknown_opcode_exception.h"
@@ -37,7 +38,7 @@ namespace SUDM
             struct DecompiledScript
             {
                 std::string luaScript;
-                std::vector<std::pair<std::string, int>> entities;
+                std::map<std::string, int> entities;
             };
 
             /*

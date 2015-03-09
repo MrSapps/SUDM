@@ -11,12 +11,12 @@
 
 std::unique_ptr<Disassembler> FF7::FF7FieldEngine::getDisassembler(InstVec &insts, const std::vector<unsigned char>& rawScriptData)
 {
-    return std::make_unique<FF7Disassembler>(this, insts, rawScriptData);
+    return std::make_unique<FF7Disassembler>(mFormatter, this, insts, rawScriptData);
 }
 
 std::unique_ptr<Disassembler> FF7::FF7FieldEngine::getDisassembler(InstVec &insts)
 {
-    return std::make_unique<FF7Disassembler>(this, insts);
+    return std::make_unique<FF7Disassembler>(mFormatter, this, insts);
 }
 
 std::unique_ptr<CodeGenerator> FF7::FF7FieldEngine::getCodeGenerator(std::ostream &output)
@@ -37,6 +37,31 @@ void FF7::FF7FieldEngine::postCFG(InstVec& insts, Graph g)
 
     // Scripts end with a "return" this isn't required so strip them out
     RemoveExtraneousReturnStatements(insts, g);
+}
+
+std::map<std::string, int> FF7::FF7FieldEngine::GetEntities() const
+{
+    std::map<std::string, int> r;
+    for (auto& f : _functions)
+    {
+        const Function& func = f.second;
+        FF7::FunctionMetaData meta(func._metadata);
+        auto it = r.find(meta.EntityName());
+        if (it != std::end(r))
+        {
+            // Try to find a function in this entity has that has a char id
+            // don't overwrite a valid char id with a "blank" one
+            if (it->second == -1)
+            {
+                it->second = meta.CharacterId();
+            }
+        }
+        else
+        {
+            r[meta.EntityName()] = meta.CharacterId();
+        }
+    }
+    return r;
 }
 
 void FF7::FF7FieldEngine::RemoveExtraneousReturnStatements(InstVec& insts, Graph g)
@@ -202,12 +227,12 @@ void FF7::FF7StoreInstruction::processInst(Function&, ValueStack&, Engine*, Code
         }
         break;
 
-    case eOpcodes::RANDOM:
+    case eOpcodes::RANDOM: // 8-bit random value 
         {
             const uint32 dstBank = _params[0]->getUnsigned();
             const uint32 dstAddr = _params[1]->getUnsigned();
             auto d = GetVarName(dstBank, dstAddr);
-            codeGen->addOutputLine(d + " = rand()" + codeGen->TargetLang().LineTerminator());
+            codeGen->addOutputLine(d + " = math.random(0, 255)" + codeGen->TargetLang().LineTerminator());
         }
         break;
 
@@ -407,6 +432,11 @@ void FF7::FF7UncondJumpInstruction::processInst(Function&, ValueStack&, Engine*,
 
 }
 
+static void WriteTodo(CodeGenerator *codeGen, std::string entityName, std::string opCode)
+{
+    codeGen->addOutputLine("self." + entityName + ":Todo(\"" + opCode + "\")");
+}
+
 void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Engine*, CodeGenerator *codeGen)
 {
     FunctionMetaData md(func._metadata);
@@ -414,35 +444,35 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
     switch (_opcode)
     {
     case eOpcodes::RET:
-        codeGen->addOutputLine("return;");
+        codeGen->addOutputLine("return");
         break;
 
     case eOpcodes::WAIT:
-        codeGen->writeFunctionCall("script:wait", "f", _params);
+        WriteTodo(codeGen, md.EntityName(), "script:wait");
         break;
 
     case eOpcodes::STPAL:
-        codeGen->writeFunctionCall("setPalette", "nnnn", _params);
+        WriteTodo(codeGen, md.EntityName(), "setPalette");
         break;
 
     case eOpcodes::MPPAL2:
-        codeGen->writeFunctionCall("mulitplyPallete", "", _params);
+        WriteTodo(codeGen, md.EntityName(), "mulitplyPallete");
         break;
 
     case eOpcodes::CPPAL:
-        codeGen->writeFunctionCall("copyPallete", "", _params);
+        WriteTodo(codeGen, md.EntityName(), "copyPallete");
         break;
 
     case eOpcodes::LDPAL:
-        codeGen->writeFunctionCall("loadPallete", "", _params);
+        WriteTodo(codeGen, md.EntityName(), "loadPallete");
         break;
 
     case eOpcodes::REQEW:
-        codeGen->writeFunctionCall("callScriptBlocking", "", _params);
+        WriteTodo(codeGen, md.EntityName(), "callScriptBlocking");
         break;
 
     case eOpcodes::BGCLR:
-        codeGen->writeFunctionCall("backgroundClear", "nn", _params);
+        WriteTodo(codeGen, md.EntityName(), "backgroundClear");
         break;
 
     case eOpcodes::BGOFF:
@@ -455,8 +485,8 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
         const uint32 dstAddrOrValue = _params[3]->getUnsigned();
         auto d = GetVarName(dstBank, dstAddrOrValue);
 
-        std::string line = "backgroundOff(" + d + ", " + s + ");";
-        codeGen->addOutputLine(line);
+        std::string line = "backgroundOff(" + d + ", " + s + ")";
+        WriteTodo(codeGen, md.EntityName(), line);
     }
         break;
 
@@ -470,21 +500,21 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
         const uint32 dstAddrOrValue = _params[3]->getUnsigned();
         auto d = GetVarName(dstBank, dstAddrOrValue);
         
-        std::string line = "backgroundOn(" + d + ", " + s + ");";
-        codeGen->addOutputLine(line);
+        std::string line = "backgroundOn(" + d + ", " + s + ")";
+        WriteTodo(codeGen, md.EntityName(), line);
     }
         break;
 
     case eOpcodes::opCodeCHAR:
-        codeGen->writeFunctionCall("Char", "n", _params);
+        codeGen->addOutputLine("self." + md.EntityName() + " = entity_manager:get_entity(\"" + md.EntityName() + "\")");
         break;
 
     case eOpcodes::PC:
-        codeGen->writeFunctionCall("setPlayableChar", "n", _params);
+        codeGen->addOutputLine("set_entity_to_character(\"" + md.EntityName() + "\", \"" + md.EntityName() + "\")");
         break;
 
     case eOpcodes::XYZI:
-        codeGen->writeFunctionCall("placeObject", "nnnnn", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":set_position", "nnnnn", _params);
         break;
 
     case eOpcodes::SOLID:
@@ -505,43 +535,45 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
         break;
 
     case eOpcodes::MOVE:
-        codeGen->writeFunctionCall("move", "nnn", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":move_to_position", "nnn", _params);
         break;
 
     case eOpcodes::ANIME1:
-        codeGen->writeFunctionCall("playBlockingAnimation", "nn", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":play_animation", "nn", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":animation_sync", "", _params);
         break;
 
     case eOpcodes::DFANM:
-        codeGen->writeFunctionCall("playAnimationLoop", "nn", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":set_default_animation", "nn", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":play_animation", "nn", _params);
         break;
 
     case eOpcodes::DIR:
-        codeGen->writeFunctionCall("turnToEntity", "nn", _params);
+        codeGen->writeFunctionCall("self." + md.EntityName() + ":set_rotation", "nn", _params);
         break;
 
     case eOpcodes::STPLS:
-        codeGen->writeFunctionCall("STPLS", "", _params);
+        WriteTodo(codeGen, md.EntityName(), "STPLS");
         break;
 
     case eOpcodes::ADPAL:
-        codeGen->writeFunctionCall("ADPAL", "", _params);
+        WriteTodo(codeGen, md.EntityName(), "ADPAL");
         break;
 
     case eOpcodes::LDPLS:
-        codeGen->writeFunctionCall("LDPLS", "", _params);
+        WriteTodo(codeGen, md.EntityName(), "LDPLS");
         break;
 
     case eOpcodes::BTLMD:
-        codeGen->writeFunctionCall("BTLMD", "n", _params);
+        WriteTodo(codeGen, md.EntityName(), "BTLMD");
         break;
 
     case eOpcodes::MUSIC:
-        codeGen->writeFunctionCall("MUSIC", "n", _params);
+        WriteTodo(codeGen, md.EntityName(), "MUSIC");
         break;
 
     case eOpcodes::MPNAM:
-        codeGen->writeFunctionCall("setMapName", "n", _params);
+        WriteTodo(codeGen, md.EntityName(), "MPNAM");
         break;
 
     case eOpcodes::GETAI:
@@ -551,13 +583,13 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
         const uint32 dstAddrOrValue = _params[2]->getUnsigned();
         auto d = GetVarName(dstBank, dstAddrOrValue);
 
-        std::string line = "getEntityTriangleId(" + d + ", " + std::to_string(_params[1]->getUnsigned()) + ");";
-        codeGen->addOutputLine(line);
+        std::string line = "getEntityTriangleId(" + d + ", " + std::to_string(_params[1]->getUnsigned()) + ")";
+        WriteTodo(codeGen, md.EntityName(), line);
     }
         break;
 
     default:
-        codeGen->addOutputLine("UnknownKernelFunction_" + std::to_string(_opcode) + "();");
+        WriteTodo(codeGen, md.EntityName(), "UnknownKernelFunction_" + std::to_string(_opcode));
         break;
     }
 }
