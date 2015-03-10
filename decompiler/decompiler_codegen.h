@@ -184,7 +184,8 @@ public:
     virtual std::string LoopContinue() override
     {
         // LUA has no continue keyword
-        throw InternalDecompilerError();
+        //throw InternalDecompilerError();
+        return "-- TODO continue not supprted in LUA!";
     }
 
     virtual std::string Goto(uint32 target) override

@@ -9,7 +9,10 @@ void FF7::FF7CodeGenerator::onBeforeStartFunction(const Function& func)
     if (metaData.IsStart())
     {
         addOutputLine("EntityContainer[ \"" + metaData.EntityName() + "\" ] = {", false, true);
-        addOutputLine(metaData.EntityName() + " = nil,");
+        if (metaData.CharacterId() != -1)
+        {
+            addOutputLine(metaData.EntityName() + " = nil,");
+        }
         addOutputLine("");
     }
 }
@@ -21,6 +24,8 @@ void FF7::FF7CodeGenerator::onStartFunction(const Function&)
 
 void FF7::FF7CodeGenerator::onEndFunction(const Function& func)
 {
+    addOutputLine("return 0");
+
     // End function
     addOutputLine("end,", true, false);
     

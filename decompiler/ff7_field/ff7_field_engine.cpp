@@ -273,9 +273,12 @@ void FF7::FF7StoreInstruction::processInst(Function&, ValueStack&, Engine*, Code
     }
         break;
 
-    default:
-        codeGen->addOutputLine("unknown store");
+    case eOpcodes::BITON:
+        codeGen->addOutputLine("-- TODO BITON");
         break;
+
+    default:
+        throw InternalDecompilerError();
     }
 }
 
