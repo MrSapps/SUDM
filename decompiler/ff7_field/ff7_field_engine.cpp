@@ -64,6 +64,21 @@ std::map<std::string, int> FF7::FF7FieldEngine::GetEntities() const
     return r;
 }
 
+void FF7::FF7FieldEngine::AddEntityFunction(const std::string& entityName, size_t entityIndex, const std::string& funcName, size_t funcIndex)
+{
+    auto it = mEntityIndexMap.find(entityIndex);
+    if (it != std::end(mEntityIndexMap))
+    {
+        (*it).second.AddFunction(funcName, funcIndex);
+    }
+    else
+    {
+        Entity e(entityName);
+        e.AddFunction(funcName, funcIndex);
+        mEntityIndexMap.emplace(std::make_pair(entityIndex, e));
+    }
+}
+
 void FF7::FF7FieldEngine::RemoveExtraneousReturnStatements(InstVec& insts, Graph g)
 {
     for (auto& f : _functions)
@@ -434,11 +449,13 @@ void FF7::FF7UncondJumpInstruction::processInst(Function&, ValueStack&, Engine*,
 
 static void WriteTodo(CodeGenerator *codeGen, std::string entityName, std::string opCode)
 {
-    codeGen->addOutputLine("self." + entityName + ":Todo(\"" + opCode + "\")");
+    codeGen->addOutputLine("--Todo(\"" + opCode + "\")");
 }
 
-void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Engine*, CodeGenerator *codeGen)
+void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Engine* engine, CodeGenerator *codeGen)
 {
+    FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
+
     FunctionMetaData md(func._metadata);
 
     switch (_opcode)
@@ -468,7 +485,13 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
         break;
 
     case eOpcodes::REQEW:
-        WriteTodo(codeGen, md.EntityName(), "callScriptBlocking");
+    {
+        const auto priority = _params[1]->getUnsigned();
+        const auto& entity = eng.EntityByIndex(_params[0]->getSigned());
+        const auto& scriptName = entity.FunctionByIndex(_params[2]->getUnsigned());
+
+        WriteTodo(codeGen, md.EntityName(), "callScriptBlocking " + entity.Name() + " " + scriptName + " " + std::to_string(priority));
+    }
         break;
 
     case eOpcodes::BGCLR:

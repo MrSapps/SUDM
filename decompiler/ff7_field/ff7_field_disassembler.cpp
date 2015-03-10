@@ -139,7 +139,7 @@ void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
         {
             const bool isStart = it == scriptInfo.begin();
             const bool isEnd = it == (--scriptInfo.end());
-            DisassembleIndivdualScript(entityName, it->mIndex, it->mEntryPoint, it->mNextEntryPoint, isStart, isEnd);
+            DisassembleIndivdualScript(entityName, entityNumber, it->mIndex, it->mEntryPoint, it->mNextEntryPoint, isStart, isEnd);
         }
     }
 }
@@ -159,7 +159,7 @@ static int FindId(uint32 startAddr, uint32 endAddr, const InstVec& insts)
     return -1;
 }
 
-void FF7::FF7Disassembler::AddFunc(std::string entityName, size_t scriptIndex, uint32 nextScriptEntryPoint, const bool isStart, bool isEnd, bool toReturnOnly, std::string funcName)
+void FF7::FF7Disassembler::AddFunc(std::string entityName, size_t entityIndex, size_t scriptIndex, uint32 nextScriptEntryPoint, const bool isStart, bool isEnd, bool toReturnOnly, std::string funcName)
 {
 
     const auto kScriptEntryPoint = mStream->Position();
@@ -218,10 +218,12 @@ void FF7::FF7Disassembler::AddFunc(std::string entityName, size_t scriptIndex, u
     func->_metadata = metaData;
 
     mEngine->_functions[kScriptEntryPoint] = *func;
+    mEngine->AddEntityFunction(entityName, entityIndex, func->_name, scriptIndex);
 
 }
 
 void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
+    size_t entityIndex,
     size_t scriptIndex,
     int16 scriptEntryPoint,
     uint32 nextScriptEntryPoint,
@@ -239,21 +241,21 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
     // "Normal" script
     if (scriptIndex > 0)
     {
-        AddFunc(entityName, scriptIndex, nextScriptEntryPoint, isStart, isEnd, false, "");
+        AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, isStart, isEnd, false, "");
     }
     else
     {
         const size_t endPos = nextScriptEntryPoint + kSectionPointersSize;
 
         // Read the init script, which means stop at the first return
-        AddFunc(entityName, scriptIndex, nextScriptEntryPoint, isStart, isEnd, true, "init");
+        AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, isStart, isEnd, true, "init");
 
         // Not at the end of this script? Then the remaining data is the "main" script
         auto streamPos = mStream->Position();
         if (streamPos != endPos)
         {
             // The "main" script we should also only have 1 return statement
-            AddFunc(entityName, scriptIndex, nextScriptEntryPoint, false, isEnd, true, "main");
+            AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, false, isEnd, true, "main");
             streamPos = mStream->Position();
             if (streamPos != endPos)
             {

@@ -10,6 +10,42 @@ namespace FF7
     class FF7FieldEngine : public Engine
     {
     public:
+        class Entity
+        {
+        public:
+            Entity() = default;
+
+            Entity(const std::string& name)
+                : mName(name)
+            {
+
+            }
+
+            std::string Name() const
+            {
+                return mName;
+            }
+
+            std::string FunctionByIndex(size_t index) const
+            {
+                auto it = mFunctions.find(index);
+                if (it == std::end(mFunctions))
+                {
+                    throw InternalDecompilerError();
+                }
+                return it->second;
+            }
+
+            void AddFunction(const std::string& funcName, size_t funcIndex)
+            {
+                mFunctions[funcIndex] = funcName;
+            }
+
+        private:
+            std::string mName;
+            std::map< size_t, std::string > mFunctions;
+        };
+
         FF7FieldEngine(const FF7FieldEngine&) = delete;
         FF7FieldEngine& operator = (const FF7FieldEngine&) = delete;
 
@@ -24,12 +60,23 @@ namespace FF7
         virtual void postCFG(InstVec &insts, Graph g) override;
         virtual bool usePureGrouping() const override { return false; }
         std::map<std::string, int> GetEntities() const;
+        void AddEntityFunction(const std::string& entityName, size_t entityIndex, const std::string& funcName, size_t funcIndex);
+        const Entity& EntityByIndex(size_t index) const
+        {
+            auto it = mEntityIndexMap.find(index);
+            if (it == std::end(mEntityIndexMap))
+            {
+                throw InternalDecompilerError();
+            }
+            return it->second;
+        }
     private:
         void RemoveExtraneousReturnStatements(InstVec& insts, Graph g);
         void RemoveTrailingInfiniteLoops(InstVec& insts, Graph g);
         void MarkInfiniteLoopGroups(InstVec& insts, Graph g);
     private:
         SUDM::IScriptFormatter& mFormatter;
+        std::map<size_t, Entity> mEntityIndexMap;
     };
 
     class FF7StoreInstruction : public StoreInstruction
