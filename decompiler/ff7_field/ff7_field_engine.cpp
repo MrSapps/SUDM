@@ -278,12 +278,41 @@ void FF7::FF7StoreInstruction::processInst(Function&, ValueStack&, Engine*, Code
         break;
 
     default:
-        throw InternalDecompilerError();
+        codeGen->addOutputLine("-- TODO unknown store " + std::to_string(_opcode));
     }
 }
 
 void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator*)
 {
+    std::string funcName;
+    if (_opcode == eOpcodes::IFKEYON)
+    {
+        funcName = "KeyOn";
+    }
+    else if (_opcode == eOpcodes::IFKEYOFF)
+    {
+        funcName = "KeyOff";
+    }
+    else if (_opcode == eOpcodes::IFKEY)
+    {
+        funcName = "Key";
+    }
+    else if (_opcode == eOpcodes::IFMEMBQ)
+    {
+        funcName = "IFMEMBQ";
+    }
+    else if (_opcode == eOpcodes::IFPRTYQ)
+    {
+        funcName = "IFPRTYQ";
+    }
+
+    if (!funcName.empty())
+    {
+        ValuePtr v = new StringValue("if (" + funcName + " (" + std::to_string(_params[0]->getUnsigned()) + "))) then");
+        stack.push(v);
+        return;
+    }
+
     std::string op;
     uint32 type = _params[4]->getUnsigned();
     switch (type)
