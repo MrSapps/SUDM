@@ -75,7 +75,7 @@ void FF7::FF7FieldEngine::AddEntityFunction(const std::string& entityName, size_
     {
         Entity e(entityName);
         e.AddFunction(funcName, funcIndex);
-        mEntityIndexMap.emplace(std::make_pair(entityIndex, e));
+        mEntityIndexMap.insert(std::make_pair(entityIndex, e));
     }
 }
 
