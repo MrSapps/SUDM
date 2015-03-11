@@ -432,31 +432,41 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             OPCODE(eOpcodes::SPLIT, "SPLIT", FF7KernelCallInstruction, 0, "NNNssBssBB");
             OPCODE(eOpcodes::BLINK, "BLINK", FF7KernelCallInstruction, 0, "B");
             OPCODE_BASE(eOpcodes::KAWAI)
-                this->mStream->ReadU8();
+            {
+                int length = this->mStream->ReadU8();
+                assert(length >= 3);
+                std::ostringstream paramStream;
+                for (int i = 3; i < length; ++i)
+                {
+                    paramStream << "B";
+                }
+                auto parameters = paramStream.str();
+
                 opcode = this->mStream->ReadU8();
                 switch (opcode)
                 {
-                OPCODE(eKawaiOpcodes::EYETX, "EYETX", FF7KernelCallInstruction, 0, "BBBB");
-                OPCODE(eKawaiOpcodes::TRNSP, "TRNSP", FF7KernelCallInstruction, 0, "B");
-                OPCODE(eKawaiOpcodes::AMBNT, "AMBNT", FF7KernelCallInstruction, 0, "BBBBBBB");
-                OPCODE(eKawaiOpcodes::Unknown03, "Unknown03", FF7KernelCallInstruction, 0, "");
-                OPCODE(eKawaiOpcodes::Unknown04, "Unknown04", FF7KernelCallInstruction, 0, "");
-                OPCODE(eKawaiOpcodes::Unknown05, "Unknown05", FF7KernelCallInstruction, 0, "");
-                OPCODE(eKawaiOpcodes::LIGHT, "LIGHT", FF7KernelCallInstruction, 0, "");
-                OPCODE(eKawaiOpcodes::Unknown07, "Unknown07", FF7KernelCallInstruction, 0, "");
-                OPCODE(eKawaiOpcodes::Unknown08, "Unknown08", FF7KernelCallInstruction, 0, "");
-                OPCODE(eKawaiOpcodes::Unknown09, "Unknown09", FF7KernelCallInstruction, 0, "");
-                OPCODE(eKawaiOpcodes::SBOBJ, "SBOBJ", FF7KernelCallInstruction, 0, "");
-                OPCODE(eKawaiOpcodes::Unknown0B, "Unknown0B", FF7KernelCallInstruction, 0, "");
-                OPCODE(eKawaiOpcodes::Unknown0C, "Unknown0C", FF7KernelCallInstruction, 0, "");
-                OPCODE(eKawaiOpcodes::SHINE, "SHINE", FF7KernelCallInstruction, 0, "");
-                OPCODE(eKawaiOpcodes::RESET, "RESET", FF7KernelCallInstruction, 0, "");
+                OPCODE(eKawaiOpcodes::EYETX, "EYETX", FF7KernelCallInstruction, 0, parameters.c_str()); // was BBBB
+                OPCODE(eKawaiOpcodes::TRNSP, "TRNSP", FF7KernelCallInstruction, 0, parameters.c_str()); // was B
+                OPCODE(eKawaiOpcodes::AMBNT, "AMBNT", FF7KernelCallInstruction, 0, parameters.c_str()); // was BBBBBBB
+                OPCODE(eKawaiOpcodes::Unknown03, "Unknown03", FF7KernelCallInstruction, 0, parameters.c_str());
+                OPCODE(eKawaiOpcodes::Unknown04, "Unknown04", FF7KernelCallInstruction, 0, parameters.c_str());
+                OPCODE(eKawaiOpcodes::Unknown05, "Unknown05", FF7KernelCallInstruction, 0, parameters.c_str());
+                OPCODE(eKawaiOpcodes::LIGHT, "LIGHT", FF7KernelCallInstruction, 0, parameters.c_str());
+                OPCODE(eKawaiOpcodes::Unknown07, "Unknown07", FF7KernelCallInstruction, 0, parameters.c_str());
+                OPCODE(eKawaiOpcodes::Unknown08, "Unknown08", FF7KernelCallInstruction, 0, parameters.c_str());
+                OPCODE(eKawaiOpcodes::Unknown09, "Unknown09", FF7KernelCallInstruction, 0, parameters.c_str());
+                OPCODE(eKawaiOpcodes::SBOBJ, "SBOBJ", FF7KernelCallInstruction, 0, parameters.c_str());
+                OPCODE(eKawaiOpcodes::Unknown0B, "Unknown0B", FF7KernelCallInstruction, 0, parameters.c_str());
+                OPCODE(eKawaiOpcodes::Unknown0C, "Unknown0C", FF7KernelCallInstruction, 0, parameters.c_str());
+                OPCODE(eKawaiOpcodes::SHINE, "SHINE", FF7KernelCallInstruction, 0, parameters.c_str());
+                OPCODE(eKawaiOpcodes::RESET, "RESET", FF7KernelCallInstruction, 0, parameters.c_str());
                 default:
                     throw UnknownSubOpcodeException(this->_address, opcode);
                 }
                 INC_ADDR;
                 INC_ADDR;
-                OPCODE_END
+            }
+            OPCODE_END
             OPCODE(eOpcodes::KAWIW, "KAWIW", FF7KernelCallInstruction, 0, "");
             OPCODE(eOpcodes::PMOVA, "PMOVA", FF7KernelCallInstruction, 0, "B");
             OPCODE(eOpcodes::PDIRA, "PDIRA", FF7KernelCallInstruction, 0, "B");
