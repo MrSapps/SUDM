@@ -55,7 +55,7 @@ TEST(CodeGen, testContinue) {
     c->createGroups();
     Graph g = c->analyze();
     onullstream ns;
-    auto cg = engine->getCodeGenerator(ns);
+    auto cg = engine->getCodeGenerator(insts, ns);
     cg->generate(insts, g);
 
     VertexIterator v = boost::vertices(g).first;
@@ -94,7 +94,7 @@ TEST(CodeGen, testBreak) {
     c->createGroups();
     Graph g = c->analyze();
     onullstream ns;
-    auto cg = engine->getCodeGenerator(ns);
+    auto cg = engine->getCodeGenerator(insts, ns);
     cg->generate(insts, g);
 
     VertexIterator v = boost::vertices(g).first;
@@ -133,7 +133,7 @@ TEST(CodeGen, testElse) {
     c->createGroups();
     Graph g = c->analyze();
     onullstream ns;
-    auto cg = engine->getCodeGenerator(ns);
+    auto cg = engine->getCodeGenerator(insts, ns);
     cg->generate(insts, g);
 
     VertexIterator v = boost::vertices(g).first;
@@ -175,7 +175,7 @@ TEST(CodeGen, DISABLED_testCoalescing) {
     c->createGroups();
     Graph g = c->analyze();
     onullstream ns;
-    auto cg = engine->getCodeGenerator(ns);
+    auto cg = engine->getCodeGenerator(insts, ns);
     cg->generate(insts, g);
 
     VertexIterator v = boost::vertices(g).first;
@@ -200,7 +200,7 @@ TEST(CodeGen, DISABLED_testCoalescing) {
     c = std::make_unique<ControlFlow>(insts, *engine);
     c->createGroups();
     g = c->analyze();
-    cg = engine->getCodeGenerator(ns);
+    cg = engine->getCodeGenerator(insts, ns);
     cg->generate(insts, g);
 
     v = boost::vertices(g).first;

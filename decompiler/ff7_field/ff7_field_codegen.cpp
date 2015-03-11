@@ -17,15 +17,23 @@ void FF7::FF7CodeGenerator::onBeforeStartFunction(const Function& func)
     }
 }
 
-void FF7::FF7CodeGenerator::onStartFunction(const Function&)
+void FF7::FF7CodeGenerator::onStartFunction(const Function& func)
 {
-
+    addOutputLine("--[[");
+    for (const auto& inst : mInsts)
+    {
+        if (inst->_address >= func.mStartAddr && inst->_address <= func.mEndAddr)
+        {
+            std::stringstream output;
+            output <<inst;
+            addOutputLine(output.str());
+        }
+    }
+    addOutputLine("]]\n");
 }
 
 void FF7::FF7CodeGenerator::onEndFunction(const Function& func)
 {
-    addOutputLine("return 0");
-
     // End function
     addOutputLine("end,", true, false);
     

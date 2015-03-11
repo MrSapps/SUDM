@@ -94,7 +94,7 @@ public:
 	 * @param output The std::ostream to output the code to.
 	 * @return Pointer to a CodeGenerator for the engine.
 	 */
-	virtual std::unique_ptr<CodeGenerator> getCodeGenerator(std::ostream &output) = 0;
+    virtual std::unique_ptr<CodeGenerator> getCodeGenerator(const InstVec& insts, std::ostream &output) = 0;
 
 	/**
 	 * Post-processing step after CFG analysis.

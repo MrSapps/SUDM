@@ -39,7 +39,7 @@ const int kIncDecInst = kFirstCustomInst + 1;
 class Scummv6Engine : public Engine {
 public:
     virtual std::unique_ptr<Disassembler> getDisassembler(InstVec &insts) override;
-    virtual std::unique_ptr<CodeGenerator> getCodeGenerator(std::ostream &output) override;
+    virtual std::unique_ptr<CodeGenerator> getCodeGenerator(const InstVec& insts, std::ostream &output) override;
 };
 
 /**

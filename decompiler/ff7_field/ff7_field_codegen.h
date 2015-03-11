@@ -123,8 +123,9 @@ namespace FF7
     class FF7CodeGenerator : public CodeGenerator
     {
     public:
-        FF7CodeGenerator(Engine *engine, std::ostream &output) 
-            : CodeGenerator(engine, output, kFIFOArgOrder, kLIFOArgOrder)
+        FF7CodeGenerator(Engine *engine, const InstVec& insts, std::ostream &output)
+            : CodeGenerator(engine, output, kFIFOArgOrder, kLIFOArgOrder),
+              mInsts(insts)
         {
             mTargetLang = std::make_unique<LuaTargetLanguage>();
         }
@@ -134,5 +135,7 @@ namespace FF7
         virtual void onBeforeStartFunction(const Function& func) override;
         virtual void onStartFunction(const Function& func) override;
         virtual bool OutputOnlyRequiredLabels() const override { return true; }
+    private:
+        const InstVec& mInsts;
     };
 }

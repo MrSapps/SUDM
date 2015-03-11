@@ -194,7 +194,7 @@ int main(int argc, char** argv) {
 		engine->postCFG(insts, g);
 
 		// Code generation
-		auto cg = engine->getCodeGenerator(std::cout);
+        auto cg = engine->getCodeGenerator(insts, std::cout);
         cg->generate(insts, g);
 
 		if (vm.count("show-unreachable")) {

@@ -52,7 +52,7 @@ namespace SUDM
 
                 // Generate code and return it
                 std::stringstream output;
-                auto cg = engine.getCodeGenerator(output);
+                auto cg = engine.getCodeGenerator(insts, output);
                 cg->generate(insts, graph);
                 ds.luaScript = textToPrepend + output.str() + textToAppend;
 

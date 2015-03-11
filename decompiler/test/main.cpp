@@ -242,7 +242,7 @@ TEST(FF7World, DisAsm)
 
 
         onullstream ns;
-        auto cg = engine.getCodeGenerator(std::cout);
+        auto cg = engine.getCodeGenerator(insts, std::cout);
 
         std::ofstream out;
         out.open("graph.dot");

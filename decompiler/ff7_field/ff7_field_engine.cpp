@@ -19,13 +19,14 @@ std::unique_ptr<Disassembler> FF7::FF7FieldEngine::getDisassembler(InstVec &inst
     return std::make_unique<FF7Disassembler>(mFormatter, this, insts);
 }
 
-std::unique_ptr<CodeGenerator> FF7::FF7FieldEngine::getCodeGenerator(std::ostream &output)
+std::unique_ptr<CodeGenerator> FF7::FF7FieldEngine::getCodeGenerator(const InstVec& insts, std::ostream &output)
 {
-    return std::make_unique<FF7CodeGenerator>(this, output);
+    return std::make_unique<FF7CodeGenerator>(this, insts, output);
 }
 
 void FF7::FF7FieldEngine::postCFG(InstVec& insts, Graph g)
 {
+    /*
     // In FF7 some scripts ends with an infinite loop to "keep it alive"
     // in QGears this isn't required so we can remove them
     RemoveTrailingInfiniteLoops(insts, g);
@@ -37,6 +38,7 @@ void FF7::FF7FieldEngine::postCFG(InstVec& insts, Graph g)
 
     // Scripts end with a "return" this isn't required so strip them out
     RemoveExtraneousReturnStatements(insts, g);
+    */
 }
 
 std::map<std::string, int> FF7::FF7FieldEngine::GetEntities() const
@@ -493,7 +495,7 @@ void FF7::FF7KernelCallInstruction::processInst(Function& func, ValueStack&, Eng
     switch (_opcode)
     {
     case eOpcodes::RET:
-        codeGen->addOutputLine("return");
+        codeGen->addOutputLine("return 0"); // Seems all our functions must return zero
         break;
 
     case eOpcodes::WAIT:
