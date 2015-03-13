@@ -50,3 +50,35 @@ std::string FF7::FF7CodeGenerator::constructFuncSignature(const Function &func)
     // Generate name
     return func._name + " = function( self )";
 }
+
+std::string FF7::FF7CodeGeneratorHelpers::FormatInstructionNotImplemented(const std::string& entity, uint32 address, uint32 opcode)
+{
+    return (boost::format("log:log(\"In entity \\\"%1%\\\", address 0x%2$08x: instruction 0x%3$04x not implemented\")") % entity % address % opcode).str();
+}
+
+std::string FF7::FF7CodeGeneratorHelpers::FormatInstructionNotImplemented(const std::string& entity, uint32 address, const Instruction& instruction)
+{
+    std::stringstream parameterList;
+    for (auto i = instruction._params.begin(); i != instruction._params.end(); ++i)
+    {
+        if (i != instruction._params.begin())
+        {
+            parameterList << ", ";
+        }
+        parameterList << *i;
+    }
+    return (boost::format("log:log(\"In entity \\\"%1%\\\", address 0x%2$08x: instruction %3%( %4% ) not implemented\")") % entity % address % instruction._name % parameterList.str()).str();
+}
+
+std::string FF7::FF7CodeGeneratorHelpers::FormatBool(uint32 value)
+{
+    return value == 0 ? "false" : "true";
+}
+
+std::string FF7::FF7CodeGeneratorHelpers::FormatInvertedBool(uint32 value)
+{
+    return value == 0 ? "true" : "false";
+}
+
+
+

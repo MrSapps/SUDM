@@ -138,4 +138,47 @@ namespace FF7
     private:
         const InstVec& mInsts;
     };
+
+    namespace FF7CodeGeneratorHelpers
+    {
+        enum struct ValueType : int
+        {
+            Int = 0,
+            Float = 1
+        };
+
+        std::string FormatInstructionNotImplemented(const std::string& entity, uint32 address, uint32 opcode);
+        std::string FormatInstructionNotImplemented(const std::string& entity, uint32 address, const Instruction& instruction);
+        std::string FormatBool(uint32 value);
+        std::string FormatInvertedBool(uint32 value);
+        
+        template<typename TValue>
+        std::string FormatValueOrVariable(uint32 bank, TValue valueOrAddress, ValueType valueType = FF7::FF7CodeGeneratorHelpers::ValueType::Int, float scale = 1.0f)
+        {
+            switch (bank)
+            {
+            case 0:
+                switch (valueType)
+                {
+                case FF7::FF7CodeGeneratorHelpers::ValueType::Float:
+                    return std::to_string(valueOrAddress / scale);
+                case FF7::FF7CodeGeneratorHelpers::ValueType::Int:
+                default:
+                    return std::to_string(valueOrAddress);
+                }
+            case 1:
+            case 2:
+            case 3:
+            case 13:
+            case 15:
+                // TODO: friendly name
+                return (boost::format("var_%1%_%2%") % bank % (static_cast<uint32>(valueOrAddress) & 0xFF)).str();
+            case 5:
+            case 6:
+                return (boost::format("temp%1%_%2%") % bank % (static_cast<uint32>(valueOrAddress) & 0xFF)).str();
+            default:
+                return (boost::format("unknown_%1%_%2%") % bank % (static_cast<uint32>(valueOrAddress) & 0xFF)).str();
+            }
+        }
+    }
 }

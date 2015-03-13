@@ -61,6 +61,7 @@ namespace FF7
         virtual bool usePureGrouping() const override { return false; }
         std::map<std::string, int> GetEntities() const;
         void AddEntityFunction(const std::string& entityName, size_t entityIndex, const std::string& funcName, size_t funcIndex);
+
         const Entity& EntityByIndex(size_t index) const
         {
             auto it = mEntityIndexMap.find(index);
@@ -70,19 +71,25 @@ namespace FF7
             }
             return it->second;
         }
+
     private:
         void RemoveExtraneousReturnStatements(InstVec& insts, Graph g);
         void RemoveTrailingInfiniteLoops(InstVec& insts, Graph g);
         void MarkInfiniteLoopGroups(InstVec& insts, Graph g);
-    private:
         SUDM::IScriptFormatter& mFormatter;
         std::map<size_t, Entity> mEntityIndexMap;
     };
 
-    class FF7StoreInstruction : public StoreInstruction
+    class FF7UncondJumpInstruction : public UncondJumpInstruction
     {
     public:
+        bool _isCall;  ///< Whether or not this is really a call to a script function.
+        FF7UncondJumpInstruction() : _isCall(false) {}
+        virtual bool isFuncCall() const;
+        virtual bool isUncondJump() const;
+        virtual uint32 getDestAddress() const;
         virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
+        virtual std::ostream& print(std::ostream &output) const override;
     };
 
     class FF7CondJumpInstruction : public CondJumpInstruction
@@ -93,30 +100,100 @@ namespace FF7
         virtual std::ostream& print(std::ostream &output) const override;
     };
 
-    class FF7UncondJumpInstruction : public UncondJumpInstruction
+    class FF7ControlFlowInstruction : public KernelCallInstruction
     {
     public:
-        bool _isCall;  ///< Whether or not this is really a call to a script function.
-        FF7UncondJumpInstruction() : _isCall(false) { }
-        virtual bool isFuncCall() const;
-        virtual bool isUncondJump() const;
-        virtual uint32 getDestAddress() const;
         virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
-        virtual std::ostream& print(std::ostream &output) const override;
-
+    private:
+        void processWAIT(CodeGenerator* codeGen);
     };
 
-
-    class FF7KernelCallInstruction : public KernelCallInstruction
+    class FF7ModuleInstruction : public KernelCallInstruction
     {
     public:
         virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
-    class FF7NoOutputInstruction : public Instruction
+    class FF7MathInstruction : public StoreInstruction
+    {
+    public:
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
+    private:
+        void processSETBYTE_SETWORD(CodeGenerator* codeGen);
+    };
+
+    class FF7WindowInstruction : public KernelCallInstruction
+    {
+    public:
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
+    private:
+        void processMPNAM(CodeGenerator* codeGen);
+    };
+
+    class FF7PartyInstruction : public KernelCallInstruction
     {
     public:
         virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 
+    class FF7ModelInstruction : public KernelCallInstruction
+    {
+    public:
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
+    private:
+        void processTLKON(CodeGenerator* codeGen, const std::string& entity);
+        void processPC(CodeGenerator* codeGen, const std::string& entity);
+        void processCHAR(CodeGenerator* codeGen, const std::string& entity);
+        void processDFANM(CodeGenerator* codeGen, const std::string& entity);
+        void processANIME1(CodeGenerator* codeGen, const std::string& entity);
+        void processVISI(CodeGenerator* codeGen, const std::string& entity);
+        void processXYZI(CodeGenerator* codeGen, const std::string& entity);
+        void processMOVE(CodeGenerator* codeGen, const std::string& entity);
+        void processGETAI(CodeGenerator* codeGen, const FF7FieldEngine& engine);
+        void processMSPED(CodeGenerator* codeGen, const std::string& entity);
+        void processDIR(CodeGenerator* codeGen, const std::string& entity);
+        void processSOLID(CodeGenerator* codeGen, const std::string& entity);
+    };
+
+    class FF7WalkmeshInstruction : public KernelCallInstruction
+    {
+    public:
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
+    };
+
+    class FF7BackgroundInstruction : public KernelCallInstruction
+    {
+    public:
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
+    private:
+        void processADPAL(CodeGenerator* codeGen);
+        void processSTPLS(CodeGenerator* codeGen);
+        void processLDPLS(CodeGenerator* codeGen);
+    };
+
+    class FF7CameraInstruction : public KernelCallInstruction
+    {
+    public:
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
+    };
+
+    class FF7AudioVideoInstruction : public KernelCallInstruction
+    {
+    public:
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
+    private:
+        void processMUSIC(CodeGenerator* codeGen);
+    };
+
+    class FF7UncategorizedInstruction : public KernelCallInstruction
+    {
+    public:
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
+    };
+
+    class FF7NoOperationInstruction : public Instruction
+    {
+    public:
+        virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
+    };
 }
