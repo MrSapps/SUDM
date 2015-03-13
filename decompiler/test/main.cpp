@@ -44,7 +44,7 @@ static InstPtr DoReadParameterTest(std::string str, std::vector<unsigned char> d
 {
     InstVec insts;
     TestReadParameterDisassembler d(std::move(data), insts);
-    InstPtr inst = new FF7::FF7NoOutputInstruction();
+    InstPtr inst = new FF7::FF7NoOperationInstruction();
     d.readParams(inst, str.c_str());
     return inst;
 }
