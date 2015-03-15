@@ -105,6 +105,10 @@ namespace FF7
     public:
         virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     private:
+        void processREQ(CodeGenerator* codeGen, const FF7FieldEngine& engine);
+        void processREQSW(CodeGenerator* codeGen, const FF7FieldEngine& engine);
+        void processREQEW(CodeGenerator* codeGen, const FF7FieldEngine& engine);
+        void processRETTO(CodeGenerator* codeGen);
         void processWAIT(CodeGenerator* codeGen);
     };
 
@@ -119,7 +123,19 @@ namespace FF7
     public:
         virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     private:
+        void processSaturatedPLUS(CodeGenerator* codeGen);
+        void processSaturatedPLUS2(CodeGenerator* codeGen);
+        void processSaturatedMINUS(CodeGenerator* codeGen);
+        void processSaturatedMINUS2(CodeGenerator* codeGen);
+        void processSaturatedINC(CodeGenerator* codeGen);
+        void processSaturatedINC2(CodeGenerator* codeGen);
+        void processSaturatedDEC(CodeGenerator* codeGen);
+        void processSaturatedDEC2(CodeGenerator* codeGen);
+        void processRDMSD(CodeGenerator* codeGen);
         void processSETBYTE_SETWORD(CodeGenerator* codeGen);
+        void processPLUSx_MINUSx(CodeGenerator* codeGen, const std::string& op);
+        void processINCx_DECx(CodeGenerator* codeGen, const std::string& op);
+        void processRANDOM(CodeGenerator* codeGen);
     };
 
     class FF7WindowInstruction : public KernelCallInstruction
@@ -166,7 +182,14 @@ namespace FF7
     public:
         virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     private:
+        void processBGON(CodeGenerator* codeGen);
+        void processBGOFF(CodeGenerator* codeGen);
+        void processBGCLR(CodeGenerator* codeGen);
+        void processSTPAL(CodeGenerator* codeGen);
+        void processLDPAL(CodeGenerator* codeGen);
+        void processCPPAL(CodeGenerator* codeGen);
         void processADPAL(CodeGenerator* codeGen);
+        void processMPPAL2(CodeGenerator* codeGen);
         void processSTPLS(CodeGenerator* codeGen);
         void processLDPLS(CodeGenerator* codeGen);
     };

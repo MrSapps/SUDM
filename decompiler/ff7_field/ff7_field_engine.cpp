@@ -275,18 +275,10 @@ void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engi
         throw UnknownConditionalOperatorException(_address, type);
     }
 
-    const uint32 srcBank = _params[0]->getUnsigned();
-    const uint32 srcAddrOrValue = _params[2]->getUnsigned();
-    auto s = GetVarName(srcBank, srcAddrOrValue);
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
 
-    const uint32 dstBank = _params[1]->getUnsigned();
-    const uint32 dstAddrOrValue = _params[3]->getUnsigned();
-    auto d = GetVarName(dstBank, dstAddrOrValue);
-
-
-    ValuePtr v = new BinaryOpValue(
-        new VarValue(s),
-        new VarValue(d), op);
+    ValuePtr v = new BinaryOpValue(new VarValue(source), new VarValue(destination), op);
 
     stack.push(v->negate());
 }
@@ -401,39 +393,33 @@ void FF7::FF7ControlFlowInstruction::processInst(Function& func, ValueStack&, En
         break;
 
     case eOpcodes::REQ:
-        codeGen->addOutputLine("-- TODO REQ");
+        processREQ(codeGen, eng);
         break;
 
     case eOpcodes::REQSW:
-        codeGen->addOutputLine("-- TODO REQSW");
+        processREQSW(codeGen, eng);
         break;
 
     case eOpcodes::REQEW:
-    {
-        const auto priority = _params[1]->getUnsigned();
-        const auto& entity = eng.EntityByIndex(_params[0]->getSigned());
-        const auto& scriptName = entity.FunctionByIndex(_params[2]->getUnsigned());
-
-        WriteTodo(codeGen, md.EntityName(), "call_script_blocking " + entity.Name() + " " + scriptName + " " + std::to_string(priority));
-    }
-    break;
+        processREQEW(codeGen, eng);
+        break;
 
     case eOpcodes::PREQ:
-        codeGen->addOutputLine("-- TODO PREQ");
+        WriteTodo(codeGen, md.EntityName(), "PREQ");
         break;
 
     case eOpcodes::PRQSW:
-        codeGen->addOutputLine("-- TODO PRQSW");
+        WriteTodo(codeGen, md.EntityName(), "PRQSW");
         break;
 
     case eOpcodes::PRQEW:
-        codeGen->addOutputLine("-- TODO PRQEW");
+        WriteTodo(codeGen, md.EntityName(), "PRQEW");
         break;
 
     case eOpcodes::RETTO:
-        codeGen->addOutputLine("-- TODO RETTO");
+        processRETTO(codeGen);
         break;
-
+        
     case eOpcodes::WAIT:
         processWAIT(codeGen);
         break;
@@ -441,6 +427,32 @@ void FF7::FF7ControlFlowInstruction::processInst(Function& func, ValueStack&, En
     default:
         codeGen->addOutputLine(FF7CodeGeneratorHelpers::FormatInstructionNotImplemented(md.EntityName(), _address, _opcode));
     }
+}
+
+void FF7::FF7ControlFlowInstruction::processREQ(CodeGenerator* codeGen, const FF7FieldEngine& engine)
+{
+    const auto& entity = engine.EntityByIndex(_params[0]->getSigned());
+    const auto& scriptName = entity.FunctionByIndex(_params[2]->getUnsigned());
+    codeGen->addOutputLine((boost::format("script:request( Script.ENTITY, \"%1%\", \"%2%\", %3% )") % entity.Name() % scriptName % _params[1]->getUnsigned()).str());
+}
+
+void FF7::FF7ControlFlowInstruction::processREQSW(CodeGenerator* codeGen, const FF7FieldEngine& engine)
+{
+    const auto& entity = engine.EntityByIndex(_params[0]->getSigned());
+    const auto& scriptName = entity.FunctionByIndex(_params[2]->getUnsigned());
+    codeGen->addOutputLine((boost::format("script:request_start_sync( Script.ENTITY, \"%1%\", \"%2%\", %3% )") % entity.Name() % scriptName % _params[1]->getUnsigned()).str());
+}
+
+void FF7::FF7ControlFlowInstruction::processREQEW(CodeGenerator* codeGen, const FF7FieldEngine& engine)
+{
+    const auto& entity = engine.EntityByIndex(_params[0]->getSigned());
+    const auto& scriptName = entity.FunctionByIndex(_params[2]->getUnsigned());
+    codeGen->addOutputLine((boost::format("script:request_end_sync( Script.ENTITY, \"%1%\", \"%2%\", %3% )") % entity.Name() % scriptName % _params[1]->getUnsigned()).str());
+}
+
+void FF7::FF7ControlFlowInstruction::processRETTO(CodeGenerator* codeGen)
+{
+    codeGen->addOutputLine((boost::format("-- return_to( script_id_in_current_entity=%2%, priority=%1% )") % _params[0]->getUnsigned() % _params[1]->getUnsigned()).str());
 }
 
 void FF7::FF7ControlFlowInstruction::processWAIT(CodeGenerator* codeGen)
@@ -457,47 +469,47 @@ void FF7::FF7ModuleInstruction::processInst(Function& func, ValueStack&, Engine*
     switch (_opcode)
     {
     case eOpcodes::DSKCG:
-        codeGen->addOutputLine("-- TODO DSKCG");
+        WriteTodo(codeGen, md.EntityName(), "DSKCG");
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::ARROW:
-        codeGen->addOutputLine("-- TODO ARROW");
+        WriteTodo(codeGen, md.EntityName(), "ARROW");
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::PNAME:
-        codeGen->addOutputLine("-- TODO PNAME");
+        WriteTodo(codeGen, md.EntityName(), "PNAME");
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::GMSPD:
-        codeGen->addOutputLine("-- TODO GMSPD");
+        WriteTodo(codeGen, md.EntityName(), "GMSPD");
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::FLMAT:
-        codeGen->addOutputLine("-- TODO FLMAT");
+        WriteTodo(codeGen, md.EntityName(), "FLMAT");
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::FLITM:
-        codeGen->addOutputLine("-- TODO FLITM");
+        WriteTodo(codeGen, md.EntityName(), "FLITM");
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::BTLCK:
-        codeGen->addOutputLine("-- TODO BTLCK");
+        WriteTodo(codeGen, md.EntityName(), "BTLCK");
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::MVLCK:
-        codeGen->addOutputLine("-- TODO MVLCK");
+        WriteTodo(codeGen, md.EntityName(), "MVLCK");
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::SPCNM:
-        codeGen->addOutputLine("-- TODO SPCNM");
+        WriteTodo(codeGen, md.EntityName(), "SPCNM");
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::RSGLB:
-        codeGen->addOutputLine("-- TODO RSGLB");
+        WriteTodo(codeGen, md.EntityName(), "RSGLB");
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::CLITM:
-        codeGen->addOutputLine("-- TODO CLITM");
+        WriteTodo(codeGen, md.EntityName(), "CLITM");
         break;
 
     case eOpcodes::MINIGAME:
@@ -566,39 +578,39 @@ void FF7::FF7MathInstruction::processInst(Function& func, ValueStack&, Engine* e
     switch (_opcode)
     {
     case eOpcodes::PLUS_:
-        codeGen->addOutputLine("-- TODO PLUS!");
+        processSaturatedPLUS(codeGen);
         break;
 
     case eOpcodes::PLUS2_:
-        codeGen->addOutputLine("-- TODO PLUS2!");
+        processSaturatedPLUS2(codeGen);
         break;
 
     case eOpcodes::MINUS_:
-        codeGen->addOutputLine("-- TODO MINUS!");
+        processSaturatedMINUS(codeGen);
         break;
 
     case eOpcodes::MINUS2_:
-        codeGen->addOutputLine("-- TODO MINUS2!");
+        processSaturatedMINUS2(codeGen);
         break;
 
     case eOpcodes::INC_:
-        codeGen->addOutputLine("-- TODO INC!");
+        processSaturatedINC(codeGen);
         break;
 
     case eOpcodes::INC2_:
-        codeGen->addOutputLine("-- TODO INC2!");
+        processSaturatedINC2(codeGen);
         break;
 
     case eOpcodes::DEC_:
-        codeGen->addOutputLine("-- TODO DEC!");
+        processSaturatedDEC(codeGen);
         break;
 
     case eOpcodes::DEC2_:
-        codeGen->addOutputLine("-- TODO DEC2!");
+        processSaturatedDEC2(codeGen);
         break;
 
     case eOpcodes::RDMSD:
-        codeGen->addOutputLine("-- TODO RDMSD");
+        processRDMSD(codeGen);
         break;
 
     case eOpcodes::SETBYTE:
@@ -607,61 +619,41 @@ void FF7::FF7MathInstruction::processInst(Function& func, ValueStack&, Engine* e
         break;
 
     case eOpcodes::BITON:
-        codeGen->addOutputLine("-- TODO BITON");
+        WriteTodo(codeGen, md.EntityName(), "BITON");
         break;
 
     case eOpcodes::BITOFF:
-        codeGen->addOutputLine("-- TODO BITOFF");
+        WriteTodo(codeGen, md.EntityName(), "BITOFF");
         break;
 
     case eOpcodes::BITXOR:
-        codeGen->addOutputLine("-- TODO BITXOR");
+        WriteTodo(codeGen, md.EntityName(), "BITXOR");
         break;
 
     case eOpcodes::PLUS:
-    case eOpcodes::MINUS:
-    {
-        const uint32 srcBank = _params[0]->getUnsigned();
-        const uint32 srcAddrOrValue = _params[2]->getUnsigned();
-        auto s = GetVarName(srcBank, srcAddrOrValue);
-
-        const uint32 dstBank = _params[1]->getUnsigned();
-        const uint32 dstAddr = _params[3]->getUnsigned();
-        auto d = GetVarName(dstBank, dstAddr);
-
-        if (_opcode == eOpcodes::MINUS)
-        {
-            codeGen->addOutputLine(s + " = " + s + " - " + d + codeGen->TargetLang().LineTerminator());
-        }
-        else
-        {
-            codeGen->addOutputLine(s + " = " + s + " + " + d + codeGen->TargetLang().LineTerminator());
-        }
-    }
-    break;
-
     case eOpcodes::PLUS2:
-        codeGen->addOutputLine("-- TODO PLUS2");
+        processPLUSx_MINUSx(codeGen, "+");
         break;
 
+    case eOpcodes::MINUS:
     case eOpcodes::MINUS2:
-        codeGen->addOutputLine("-- TODO MINUS2");
+        processPLUSx_MINUSx(codeGen, "-");
         break;
 
     case eOpcodes::MUL:
-        codeGen->addOutputLine("-- TODO MUL");
+        WriteTodo(codeGen, md.EntityName(), "MUL");
         break;
 
     case eOpcodes::MUL2:
-        codeGen->addOutputLine("-- TODO MUL2");
+        WriteTodo(codeGen, md.EntityName(), "MUL2");
         break;
 
     case eOpcodes::DIV:
-        codeGen->addOutputLine("-- TODO DIV");
+        WriteTodo(codeGen, md.EntityName(), "DIV");
         break;
 
     case eOpcodes::DIV2:
-        codeGen->addOutputLine("-- TODO DIV2");
+        WriteTodo(codeGen, md.EntityName(), "DIV2");
         break;
 
     case eOpcodes::MOD:
@@ -679,86 +671,65 @@ void FF7::FF7MathInstruction::processInst(Function& func, ValueStack&, Engine* e
     break;
 
     case eOpcodes::MOD2:
-        codeGen->addOutputLine("-- TODO MOD2");
+        WriteTodo(codeGen, md.EntityName(), "MOD2");
         break;
 
     case eOpcodes::AND:
-        codeGen->addOutputLine("-- TODO AND");
+        WriteTodo(codeGen, md.EntityName(), "AND");
         break;
 
     case eOpcodes::AND2:
-        codeGen->addOutputLine("-- TODO AND2");
+        WriteTodo(codeGen, md.EntityName(), "AND2");
         break;
 
     case eOpcodes::OR:
-        codeGen->addOutputLine("-- TODO OR");
+        WriteTodo(codeGen, md.EntityName(), "OR");
         break;
 
     case eOpcodes::OR2:
-        codeGen->addOutputLine("-- TODO OR2");
+        WriteTodo(codeGen, md.EntityName(), "OR2");
         break;
 
     case eOpcodes::XOR:
-        codeGen->addOutputLine("-- TODO XOR");
+        WriteTodo(codeGen, md.EntityName(), "XOR");
         break;
 
     case eOpcodes::XOR2:
-        codeGen->addOutputLine("-- TODO XOR2");
+        WriteTodo(codeGen, md.EntityName(), "XOR2");
         break;
 
     case eOpcodes::INC:
-    {
-        const uint32 srcBank = _params[0]->getUnsigned();
-        const uint32 srcAddrOrValue = _params[1]->getUnsigned();
-        auto s = GetVarName(srcBank, srcAddrOrValue);
-        codeGen->addOutputLine(s + " = " + s + " + 1" + codeGen->TargetLang().LineTerminator());
-    }
-    break;
-
     case eOpcodes::INC2:
-        codeGen->addOutputLine("-- TODO INC2");
+        processINCx_DECx(codeGen, "+");
         break;
 
     case eOpcodes::DEC:
-    {
-        const uint32 srcBank = _params[0]->getUnsigned();
-        const uint32 srcAddrOrValue = _params[1]->getUnsigned();
-        auto s = GetVarName(srcBank, srcAddrOrValue);
-        codeGen->addOutputLine(s + " = " + s + " - 1" + codeGen->TargetLang().LineTerminator());
-    }
-    break;
-
     case eOpcodes::DEC2:
-        codeGen->addOutputLine("-- TODO DEC2");
+        processINCx_DECx(codeGen, "-");
+        break;  
+
+    case eOpcodes::RANDOM:
+        processRANDOM(codeGen);
         break;
 
-    case eOpcodes::RANDOM: // 8-bit random value 
-    {
-        const uint32 dstBank = _params[0]->getUnsigned();
-        const uint32 dstAddr = _params[1]->getUnsigned();
-        auto d = GetVarName(dstBank, dstAddr);
-        codeGen->addOutputLine(d + " = math.random(0, 255)" + codeGen->TargetLang().LineTerminator());
-    }
-    break;
-
     case eOpcodes::LBYTE:
-        codeGen->addOutputLine("-- TODO LBYTE");
+        WriteTodo(codeGen, md.EntityName(), "LBYTE");
         break;
 
     case eOpcodes::HBYTE:
-        codeGen->addOutputLine("-- TODO HBYTE");
+        WriteTodo(codeGen, md.EntityName(), "HBYTE");
         break;
 
     case eOpcodes::TWOBYTE:
-        codeGen->addOutputLine("-- TODO 2BYTE");
+        WriteTodo(codeGen, md.EntityName(), "2BYTE");
         break;
 
     case eOpcodes::SIN:
-        codeGen->addOutputLine("-- TODO SIN");
+        WriteTodo(codeGen, md.EntityName(), "SIN");
         break;
 
     case eOpcodes::COS:
-        codeGen->addOutputLine("-- TODO COS");
+        WriteTodo(codeGen, md.EntityName(), "COS");
         break;
 
     default:
@@ -766,11 +737,122 @@ void FF7::FF7MathInstruction::processInst(Function& func, ValueStack&, Engine* e
     }
 }
 
+void FF7::FF7MathInstruction::processSaturatedPLUS(CodeGenerator* codeGen)
+{
+    // TODO: check for assignment to value
+    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    // TODO: repect destination bank sizes and negative wraparound
+    codeGen->addOutputLine((boost::format("%1% = %1% + %2%") % lhs % rhs).str());
+    codeGen->addOutputLine((boost::format("if (%1% > 255); %1% = 255; end") % lhs).str());
+}
+
+void FF7::FF7MathInstruction::processSaturatedPLUS2(CodeGenerator* codeGen)
+{
+    // TODO: check for assignment to value
+    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    // TODO: repect destination bank sizes and negative wraparound
+    codeGen->addOutputLine((boost::format("%1% = %1% + %2%") % lhs % rhs).str());
+    codeGen->addOutputLine((boost::format("if (%1% > 32767); %1% = 32767; end") % lhs).str());
+}
+
+void FF7::FF7MathInstruction::processSaturatedMINUS(CodeGenerator* codeGen)
+{
+    // TODO: check for assignment to value
+    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    // TODO: repect destination bank sizes and positive wraparound
+    codeGen->addOutputLine((boost::format("%1% = %1% - %2%") % lhs % rhs).str());
+    codeGen->addOutputLine((boost::format("if (%1% < 0); %1% = 0; end") % lhs).str());
+}
+
+void FF7::FF7MathInstruction::processSaturatedMINUS2(CodeGenerator* codeGen)
+{
+    // TODO: check for assignment to value
+    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    // TODO: repect destination bank sizes and positive wraparound
+    codeGen->addOutputLine((boost::format("%1% = %1% - %2%") % lhs % rhs).str());
+    codeGen->addOutputLine((boost::format("if (%1% < 0); %1% = 0; end") % lhs).str());
+}
+
+void FF7::FF7MathInstruction::processSaturatedINC(CodeGenerator* codeGen)
+{
+    // TODO: check for assignment to value
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    // TODO: repect destination bank sizes and negative wraparound
+    codeGen->addOutputLine((boost::format("%1% = %1% + 1") % destination).str());
+    codeGen->addOutputLine((boost::format("if (%1% > 255); %1% = 255; end") % destination).str());
+}
+
+void FF7::FF7MathInstruction::processSaturatedINC2(CodeGenerator* codeGen)
+{
+    // TODO: check for assignment to value
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    // TODO: repect destination bank sizes and negative wraparound
+    codeGen->addOutputLine((boost::format("%1% = %1% + 1") % destination).str());
+    codeGen->addOutputLine((boost::format("if (%1% > 32767); %1% = 32767; end") % destination).str());
+}
+
+void FF7::FF7MathInstruction::processSaturatedDEC(CodeGenerator* codeGen)
+{
+    // TODO: check for assignment to value
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    // TODO: repect destination bank sizes and positive wraparound
+    codeGen->addOutputLine((boost::format("%1% = %1% - 1") % destination).str());
+    codeGen->addOutputLine((boost::format("if (%1% < 0); %1% = 0; end") % destination).str());
+}
+
+void FF7::FF7MathInstruction::processSaturatedDEC2(CodeGenerator* codeGen)
+{
+    // TODO: check for assignment to value
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    // TODO: repect destination bank sizes and positive wraparound
+    codeGen->addOutputLine((boost::format("%1% = %1% - 1")).str());
+    codeGen->addOutputLine((boost::format("if (%1% < 0); %1% = 0; end") % destination).str());
+}
+
+void FF7::FF7MathInstruction::processRDMSD(CodeGenerator* codeGen)
+{
+    // TODO: verify we actually have os.time
+    // TODO: RNG emulation?
+    codeGen->addOutputLine("math.randomseed( os.time() )");
+}
+
 void FF7::FF7MathInstruction::processSETBYTE_SETWORD(CodeGenerator* codeGen)
 {
-    auto lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    auto rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
-    codeGen->addOutputLine((boost::format("%1% = %2%") % lhs % rhs).str());
+    // TODO: check for assignment to value
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    // TODO: respect destination bank sizes (16-bit writes only affect low byte)
+    codeGen->addOutputLine((boost::format("%1% = %2%") % destination % source).str());
+}
+
+void FF7::FF7MathInstruction::processPLUSx_MINUSx(CodeGenerator* codeGen, const std::string& op)
+{
+    // TODO: check for assignment to value
+    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    // TODO: repect destination bank sizes and wraparound
+    codeGen->addOutputLine((boost::format("%1% = %1% %2% %3%") % lhs % op % rhs).str());
+}
+
+void FF7::FF7MathInstruction::processINCx_DECx(CodeGenerator* codeGen, const std::string& op)
+{
+    // TODO: check for assignment to value
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned());
+    // TODO: repect destination bank sizes and wraparound
+    codeGen->addOutputLine((boost::format("%1% = %1% %2% 1") % destination % op).str());
+}
+
+void FF7::FF7MathInstruction::processRANDOM(CodeGenerator* codeGen)
+{
+    // TODO: check for assignment to value
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned());
+    // TODO: repect destination bank sizes (16-bit writes only affect low byte)
+    // TODO: RNG emulation?
+    codeGen->addOutputLine((boost::format("%1% = math.random( 0, 255 )") % destination).str());
 }
 
 void FF7::FF7WindowInstruction::processInst(Function& func, ValueStack&, Engine* engine, CodeGenerator *codeGen)
@@ -872,10 +954,7 @@ void FF7::FF7WindowInstruction::processInst(Function& func, ValueStack&, Engine*
 
 void FF7::FF7WindowInstruction::processMPNAM(CodeGenerator* codeGen)
 {
-    std::stringstream stream;
-    stream << boost::format("field:map_name( %1% )") % _params[0]->getUnsigned();
-    // TODO: do we need to save the text ID somewhere outside of the script (as the .dat dumper does) or is that just for logging?
-    codeGen->addOutputLine(stream.str());
+    codeGen->addOutputLine((boost::format("-- field:map_name( %1% )") % _params[0]->getUnsigned()).str());
 }
 
 void FF7::FF7PartyInstruction::processInst(Function& func, ValueStack&, Engine* engine, CodeGenerator *codeGen)
@@ -1291,7 +1370,6 @@ void FF7::FF7ModelInstruction::processTLKON(CodeGenerator* codeGen, const std::s
 
 void FF7::FF7ModelInstruction::processPC(CodeGenerator* codeGen, const std::string& entity)
 {
-    // TODO: ScriptManager binding
     codeGen->addOutputLine((boost::format("set_entity_to_character( \"%1%\", \"%1%\" )") % entity).str());
 }
 
@@ -1308,7 +1386,7 @@ void FF7::FF7ModelInstruction::processDFANM(CodeGenerator* codeGen, const std::s
 
 void FF7::FF7ModelInstruction::processANIME1(CodeGenerator* codeGen, const std::string& entity)
 {
-    // TODO: lookup animation name here or will QGears accept the ID?
+    // ID will be fixed-up downstream
     codeGen->addOutputLine((boost::format("self.%1%:play_animation( %2% ) -- speed %3%") % entity % _params[0]->getUnsigned() % (1.0f / _params[1]->getUnsigned())).str());
     codeGen->addOutputLine((boost::format("self.%1%:animation_sync()") % entity).str());
 }
@@ -1322,10 +1400,10 @@ void FF7::FF7ModelInstruction::processXYZI(CodeGenerator* codeGen, const std::st
 {
     // TODO: variable scale
     float scale = 128.0f;
-    auto x = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[4]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
-    auto y = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[5]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
-    auto z = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[2]->getUnsigned(), _params[6]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
-    auto triangleId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[3]->getUnsigned(), _params[7]->getUnsigned());
+    const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[4]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
+    const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[5]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
+    const auto& z = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[2]->getUnsigned(), _params[6]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
+    const auto& triangleId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[3]->getUnsigned(), _params[7]->getUnsigned());
     codeGen->addOutputLine((boost::format("self.%1%:set_position( %2%, %3%, %4% ) -- triangle ID %5%") % entity % x % y % z % triangleId).str());
 }
 
@@ -1333,17 +1411,17 @@ void FF7::FF7ModelInstruction::processMOVE(CodeGenerator* codeGen, const std::st
 {
     // TODO: variable scale
     float scale = 128.0f;
-    auto x = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
-    auto y = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
+    const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
+    const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
     codeGen->addOutputLine((boost::format("self.%1%:move_to_position( %2%, %3% )") % entity % x % y).str());
     codeGen->addOutputLine((boost::format("self.%1%:move_sync()") % entity).str());
 }
 
 void FF7::FF7ModelInstruction::processGETAI(CodeGenerator* codeGen, const FF7FieldEngine& engine)
 {
-    auto entity = engine.EntityByIndex(_params[2]->getUnsigned());
+    const auto& entity = engine.EntityByIndex(_params[2]->getUnsigned());
     // TODO: check for assignment to literal
-    auto variable = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    const auto& variable = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
     codeGen->addOutputLine((boost::format("local entity = entity_manager:get_entity( \"%1%\" )") % entity.Name()).str());
     codeGen->addOutputLine((boost::format("%1% = entity:get_move_triangle_id()") % variable).str());
 }
@@ -1352,13 +1430,13 @@ void FF7::FF7ModelInstruction::processMSPED(CodeGenerator* codeGen, const std::s
 {
     // TODO: variable scale
     float scale = 128.0f;
-    auto speed = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[2]->getUnsigned(), FF7CodeGeneratorHelpers::ValueType::Float, 256.0f * scale / 30.0f);
+    const auto& speed = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[2]->getUnsigned(), FF7CodeGeneratorHelpers::ValueType::Float, 256.0f * scale / 30.0f);
     codeGen->addOutputLine((boost::format("self.%1%:set_move_auto_speed( %2% )") % entity % speed).str());
 }
 
 void FF7::FF7ModelInstruction::processDIR(CodeGenerator* codeGen, const std::string& entity)
 {
-    auto direction = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned(), FF7CodeGeneratorHelpers::ValueType::Float, 256.0f / 360.0f);
+    const auto& direction = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned(), FF7CodeGeneratorHelpers::ValueType::Float, 256.0f / 360.0f);
     codeGen->addOutputLine((boost::format("self.%1%:set_rotation( %2% )") % entity % direction).str());
 }
 
@@ -1425,34 +1503,12 @@ void FF7::FF7BackgroundInstruction::processInst(Function& func, ValueStack&, Eng
         break;
 
     case eOpcodes::BGON:
-    {
-        const uint32 srcBank = _params[0]->getUnsigned();
-        const uint32 srcAddrOrValue = _params[2]->getUnsigned();
-        auto s = GetVarName(srcBank, srcAddrOrValue);
-
-        const uint32 dstBank = _params[1]->getUnsigned();
-        const uint32 dstAddrOrValue = _params[3]->getUnsigned();
-        auto d = GetVarName(dstBank, dstAddrOrValue);
-
-        std::string line = "backgroundOn(" + d + ", " + s + ")";
-        WriteTodo(codeGen, md.EntityName(), line);
-    }
-    break;
+        processBGON(codeGen);
+        break;
 
     case eOpcodes::BGOFF:
-    {
-        const uint32 srcBank = _params[0]->getUnsigned();
-        const uint32 srcAddrOrValue = _params[2]->getUnsigned();
-        auto s = GetVarName(srcBank, srcAddrOrValue);
-
-        const uint32 dstBank = _params[1]->getUnsigned();
-        const uint32 dstAddrOrValue = _params[3]->getUnsigned();
-        auto d = GetVarName(dstBank, dstAddrOrValue);
-
-        std::string line = "backgroundOff(" + d + ", " + s + ")";
-        WriteTodo(codeGen, md.EntityName(), line);
-    }
-    break;
+        processBGOFF(codeGen);
+        break;
 
     case eOpcodes::BGROL:
         WriteTodo(codeGen, md.EntityName(), "BGROL");
@@ -1463,19 +1519,19 @@ void FF7::FF7BackgroundInstruction::processInst(Function& func, ValueStack&, Eng
         break;
 
     case eOpcodes::BGCLR:
-        WriteTodo(codeGen, md.EntityName(), "hide_background");
+        processBGCLR(codeGen);
         break;
 
     case eOpcodes::STPAL:
-        WriteTodo(codeGen, md.EntityName(), "set_palette");
+        processSTPAL(codeGen);
         break;
 
     case eOpcodes::LDPAL:
-        WriteTodo(codeGen, md.EntityName(), "load_palette");
+        processLDPAL(codeGen);
         break;
 
     case eOpcodes::CPPAL:
-        WriteTodo(codeGen, md.EntityName(), "copy_palette");
+        processCPPAL(codeGen);
         break;
 
     case eOpcodes::RTPAL:
@@ -1487,7 +1543,7 @@ void FF7::FF7BackgroundInstruction::processInst(Function& func, ValueStack&, Eng
         break;
 
     case eOpcodes::MPPAL2:
-        WriteTodo(codeGen, md.EntityName(), "multiply_palette");
+        processMPPAL2(codeGen);
         break;
 
     case eOpcodes::STPLS:
@@ -1511,14 +1567,65 @@ void FF7::FF7BackgroundInstruction::processInst(Function& func, ValueStack&, Eng
     }
 }
 
+void FF7::FF7BackgroundInstruction::processBGON(CodeGenerator* codeGen)
+{
+    const auto& backgroundId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& layerId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    codeGen->addOutputLine((boost::format("-- field:background_on( %1%, %2% )") % backgroundId % layerId).str());
+}
+
+void FF7::FF7BackgroundInstruction::processBGOFF(CodeGenerator* codeGen)
+{
+    const auto& backgroundId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& layerId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    codeGen->addOutputLine((boost::format("-- field:background_off( %1%, %2% )") % backgroundId % layerId).str());
+}
+
+void FF7::FF7BackgroundInstruction::processBGCLR(CodeGenerator* codeGen)
+{
+    const auto& backgroundId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[2]->getUnsigned());
+    codeGen->addOutputLine((boost::format("-- field:background_clear( %1% )") % backgroundId).str());
+}
+
+void FF7::FF7BackgroundInstruction::processSTPAL(CodeGenerator* codeGen)
+{
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    codeGen->addOutputLine((boost::format("-- store palette %1% to position %2%, start CLUT index 0, %3% entries") % source % destination % (_params[4]->getUnsigned() + 1)).str());
+}
+
+void FF7::FF7BackgroundInstruction::processLDPAL(CodeGenerator* codeGen)
+{
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    codeGen->addOutputLine((boost::format("-- load palette %2% from position %1%, start CLUT index 0, %3% entries") % source % destination % (_params[4]->getUnsigned() + 1)).str());
+}
+
+void FF7::FF7BackgroundInstruction::processCPPAL(CodeGenerator* codeGen)
+{
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    codeGen->addOutputLine((boost::format("-- copy palette %1% to palette %2%, %3% entries") % source % destination % (_params[4]->getUnsigned() + 1)).str());
+}
+
 void FF7::FF7BackgroundInstruction::processADPAL(CodeGenerator* codeGen)
 {
-    auto source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[6]->getUnsigned());
-    auto r = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[4]->getUnsigned(), _params[10]->getUnsigned());
-    auto g = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[3]->getUnsigned(), _params[9]->getUnsigned());
-    auto b = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[2]->getUnsigned(), _params[8]->getUnsigned());
-    auto destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[7]->getUnsigned());
-    codeGen->addOutputLine((boost::format("-- add RGB(%3%, %4%, %5%) to %2% entries of palette stored at position %1%, storing result in position %6%") % source % (_params[11]->getUnsigned() + 1) % r % g % b % destination).str());
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[6]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[7]->getUnsigned());
+    const auto& r = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[4]->getUnsigned(), _params[10]->getUnsigned());
+    const auto& g = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[3]->getUnsigned(), _params[9]->getUnsigned());
+    const auto& b = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[2]->getUnsigned(), _params[8]->getUnsigned());
+    codeGen->addOutputLine((boost::format("-- add RGB(%3%, %4%, %5%) to %6% entries of palette stored at position %1%, storing result in position %2%") % source % destination % r % g % b % (_params[11]->getUnsigned() + 1)).str());
+}
+
+void FF7::FF7BackgroundInstruction::processMPPAL2(CodeGenerator* codeGen)
+{
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[6]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[7]->getUnsigned());
+    const auto& r = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[4]->getUnsigned(), _params[10]->getUnsigned());
+    const auto& g = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[3]->getUnsigned(), _params[9]->getUnsigned());
+    const auto& b = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[2]->getUnsigned(), _params[8]->getUnsigned());
+    codeGen->addOutputLine((boost::format("-- multiply RGB(%3%, %4%, %5%) by %6% entries of palette stored at position %1%, storing result in position %2%") % source % destination % r % g % b % (_params[11]->getUnsigned() + 1)).str());
 }
 
 void FF7::FF7BackgroundInstruction::processSTPLS(CodeGenerator* codeGen)
@@ -1679,10 +1786,7 @@ void FF7::FF7AudioVideoInstruction::processInst(Function& func, ValueStack&, Eng
 
 void FF7::FF7AudioVideoInstruction::processMUSIC(CodeGenerator* codeGen)
 {
-    std::stringstream stream;
-    stream << boost::format("music:execute_akao( 0x10, pointer_to_field_AKAO_%1% )") % _params[0]->getUnsigned();
-    // TODO: do we need to save this line somewhere outside of the script (as the .dat dumper does) or is that just for logging?
-    codeGen->addOutputLine(stream.str());
+    codeGen->addOutputLine((boost::format("-- music:execute_akao( 0x10, pointer_to_field_AKAO_%1% )") % _params[0]->getUnsigned()).str());
 }
 
 void FF7::FF7UncategorizedInstruction::processInst(Function& func, ValueStack&, Engine* engine, CodeGenerator *codeGen)

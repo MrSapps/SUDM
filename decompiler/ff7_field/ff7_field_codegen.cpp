@@ -25,7 +25,7 @@ void FF7::FF7CodeGenerator::onStartFunction(const Function& func)
         if (inst->_address >= func.mStartAddr && inst->_address <= func.mEndAddr)
         {
             std::stringstream output;
-            output <<inst;
+            output << inst;
             addOutputLine(output.str());
         }
     }
@@ -53,7 +53,7 @@ std::string FF7::FF7CodeGenerator::constructFuncSignature(const Function &func)
 
 std::string FF7::FF7CodeGeneratorHelpers::FormatInstructionNotImplemented(const std::string& entity, uint32 address, uint32 opcode)
 {
-    return (boost::format("log:log(\"In entity \\\"%1%\\\", address 0x%2$08x: instruction 0x%3$04x not implemented\")") % entity % address % opcode).str();
+    return (boost::format("-- log:log(\"In entity \\\"%1%\\\", address 0x%2$08x: instruction 0x%3$04x not implemented\")") % entity % address % opcode).str();
 }
 
 std::string FF7::FF7CodeGeneratorHelpers::FormatInstructionNotImplemented(const std::string& entity, uint32 address, const Instruction& instruction)
@@ -67,7 +67,7 @@ std::string FF7::FF7CodeGeneratorHelpers::FormatInstructionNotImplemented(const 
         }
         parameterList << *i;
     }
-    return (boost::format("log:log(\"In entity \\\"%1%\\\", address 0x%2$08x: instruction %3%( %4% ) not implemented\")") % entity % address % instruction._name % parameterList.str()).str();
+    return (boost::format("-- log:log(\"In entity \\\"%1%\\\", address 0x%2$08x: instruction %3%( %4% ) not implemented\")") % entity % address % instruction._name % parameterList.str()).str();
 }
 
 std::string FF7::FF7CodeGeneratorHelpers::FormatBool(uint32 value)
