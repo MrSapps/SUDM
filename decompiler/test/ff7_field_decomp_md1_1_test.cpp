@@ -13,9 +13,10 @@
 #include "ff7_field_dummy_formatter.h"
 
 TEST(FF7Field, DISABLED_Decomp_MD1_1)
+//TEST(FF7Field, Decomp_MD1_1)
 {
-    //std::cout << "ready" << std::endl;
-    //std::cin.ignore();
+    std::cout << "ready" << std::endl;
+    std::cin.ignore();
 
     auto scriptBytes = Lzs::Decompress(BinaryReader::ReadAll("decompiler/test/md1_1.dat"));
 
@@ -27,7 +28,7 @@ TEST(FF7Field, DISABLED_Decomp_MD1_1)
     ASSERT_FALSE(ds.luaScript.empty());
 
 
-    std::ofstream tmp("decompiler/test/md1_1.lua");
+    std::ofstream tmp("md1_1.lua");
     if (!tmp.is_open())
     {
         throw std::runtime_error("Can't open md1_1.lua for writing");

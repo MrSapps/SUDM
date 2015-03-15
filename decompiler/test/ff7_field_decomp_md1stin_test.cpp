@@ -14,8 +14,8 @@
 
 TEST(FF7Field, Decomp_MD1STIN)
 {
-    //std::cout << "ready" << std::endl;
-    //std::cin.ignore();
+    std::cout << "ready" << std::endl;
+    std::cin.ignore();
 
     auto scriptBytes = Lzs::Decompress(BinaryReader::ReadAll("decompiler/test/md1stin.dat"));
 
@@ -27,7 +27,7 @@ TEST(FF7Field, Decomp_MD1STIN)
     ASSERT_FALSE(ds.luaScript.empty());
 
 
-    std::ofstream tmp("decompiler/test/md1stin.lua");
+    std::ofstream tmp("md1stin.lua");
     if (!tmp.is_open())
     {
         throw std::runtime_error("Can't open md1stin.lua for writing");

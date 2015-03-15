@@ -62,7 +62,7 @@ void checkUncat(const InstVec& insts);
 
 TEST(FF7Field, DisasmAllOpcodes)
 {
-    std::ofstream tmp("decompiler/test/ff7_all_opcodes_by_category.fieldasm");
+    std::ofstream tmp("ff7_all_opcodes_by_category.fieldasm");
     if (!tmp.is_open())
     {
         throw std::runtime_error("Can't open ff7_all_opcodes_by_category.fieldasm for writing");

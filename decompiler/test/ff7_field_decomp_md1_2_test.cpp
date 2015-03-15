@@ -27,7 +27,7 @@ TEST(FF7Field, Decomp_MD1_2)
     ASSERT_FALSE(ds.luaScript.empty());
 
 
-    std::ofstream tmp("decompiler/test/md1_2.lua");
+    std::ofstream tmp("md1_2.lua");
     if (!tmp.is_open())
     {
         throw std::runtime_error("Can't open md1_2.lua for writing");
