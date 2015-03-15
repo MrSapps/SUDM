@@ -60,8 +60,14 @@ void checkAv(const InstVec& insts);
 void checkUncat(const InstVec& insts);
 
 
-TEST(FF7Field, AllOpcodesDisassembler)
+TEST(FF7Field, DisasmAllOpcodes)
 {
+    std::ofstream tmp("ff7_all_opcodes_by_category.fieldasm");
+    if (!tmp.is_open())
+    {
+        throw std::runtime_error("Can't open ff7_all_opcodes_by_category.fieldasm for writing");
+    }
+
     InstVec insts;
     DummyFormatter formatter;
     FF7::FF7FieldEngine engine(formatter);
@@ -69,8 +75,8 @@ TEST(FF7Field, AllOpcodesDisassembler)
     auto d = engine.getDisassembler(insts);
     d->open("decompiler/test/ff7_all_opcodes_by_category.dat");
     d->disassemble();
-    d->dumpDisassembly(std::cout);
-    std::cout << std::endl;
+    d->dumpDisassembly(tmp);
+    tmp << std::endl;
 
     checkFlow(insts);
     checkModule(insts);

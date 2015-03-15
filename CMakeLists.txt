@@ -5,6 +5,10 @@ project(SUDM)
 # Set to true when using SUDM as a submodule of another project such that only the lib is compiled
 option(SUDM_AS_LIB     "Build only lib"     FALSE)
 
+# For now, you'll need to place said files in the appropriate test dir
+# TODO: move this elsewhere?
+option(TEST_COPYRIGHTED_FILES "Enable tests against copyrighted files" FALSE)
+
 if (NOT SUDM_AS_LIB)
 	enable_testing()
 endif()
@@ -163,7 +167,7 @@ if (NOT SUDM_AS_LIB)
 	)
 	target_link_libraries(Sudm Sudm_Lib ${Boost_LIBRARIES})
 
-	add_executable(Sudm_Test 
+	set(safe_test_source
 	decompiler/test/cfg_test.cpp
 	decompiler/test/codegen.cpp
 	decompiler/test/disassembler_test.cpp
@@ -172,12 +176,23 @@ if (NOT SUDM_AS_LIB)
 	decompiler/test/disassembler/subopcode.cpp
 	decompiler/test/disassembler/subopcode.h
 	decompiler/test/main.cpp
-	#decompiler/test/ff7_field_all_opcodes_disassembler_test.cpp
 	decompiler/test/ff7_field_disasm_all_opcodes_by_category_test.cpp
     decompiler/test/ff7_field_control_flow_test.cpp
     decompiler/test/ff7_field_dummy_formatter.h
 	)
+	
+	set(unsafe_test_source
+	decompiler/test/ff7_field_decomp_md1stin_test.cpp
+	decompiler/test/ff7_field_decomp_md1_1_test.cpp
+	decompiler/test/ff7_field_decomp_md1_2_test.cpp
+	)		
 
+	if (TEST_COPYRIGHTED_FILES)
+		add_executable(Sudm_Test ${safe_test_source} ${unsafe_test_source})
+	else()
+		add_executable(Sudm_Test ${safe_test_source})
+	endif()
+	
 	target_link_libraries(Sudm_Test Sudm_Lib gmock ${Boost_LIBRARIES})
 
 	add_test(NAME Sudm_Test COMMAND Sudm_Test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

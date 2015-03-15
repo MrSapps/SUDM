@@ -184,30 +184,6 @@ TEST(FF7Field, FunctionMetaData_Parse_StartEnd)
     ASSERT_EQ(true, meta.IsStart());
 }
 
-TEST(FF7Field, DisAsm)
-{
-    auto scriptBytes = Lzs::Decompress(BinaryReader::ReadAll("decompiler/test/md1_2.dat"));
-
-    // Remove section pointers, leave everything after the script data as this doesn't matter
-    const int kNumSections = 7;
-    scriptBytes.erase(scriptBytes.begin(), scriptBytes.begin() + kNumSections * sizeof(uint32));
-    DummyFormatter formatter;
-    SUDM::FF7::Field::DecompiledScript ds = SUDM::FF7::Field::Decompile("md1_2", scriptBytes, formatter, "", "EntityContainer = {}\n\n");
-    ASSERT_FALSE(ds.luaScript.empty());
-
-
-    std::ofstream tmp("output.lua");
-    if (!tmp.is_open())
-    {
-        throw std::runtime_error("Can't open output.lua for writing");
-    }
-
-    tmp << ds.luaScript;
-
-    //std::cout << ds.luaScript << std::endl;
-
-}
-
 TEST(FF7World, DisAsm)
 {
     for (int i = 0; i < 256; i++)

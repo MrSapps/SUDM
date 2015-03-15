@@ -3,6 +3,7 @@
 #include "decompiler_codegen.h"
 #include <boost/algorithm/string.hpp>
 #include <deque>
+#include <unordered_map>
 #include "make_unique.h"
 
 namespace FF7
@@ -143,26 +144,32 @@ namespace FF7
     {
         enum struct ValueType : int
         {
-            Int = 0,
+            Integer = 0,
             Float = 1
         };
 
-        std::string FormatInstructionNotImplemented(const std::string& entity, uint32 address, uint32 opcode);
-        std::string FormatInstructionNotImplemented(const std::string& entity, uint32 address, const Instruction& instruction);
-        std::string FormatBool(uint32 value);
-        std::string FormatInvertedBool(uint32 value);
+        extern const std::unordered_map<uint32, const std::string> CharacterNamesById;
+        extern const std::unordered_map<uint32, const std::unordered_map<uint32, const std::string>> VariableNamesByBankAndAddress;
+
+        const std::string FormatInstructionNotImplemented(const std::string& entity, uint32 address, uint32 opcode);
+        const std::string FormatInstructionNotImplemented(const std::string& entity, uint32 address, const Instruction& instruction);
+        const std::string FormatBool(uint32 value);
+        const std::string FormatInvertedBool(uint32 value);
+        const std::string GetCharacterNameById(uint32 value);
+        const std::string GetVariableNameByBankAndAddress(uint32 bank, uint32 address);
         
         template<typename TValue>
-        std::string FormatValueOrVariable(uint32 bank, TValue valueOrAddress, ValueType valueType = FF7::FF7CodeGeneratorHelpers::ValueType::Int, float scale = 1.0f)
+        const std::string FormatValueOrVariable(uint32 bank, TValue valueOrAddress, ValueType valueType = ValueType::Integer, float scale = 1.0f)
         {
             switch (bank)
             {
             case 0:
                 switch (valueType)
                 {
-                case FF7::FF7CodeGeneratorHelpers::ValueType::Float:
+                case ValueType::Float:
+                    // TODO: check for zero
                     return std::to_string(valueOrAddress / scale);
-                case FF7::FF7CodeGeneratorHelpers::ValueType::Int:
+                case ValueType::Integer:
                 default:
                     return std::to_string(valueOrAddress);
                 }
@@ -171,8 +178,11 @@ namespace FF7
             case 3:
             case 13:
             case 15:
-                // TODO: friendly name
-                return (boost::format("var_%1%_%2%") % bank % (static_cast<uint32>(valueOrAddress) & 0xFF)).str();
+            {
+                auto address = static_cast<uint32>(valueOrAddress) & 0xFF;
+                auto friendlyName = GetVariableNameByBankAndAddress(bank, address);
+                return (boost::format("FFVII.Data.%1%") % (friendlyName == "" ? (boost::format("var_%1%_%2%") % bank % address).str() : friendlyName)).str();
+            }
             case 5:
             case 6:
                 return (boost::format("temp%1%_%2%") % bank % (static_cast<uint32>(valueOrAddress) & 0xFF)).str();
