@@ -14,7 +14,7 @@ std::unique_ptr<Disassembler> FF7::FF7WorldEngine::getDisassembler(InstVec &inst
     return std::make_unique<FF7WorldDisassembler>(this, insts, mScriptNumber);
 }
 
-std::unique_ptr<CodeGenerator> FF7::FF7WorldEngine::getCodeGenerator(const InstVec& insts, std::ostream &output)
+std::unique_ptr<CodeGenerator> FF7::FF7WorldEngine::getCodeGenerator(const InstVec& /*insts*/, std::ostream &output)
 {
     return std::make_unique<FF7WorldCodeGenerator>(this, output);
 }

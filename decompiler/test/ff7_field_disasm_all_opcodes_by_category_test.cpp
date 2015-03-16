@@ -1909,3 +1909,36 @@ void checkUncat(const InstVec& insts)
 #undef AV_OPCODES
 #undef UNCAT_BASE
 #undef UNCAT_OPCODES
+
+
+#include "lzs.h"
+
+TEST(FF7Field, DISABLED_Decomp_AllOpcodes)
+//TEST(FF7Field, Decomp_AllOpcodes)
+{
+    // TODO:
+    // this "fails", but it appears to be due to the .dat making references to scripts that don't exist
+    // to get it working, the Flow section of the .dat needs to be corrected, and then the DisasmAllOpcodes test needs to be adjusted so it still works
+
+    std::cout << "ready" << std::endl;
+    std::cin.ignore();
+
+    auto scriptBytes = Lzs::Decompress(BinaryReader::ReadAll("decompiler/test/ff7_all_opcodes_by_category.dat"));
+    //auto scriptBytes = Lzs::Decompress(BinaryReader::ReadAll("decompiler/test/anfrst_1.dat"));
+
+    // Remove section pointers, leave everything after the script data as this doesn't matter
+    const int kNumSections = 7;
+    scriptBytes.erase(scriptBytes.begin(), scriptBytes.begin() + kNumSections * sizeof(uint32));
+    DummyFormatter formatter;
+    SUDM::FF7::Field::DecompiledScript ds = SUDM::FF7::Field::Decompile("ff7_all_opcodes_by_category", scriptBytes, formatter, "", "EntityContainer = {}\n\n");
+    ASSERT_FALSE(ds.luaScript.empty());
+
+
+    std::ofstream tmp("ff7_all_opcodes_by_category.lua");
+    if (!tmp.is_open())
+    {
+        throw std::runtime_error("Can't open ff7_all_opcodes_by_category.lua for writing");
+    }
+
+    tmp << ds.luaScript;
+}
