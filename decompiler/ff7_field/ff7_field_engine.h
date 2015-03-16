@@ -103,6 +103,7 @@ namespace FF7
     class FF7ControlFlowInstruction : public KernelCallInstruction
     {
     public:
+        static InstPtr Create() { return new FF7ControlFlowInstruction(); }
         virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     private:
         void processREQ(CodeGenerator* codeGen, const FF7FieldEngine& engine);
@@ -246,6 +247,7 @@ namespace FF7
     class FF7NoOperationInstruction : public Instruction
     {
     public:
+        static InstPtr Create() { return new FF7NoOperationInstruction(); }
         virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     };
 }

@@ -299,6 +299,7 @@ namespace FF7
         ~FF7Disassembler();
         virtual void open(const char *filename) override;
         virtual void doDisassemble() throw(std::exception) override;
+        std::vector<unsigned char> Assemble(const std::string& input);
     private:
         void DisassembleIndivdualScript(std::string entityName,
             size_t entityIndex,

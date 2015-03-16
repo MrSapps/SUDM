@@ -184,7 +184,20 @@ TEST(FF7Field, FunctionMetaData_Parse_StartEnd)
     ASSERT_EQ(true, meta.IsStart());
 }
 
-TEST(FF7World, DisAsm)
+TEST(FF7World, Asm)
+{
+    DummyFormatter dummy;
+    FF7::FF7FieldEngine eng(dummy);
+
+    InstVec insts;
+    FF7::FF7Disassembler d(dummy, &eng, insts);
+
+    d.Assemble("NOP");
+
+}
+
+
+TEST(FF7World, DISABLED_DisAsm)
 {
     for (int i = 0; i < 256; i++)
     {

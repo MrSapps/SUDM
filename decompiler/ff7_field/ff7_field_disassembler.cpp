@@ -4,6 +4,8 @@
 #include <boost/format.hpp>
 #include "lzs.h"
 #include "make_unique.h"
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string.hpp>
 
 FF7::FF7Disassembler::FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7FieldEngine* engine, InstVec& insts, const std::vector<unsigned char>& rawScriptData)
     : SimpleDisassembler(insts),
@@ -269,8 +271,130 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
     }
 }
 
+struct TInstructRecord
+{
+    unsigned char mOpCodeSize;
+    unsigned int mOpCode;
+    const char* mMnemonic;
+    const char* mArgumentFormat;
+    std::function<InstPtr()> mFactoryFunc;
+};
+
+const TInstructRecord kOpcodes[] =
+{
+    // Flow
+    { 1, FF7::eOpcodes::RET, "RET", "", FF7::FF7ControlFlowInstruction::Create },
+    { 1, FF7::eOpcodes::REQ, "REQ", "BU", FF7::FF7ControlFlowInstruction::Create },
+    { 1, FF7::eOpcodes::REQSW, "REQSW", "BU", FF7::FF7ControlFlowInstruction::Create },
+    { 1, FF7::eOpcodes::REQEW, "REQEW", "BU", FF7::FF7ControlFlowInstruction::Create },
+    /*
+    { 1, FF7::eOpcodes::PREQ, "PREQ", "BU", FF7::FF7ControlFlowInstruction },
+    { 1, FF7::eOpcodes::PRQSW, "PRQSW", "BU", FF7::FF7ControlFlowInstruction },
+    { 1, FF7::eOpcodes::PRQEW, "PRQEW", "BU", FF7::FF7ControlFlowInstruction },
+    { 1, FF7::eOpcodes::RETTO, "RETTO", "U", FF7::FF7ControlFlowInstruction },
+    { 1, FF7::eOpcodes::JMPF, "JMPF", "B", FF7::FF7UncondJumpInstruction },
+    { 1, FF7::eOpcodes::JMPFL, "JMPFL", "w", FF7::FF7UncondJumpInstruction },
+    { 1, FF7::eOpcodes::JMPB, "JMPB", "B", FF7::FF7UncondJumpInstruction },
+    { 1, FF7::eOpcodes::JMPBL, "JMPBL", FF7::FF7UncondJumpInstruction, 0, "w" },
+    { 1, FF7::eOpcodes::IFUB, "IFUB", FF7::FF7CondJumpInstruction, 0, "NBBBB" },
+    { 1, FF7::eOpcodes::IFUBL, "IFUBL", FF7::FF7CondJumpInstruction, 0, "NBBBw" },
+    { 1, FF7::eOpcodes::IFSW, "IFSW", FF7::FF7CondJumpInstruction, 0, "NwwBB" },
+    { 1, FF7::eOpcodes::IFSWL, "IFSWL", FF7::FF7CondJumpInstruction, 0, "NwwBw" },
+    { 1, FF7::eOpcodes::IFUW, "IFUW", FF7CondJumpInstruction, 0, "NwwBB" },
+    { 1, FF7::eOpcodes::IFUWL, "IFUWL", FF7::FF7CondJumpInstruction, 0, "NwwBw" },
+    { 1, FF7::eOpcodes::WAIT, "WAIT", FF7::FF7ControlFlowInstruction, 0, "w" },
+    { 1, FF7::eOpcodes::IFKEY, "IFKEY", FF7::FF7CondJumpInstruction, 0, "wB" },
+    { 1, FF7::eOpcodes::IFKEYON, "IFKEYON", FF7::FF7CondJumpInstruction, 0, "wB" },
+    { 1, FF7::eOpcodes::IFKEYOFF, "IFKEYOFF", FF7::FF7CondJumpInstruction, 0, "wB" },*/
+    { 1, FF7::eOpcodes::NOP, "NOP", "", FF7::FF7NoOperationInstruction::Create }/*,
+                                                                                { 1, FF7::eOpcodes::IFPRTYQ, "IFPRTYQ", FF7::FF7CondJumpInstruction, 0, "BB" },
+                                                                                { 1, FF7::eOpcodes::IFMEMBQ, "IFMEMBQ", FF7::FF7CondJumpInstruction, 0, "BB" },*/
+};
+
+std::vector<unsigned char> FF7::FF7Disassembler::Assemble(const std::string& input)
+{
+    // Convert the array to a map that we can query on by mnemonic
+    std::map<std::string, const TInstructRecord*> mnemonicToInstructionRecords;
+    for (size_t i = 0; i < _countof(kOpcodes); i++)
+    {
+        mnemonicToInstructionRecords[kOpcodes[i].mMnemonic] = &kOpcodes[i];
+    }
+
+    // TODO: Label parsing
+
+    std::vector<unsigned char> r;
+
+    std::stringstream is(input);
+
+    InstVec insts;
+    unsigned int address = 0;
+
+    std::string line;
+    while (std::getline(is, line))
+    {
+        std::vector<std::string> parts;
+        boost::split(parts, line, boost::is_any_of(" "), boost::token_compress_on);
+
+        auto it = mnemonicToInstructionRecords.find(parts[0]);
+        if (it == std::end(mnemonicToInstructionRecords))
+        {
+            // Unknown opcode
+        }
+
+        InstPtr inst = it->second->mFactoryFunc();
+
+        inst->_address = address;
+        address += it->second->mOpCodeSize;
+
+        // TODO: Parse params & size
+
+        insts.push_back(inst);
+    }
+
+    // TODO: Serialize instructions back to raw byte code
+
+    return r;
+}
+
 void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
 {
+    /* Need all opcodes in the array before this will work
+    // Convert the array to a map that we can query on by opcode
+    std::map<unsigned int, const TInstructRecord*> opcodeToInstructionRecords;
+    for (size_t i = 0; i < _countof(kOpcodes); i++)
+    {
+        opcodeToInstructionRecords[kOpcodes[i].mOpCode] = &kOpcodes[i];
+    }
+
+    while (mStream->Position() < endPos)
+    {
+        // See if the next data is a 1 byte opcode
+        uint16 opcode = mStream->ReadU8();
+        auto it = opcodeToInstructionRecords.find(opcode);
+        _address++;
+        if (it == std::end(opcodeToInstructionRecords))
+        {
+            // No, is it a 2 byte opcode?
+            opcode = (mStream->ReadU8() << 8) + opcode;
+            _address++;
+            it = opcodeToInstructionRecords.find(opcode);
+            if (it == std::end(opcodeToInstructionRecords))
+            {
+                // There are no instructions bigger than 2 bytes, so fail
+                throw UnknownSubOpcodeException(_address, opcode);
+            }
+        }
+
+        InstPtr inst = it->second->mFactoryFunc();
+        inst->_opcode = opcode;
+        inst->_address = _address;
+        inst->_stackChange = 0;
+        inst->_name = it->second->mMnemonic;
+        readParams(inst, it->second->mArgumentFormat);
+        _insts.push_back(inst);
+    }
+    */
+
     while (mStream->Position() < endPos)
     {
         uint8 opcode = mStream->ReadU8();
@@ -309,18 +433,18 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             OPCODE(eOpcodes::DSKCG, "DSKCG", FF7ModuleInstruction, 0, "B");
             START_SUBOPCODE(eOpcodes::SPECIAL)
                 OPCODE(eSpecialOpcodes::ARROW, "ARROW", FF7ModuleInstruction, 0, "B");
-                OPCODE(eSpecialOpcodes::PNAME, "PNAME", FF7ModuleInstruction, 0, "B");
-                OPCODE(eSpecialOpcodes::GMSPD, "GMSPD", FF7ModuleInstruction, 0, "B");
-                OPCODE(eSpecialOpcodes::SMSPD, "SMSPD", FF7ModuleInstruction, 0, "BB");
-                OPCODE(eSpecialOpcodes::FLMAT, "FLMAT", FF7ModuleInstruction, 0, "");
-                OPCODE(eSpecialOpcodes::FLITM, "FLITM", FF7ModuleInstruction, 0, "");
-                OPCODE(eSpecialOpcodes::BTLCK, "BTLCK", FF7ModuleInstruction, 0, "B");
-                OPCODE(eSpecialOpcodes::MVLCK, "MVLCK", FF7ModuleInstruction, 0, "B");
-                OPCODE(eSpecialOpcodes::SPCNM, "SPCNM", FF7ModuleInstruction, 0, "BB");
-                OPCODE(eSpecialOpcodes::RSGLB, "RSGLB", FF7ModuleInstruction, 0, "");
-                OPCODE(eSpecialOpcodes::CLITM, "CLITM", FF7ModuleInstruction, 0, "");
+            OPCODE(eSpecialOpcodes::PNAME, "PNAME", FF7ModuleInstruction, 0, "B");
+            OPCODE(eSpecialOpcodes::GMSPD, "GMSPD", FF7ModuleInstruction, 0, "B");
+            OPCODE(eSpecialOpcodes::SMSPD, "SMSPD", FF7ModuleInstruction, 0, "BB");
+            OPCODE(eSpecialOpcodes::FLMAT, "FLMAT", FF7ModuleInstruction, 0, "");
+            OPCODE(eSpecialOpcodes::FLITM, "FLITM", FF7ModuleInstruction, 0, "");
+            OPCODE(eSpecialOpcodes::BTLCK, "BTLCK", FF7ModuleInstruction, 0, "B");
+            OPCODE(eSpecialOpcodes::MVLCK, "MVLCK", FF7ModuleInstruction, 0, "B");
+            OPCODE(eSpecialOpcodes::SPCNM, "SPCNM", FF7ModuleInstruction, 0, "BB");
+            OPCODE(eSpecialOpcodes::RSGLB, "RSGLB", FF7ModuleInstruction, 0, "");
+            OPCODE(eSpecialOpcodes::CLITM, "CLITM", FF7ModuleInstruction, 0, "");
             END_SUBOPCODE
-            OPCODE(eOpcodes::MINIGAME, "MINIGAME", FF7ModuleInstruction, 0, "wsswBB");
+                OPCODE(eOpcodes::MINIGAME, "MINIGAME", FF7ModuleInstruction, 0, "wsswBB");
             OPCODE(eOpcodes::BTMD2, "BTMD2", FF7ModuleInstruction, 0, "d");
             OPCODE(eOpcodes::BTRLD, "BTRLD", FF7ModuleInstruction, 0, "NB");
             OPCODE(eOpcodes::BTLTB, "BTLTB", FF7ModuleInstruction, 0, "B");
@@ -445,21 +569,21 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
                 opcode = this->mStream->ReadU8();
                 switch (opcode)
                 {
-                OPCODE(eKawaiOpcodes::EYETX, "EYETX", FF7ModelInstruction, 0, parameters.c_str()); // was BBBB
-                OPCODE(eKawaiOpcodes::TRNSP, "TRNSP", FF7ModelInstruction, 0, parameters.c_str()); // was B
-                OPCODE(eKawaiOpcodes::AMBNT, "AMBNT", FF7ModelInstruction, 0, parameters.c_str()); // was BBBBBBB
-                OPCODE(eKawaiOpcodes::Unknown03, "Unknown03", FF7ModelInstruction, 0, parameters.c_str());
-                OPCODE(eKawaiOpcodes::Unknown04, "Unknown04", FF7ModelInstruction, 0, parameters.c_str());
-                OPCODE(eKawaiOpcodes::Unknown05, "Unknown05", FF7ModelInstruction, 0, parameters.c_str());
-                OPCODE(eKawaiOpcodes::LIGHT, "LIGHT", FF7ModelInstruction, 0, parameters.c_str());
-                OPCODE(eKawaiOpcodes::Unknown07, "Unknown07", FF7ModelInstruction, 0, parameters.c_str());
-                OPCODE(eKawaiOpcodes::Unknown08, "Unknown08", FF7ModelInstruction, 0, parameters.c_str());
-                OPCODE(eKawaiOpcodes::Unknown09, "Unknown09", FF7ModelInstruction, 0, parameters.c_str());
-                OPCODE(eKawaiOpcodes::SBOBJ, "SBOBJ", FF7ModelInstruction, 0, parameters.c_str());
-                OPCODE(eKawaiOpcodes::Unknown0B, "Unknown0B", FF7ModelInstruction, 0, parameters.c_str());
-                OPCODE(eKawaiOpcodes::Unknown0C, "Unknown0C", FF7ModelInstruction, 0, parameters.c_str());
-                OPCODE(eKawaiOpcodes::SHINE, "SHINE", FF7ModelInstruction, 0, parameters.c_str());
-                OPCODE(eKawaiOpcodes::RESET, "RESET", FF7ModelInstruction, 0, parameters.c_str());
+                    OPCODE(eKawaiOpcodes::EYETX, "EYETX", FF7ModelInstruction, 0, parameters.c_str()); // was BBBB
+                    OPCODE(eKawaiOpcodes::TRNSP, "TRNSP", FF7ModelInstruction, 0, parameters.c_str()); // was B
+                    OPCODE(eKawaiOpcodes::AMBNT, "AMBNT", FF7ModelInstruction, 0, parameters.c_str()); // was BBBBBBB
+                    OPCODE(eKawaiOpcodes::Unknown03, "Unknown03", FF7ModelInstruction, 0, parameters.c_str());
+                    OPCODE(eKawaiOpcodes::Unknown04, "Unknown04", FF7ModelInstruction, 0, parameters.c_str());
+                    OPCODE(eKawaiOpcodes::Unknown05, "Unknown05", FF7ModelInstruction, 0, parameters.c_str());
+                    OPCODE(eKawaiOpcodes::LIGHT, "LIGHT", FF7ModelInstruction, 0, parameters.c_str());
+                    OPCODE(eKawaiOpcodes::Unknown07, "Unknown07", FF7ModelInstruction, 0, parameters.c_str());
+                    OPCODE(eKawaiOpcodes::Unknown08, "Unknown08", FF7ModelInstruction, 0, parameters.c_str());
+                    OPCODE(eKawaiOpcodes::Unknown09, "Unknown09", FF7ModelInstruction, 0, parameters.c_str());
+                    OPCODE(eKawaiOpcodes::SBOBJ, "SBOBJ", FF7ModelInstruction, 0, parameters.c_str());
+                    OPCODE(eKawaiOpcodes::Unknown0B, "Unknown0B", FF7ModelInstruction, 0, parameters.c_str());
+                    OPCODE(eKawaiOpcodes::Unknown0C, "Unknown0C", FF7ModelInstruction, 0, parameters.c_str());
+                    OPCODE(eKawaiOpcodes::SHINE, "SHINE", FF7ModelInstruction, 0, parameters.c_str());
+                    OPCODE(eKawaiOpcodes::RESET, "RESET", FF7ModelInstruction, 0, parameters.c_str());
                 default:
                     throw UnknownSubOpcodeException(this->_address, opcode);
                 }
@@ -467,7 +591,7 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
                 INC_ADDR;
             }
             OPCODE_END
-            OPCODE(eOpcodes::KAWIW, "KAWIW", FF7ModelInstruction, 0, "");
+                OPCODE(eOpcodes::KAWIW, "KAWIW", FF7ModelInstruction, 0, "");
             OPCODE(eOpcodes::PMOVA, "PMOVA", FF7ModelInstruction, 0, "B");
             OPCODE(eOpcodes::PDIRA, "PDIRA", FF7ModelInstruction, 0, "B");
             OPCODE(eOpcodes::PTURA, "PTURA", FF7ModelInstruction, 0, "BBB");
