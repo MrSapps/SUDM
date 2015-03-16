@@ -51,6 +51,164 @@ std::string FF7::FF7CodeGenerator::constructFuncSignature(const Function &func)
     return func._name + " = function( self )";
 }
 
+void FF7::FF7SimpleCodeGenerator::generate(InstVec& insts, const Graph& /*g*/)
+{
+    // TODO: yes, this is a big monolithic whatever. it's also WIP and i will be breaking it into digestable chunks when it's ready :D
+
+    auto instruction = insts.begin();
+    
+    std::vector<std::pair<Function&, InstVec>> functionsWithBodies;
+    for (auto function = _engine->_functions.begin(); function != _engine->_functions.end(); ++function)
+    {
+        InstVec body;
+        for (size_t i = 0; i < function->second.mNumInstructions; ++i, ++instruction)
+        {
+            body.push_back(*instruction);
+        }
+        functionsWithBodies.push_back(std::pair<Function&, InstVec> { function->second, body });
+    }
+
+    for (auto function = functionsWithBodies.begin(); function != functionsWithBodies.end(); ++function)
+    {
+        onBeforeStartFunction(function->first);
+        auto signature = constructFuncSignature(function->first);
+        addOutputLine(signature, false, true);
+        onStartFunction(function->first);
+        
+        std::unordered_map<uint32, InstVec> labels;
+        for (auto instruction = function->second.begin(); instruction != function->second.end(); ++instruction)
+        {
+            if ((*instruction)->isCondJump() || (*instruction)->isUncondJump())
+            {
+                auto targetAddr = (*instruction)->getDestAddress();
+                auto label = labels.find(targetAddr);
+                if (label == labels.end())
+                {
+                    labels.insert({ targetAddr, InstVec() });
+                }
+                labels[targetAddr].push_back(*instruction);
+            }
+        }
+
+        for (auto instruction = function->second.begin(); instruction != function->second.end(); ++instruction)
+        {
+            auto label = labels.find((*instruction)->_address);
+            if (label != labels.end())
+            {
+                bool needLabel = false, needNewline = false;
+                for (auto origin = label->second.begin(); origin != label->second.end(); ++origin)
+                {
+                    if ((*origin)->isCondJump())
+                    {
+                        addOutputLine("end", true, false);
+                        needNewline = true;
+                    }
+                    else
+                    {
+                        needLabel = true;
+                    }
+                }
+
+                if (needNewline)
+                {
+                    addOutputLine("");
+                }
+                
+                if (needLabel)
+                {
+                    addOutputLine((boost::format("::label_0x%1$X::") % label->first).str());
+                }
+            }
+
+            ValueStack stack;
+            (*instruction)->processInst(function->first, stack, _engine, this);
+
+            if ((*instruction)->isCondJump())
+            {
+                addOutputLine((boost::format("if (%s) then") % stack.pop()->getString()).str(), false, true);
+            }
+            else if ((*instruction)->isUncondJump())
+            {
+                addOutputLine((boost::format("goto ::label_0x%1$X::") % (*instruction)->getDestAddress()).str());
+            }
+            // else, was already output'd
+        }
+
+        onEndFunction(function->first);
+    }
+
+    for (auto i = mLines.begin(); i != mLines.end(); ++i)
+    {
+        if (i->_unindentBefore)
+        {
+            assert(_indentLevel > 0);
+            _indentLevel--;
+        }
+        _output << indentString(i->_line) << std::endl;
+        if (i->_indentAfter)
+        {
+            _indentLevel++;
+        }
+    }
+}
+
+void FF7::FF7SimpleCodeGenerator::addOutputLine(std::string s, bool unindentBefore, bool indentAfter)
+{
+    mLines.push_back(CodeLine(s, unindentBefore, indentAfter));
+}
+
+void FF7::FF7SimpleCodeGenerator::onBeforeStartFunction(const Function& func)
+{
+    // Start class
+    FunctionMetaData metaData(func._metadata);
+    if (metaData.IsStart())
+    {
+        addOutputLine("EntityContainer[ \"" + metaData.EntityName() + "\" ] = {", false, true);
+        if (metaData.CharacterId() != -1)
+        {
+            addOutputLine(metaData.EntityName() + " = nil,\n");
+        }
+    }
+}
+
+void FF7::FF7SimpleCodeGenerator::onStartFunction(const Function& func)
+{
+    addOutputLine("--[[");
+    for (const auto& inst : mInsts)
+    {
+        if (inst->_address >= func.mStartAddr && inst->_address <= func.mEndAddr)
+        {
+            std::stringstream output;
+            output << inst;
+            addOutputLine(output.str());
+        }
+    }
+    addOutputLine("]]\n");
+}
+
+void FF7::FF7SimpleCodeGenerator::onEndFunction(const Function& func)
+{
+    // End function
+    addOutputLine("end,", true, false);
+
+    // End class
+    FunctionMetaData metaData(func._metadata);
+    if (metaData.IsEnd())
+    {
+        addOutputLine("}\n\n\n", true, false);
+    }
+    else
+    {
+        addOutputLine("\n");
+    }
+}
+
+std::string FF7::FF7SimpleCodeGenerator::constructFuncSignature(const Function &func)
+{
+    // Generate name
+    return func._name + " = function( self )";
+}
+
 const std::string FF7::FF7CodeGeneratorHelpers::FormatInstructionNotImplemented(const std::string& entity, uint32 address, uint32 opcode)
 {
     return (boost::format("-- log:log(\"In entity \\\"%1%\\\", address 0x%2$08x: instruction 0x%3$04x not implemented\")") % entity % address % opcode).str();

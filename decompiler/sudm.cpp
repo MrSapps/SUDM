@@ -45,8 +45,9 @@ namespace SUDM
                 controlFlow->createGroups();
 
                 // Decompile/analyze
-                Graph graph = controlFlow->analyze();
-                engine.postCFG(insts, graph);
+                //Graph graph = controlFlow->analyze();
+                //engine.postCFG(insts, graph);
+                Graph graph;
 
                 DecompiledScript ds;
 

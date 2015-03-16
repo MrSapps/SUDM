@@ -140,6 +140,29 @@ namespace FF7
         const InstVec& mInsts;
     };
 
+
+    class FF7SimpleCodeGenerator : public CodeGenerator
+    {
+    public:
+        FF7SimpleCodeGenerator(Engine *engine, const InstVec& insts, std::ostream &output)
+            : CodeGenerator(engine, output, kFIFOArgOrder, kLIFOArgOrder),
+            mInsts(insts)
+        {
+            mTargetLang = std::make_unique<LuaTargetLanguage>();
+        }
+        virtual void generate(InstVec& insts, const Graph &g) override;
+        virtual void addOutputLine(std::string s, bool unindentBefore = false, bool indentAfter = false) override;
+    protected:
+        virtual std::string constructFuncSignature(const Function &func) override;
+        virtual void onEndFunction(const Function& func) override;
+        virtual void onBeforeStartFunction(const Function& func) override;
+        virtual void onStartFunction(const Function& func) override;
+        virtual bool OutputOnlyRequiredLabels() const override { return true; }
+    private:
+        const InstVec& mInsts;
+        std::vector<CodeLine> mLines;
+    };
+
     namespace FF7CodeGeneratorHelpers
     {
         enum struct ValueType : int

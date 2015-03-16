@@ -21,10 +21,14 @@ std::unique_ptr<Disassembler> FF7::FF7FieldEngine::getDisassembler(InstVec &inst
 
 std::unique_ptr<CodeGenerator> FF7::FF7FieldEngine::getCodeGenerator(const InstVec& insts, std::ostream &output)
 {
-    return std::make_unique<FF7CodeGenerator>(this, insts, output);
+    // dessert: the broken version
+    //return std::make_unique<FF7CodeGenerator>(this, insts, output);
+
+    // dessert: the not-as-nice-but-at-least-it-works version
+    return std::make_unique<FF7SimpleCodeGenerator>(this, insts, output);
 }
 
-void FF7::FF7FieldEngine::postCFG(InstVec& insts, Graph g)
+void FF7::FF7FieldEngine::postCFG(InstVec& /*insts*/, Graph /*g*/)
 {
     /*
     // In FF7 some scripts ends with an infinite loop to "keep it alive"
@@ -280,7 +284,7 @@ void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engi
 
     ValuePtr v = new BinaryOpValue(new VarValue(source), new VarValue(destination), op);
 
-    stack.push(v->negate());
+    stack.push(v);
 }
 
 uint32 FF7::FF7CondJumpInstruction::getDestAddress() const
@@ -465,9 +469,9 @@ void FF7::FF7ControlFlowInstruction::processWAIT(CodeGenerator* codeGen)
     codeGen->addOutputLine((boost::format("script:wait( %1% )") % (_params[0]->getUnsigned() / 30.0f)).str());
 }
 
-void FF7::FF7ModuleInstruction::processInst(Function& func, ValueStack&, Engine* engine, CodeGenerator *codeGen)
+void FF7::FF7ModuleInstruction::processInst(Function& func, ValueStack&, Engine* /*engine*/, CodeGenerator *codeGen)
 {
-    FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
+    //FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
 
     FunctionMetaData md(func._metadata);
 
@@ -585,9 +589,9 @@ void FF7::FF7ModuleInstruction::processBTLON(CodeGenerator* codeGen)
     codeGen->addOutputLine((boost::format("-- field:random_encounter_on( %1% )") % FF7CodeGeneratorHelpers::FormatInvertedBool(_params[0]->getUnsigned())).str());
 }
 
-void FF7::FF7MathInstruction::processInst(Function& func, ValueStack&, Engine* engine, CodeGenerator *codeGen)
+void FF7::FF7MathInstruction::processInst(Function& func, ValueStack&, Engine* /*engine*/, CodeGenerator *codeGen)
 {
-    FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
+    //FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
 
     FunctionMetaData md(func._metadata);
 
@@ -831,7 +835,7 @@ void FF7::FF7MathInstruction::processSaturatedDEC2(CodeGenerator* codeGen)
 
 void FF7::FF7MathInstruction::processRDMSD(CodeGenerator* codeGen)
 {
-    // TODO: verify we actually have os.time
+    // TODO: we don't have os.time...
     // TODO: RNG emulation?
     codeGen->addOutputLine("math.randomseed( os.time() )");
 }
@@ -851,6 +855,7 @@ void FF7::FF7MathInstruction::processBITON(CodeGenerator* codeGen)
     const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
     const auto& bitIndex = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
     // TODO: respect destination bank sizes (16-bit writes only affect low byte)
+    // TODO: Lua didn't get bitwise ops until a later version than we are using. these need to be handled C++-side
     codeGen->addOutputLine((boost::format("-- %1% = %1% | (0x01 << %2%) -- alt: %1% = bit32.bor( %1%, bit32.lshift( 1, %2% ) )") % destination % bitIndex).str());
 }
 
@@ -880,9 +885,9 @@ void FF7::FF7MathInstruction::processRANDOM(CodeGenerator* codeGen)
     codeGen->addOutputLine((boost::format("%1% = math.random( 0, 255 )") % destination).str());
 }
 
-void FF7::FF7WindowInstruction::processInst(Function& func, ValueStack&, Engine* engine, CodeGenerator *codeGen)
+void FF7::FF7WindowInstruction::processInst(Function& func, ValueStack&, Engine* /*engine*/, CodeGenerator *codeGen)
 {
-    FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
+    //FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
 
     FunctionMetaData md(func._metadata);
 
@@ -1005,9 +1010,9 @@ void FF7::FF7WindowInstruction::processWINDOW(CodeGenerator* codeGen)
     codeGen->addOutputLine((boost::format("-- create window ID %1%, x=%2%, y=%3%, width=%4%, height=%5%") % windowId % x % y % width % height).str());
 }
 
-void FF7::FF7PartyInstruction::processInst(Function& func, ValueStack&, Engine* engine, CodeGenerator *codeGen)
+void FF7::FF7PartyInstruction::processInst(Function& func, ValueStack&, Engine* /*engine*/, CodeGenerator *codeGen)
 {
-    FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
+    //FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
 
     FunctionMetaData md(func._metadata);
 
@@ -1600,9 +1605,9 @@ void FF7::FF7ModelInstruction::processSOLID(CodeGenerator* codeGen, const std::s
     codeGen->addOutputLine((boost::format("self.%1%:set_solid( %2% )") % entity % FF7CodeGeneratorHelpers::FormatInvertedBool(_params[0]->getUnsigned())).str());
 }
 
-void FF7::FF7WalkmeshInstruction::processInst(Function& func, ValueStack&, Engine* engine, CodeGenerator *codeGen)
+void FF7::FF7WalkmeshInstruction::processInst(Function& func, ValueStack&, Engine* /*engine*/, CodeGenerator *codeGen)
 {
-    FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
+    //FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
 
     FunctionMetaData md(func._metadata);
 
@@ -1642,9 +1647,9 @@ void FF7::FF7WalkmeshInstruction::processUC(CodeGenerator* codeGen)
     codeGen->addOutputLine((boost::format("entity_manager:player_lock( %1% )") % FF7CodeGeneratorHelpers::FormatBool(_params[0]->getUnsigned())).str());
 }
 
-void FF7::FF7BackgroundInstruction::processInst(Function& func, ValueStack&, Engine* engine, CodeGenerator *codeGen)
+void FF7::FF7BackgroundInstruction::processInst(Function& func, ValueStack&, Engine* /*engine*/, CodeGenerator *codeGen)
 {
-    FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
+    //FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
 
     FunctionMetaData md(func._metadata);
 
@@ -1811,9 +1816,9 @@ void FF7::FF7BackgroundInstruction::processLDPLS(CodeGenerator* codeGen)
     codeGen->addOutputLine((boost::format("-- load palette %2% from position %1%, start CLUT index %3%, %4% entries") % source % destination % startClut % numEntries).str());
 }
 
-void FF7::FF7CameraInstruction::processInst(Function& func, ValueStack&, Engine* engine, CodeGenerator *codeGen)
+void FF7::FF7CameraInstruction::processInst(Function& func, ValueStack&, Engine* /*engine*/, CodeGenerator *codeGen)
 {
-    FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
+    //FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
 
     FunctionMetaData md(func._metadata);
 
@@ -1940,12 +1945,12 @@ void FF7::FF7CameraInstruction::processFADE(CodeGenerator* codeGen)
     // TODO: needs to be divided by 30.0f?
     auto speed = _params[7]->getUnsigned();
     auto start = _params[9]->getUnsigned();
-    codeGen->addOutputLine((boost::format("-- fade:fade( %2%, %3%, %4%, %1%, %5%, %6% )") % type % r % g % b % type % speed % start).str());
+    codeGen->addOutputLine((boost::format("-- fade:fade( %2%, %3%, %4%, %1%, %5%, %6% )") % type % r % g % b % speed % start).str());
 }
 
-void FF7::FF7AudioVideoInstruction::processInst(Function& func, ValueStack&, Engine* engine, CodeGenerator *codeGen)
+void FF7::FF7AudioVideoInstruction::processInst(Function& func, ValueStack&, Engine* /*engine*/, CodeGenerator *codeGen)
 {
-    FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
+    //FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
 
     FunctionMetaData md(func._metadata);
 
@@ -2076,9 +2081,9 @@ void FF7::FF7AudioVideoInstruction::processMVIEF(CodeGenerator* codeGen)
     codeGen->addOutputLine((boost::format("-- %1% = field:get_movie_frame()") % destination).str());
 }
 
-void FF7::FF7UncategorizedInstruction::processInst(Function& func, ValueStack&, Engine* engine, CodeGenerator *codeGen)
+void FF7::FF7UncategorizedInstruction::processInst(Function& func, ValueStack&, Engine* /*engine*/, CodeGenerator *codeGen)
 {
-    FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
+    //FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
 
     FunctionMetaData md(func._metadata);
 
