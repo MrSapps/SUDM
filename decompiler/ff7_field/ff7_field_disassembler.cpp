@@ -315,7 +315,7 @@ std::vector<unsigned char> FF7::FF7Disassembler::Assemble(const std::string& inp
 {
     // Convert the array to a map that we can query on by mnemonic
     std::map<std::string, const TInstructRecord*> mnemonicToInstructionRecords;
-    for (size_t i = 0; i < _countof(kOpcodes); i++)
+    for (size_t i = 0; i < boost::size(kOpcodes); i++)
     {
         mnemonicToInstructionRecords[kOpcodes[i].mMnemonic] = &kOpcodes[i];
     }
@@ -361,7 +361,7 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
     /* Need all opcodes in the array before this will work
     // Convert the array to a map that we can query on by opcode
     std::map<unsigned int, const TInstructRecord*> opcodeToInstructionRecords;
-    for (size_t i = 0; i < _countof(kOpcodes); i++)
+    for (size_t i = 0; i < boost::size(kOpcodes); i++)
     {
         opcodeToInstructionRecords[kOpcodes[i].mOpCode] = &kOpcodes[i];
     }
