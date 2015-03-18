@@ -273,15 +273,15 @@ void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engi
     case 9:
     {
         op = "hasbit("+ source + ", bit(" + destination + "))";
-        ValuePtr v = new StringValue("if (" + op + ") then");
+        ValuePtr v = new StringValue(op);
         stack.push(v);
     }
         return;
 
     case 0xA:
     {
-        op = "clearbit(" + source + ", bit(" + destination + "))";
-        ValuePtr v = new StringValue("if (" + op + ") then");
+        op = "not hasbit(" + source + ", bit(" + destination + "))";
+        ValuePtr v = new StringValue(op);
         stack.push(v);
     }
         return;
