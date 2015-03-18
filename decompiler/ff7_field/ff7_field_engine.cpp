@@ -229,6 +229,9 @@ void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engi
 
     std::string op;
     uint32 type = _params[4]->getUnsigned();
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+
     switch (type)
     {
     case 0:
@@ -268,23 +271,28 @@ void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engi
         break;
 
     case 9:
-        op = "BitOn";
-        break;
+    {
+        op = "hasbit("+ source + ", bit(" + destination + "))";
+        ValuePtr v = new StringValue("if (" + op + ") then");
+        stack.push(v);
+    }
+        return;
 
     case 0xA:
-        op = "BitOff";
-        break;
+    {
+        op = "clearbit(" + source + ", bit(" + destination + "))";
+        ValuePtr v = new StringValue("if (" + op + ") then");
+        stack.push(v);
+    }
+        return;
 
     default:
         throw UnknownConditionalOperatorException(_address, type);
     }
 
-    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
 
     ValuePtr v = new BinaryOpValue(new VarValue(source), new VarValue(destination), op);
-
-    stack.push(v);
+    stack.push(v); 
 }
 
 uint32 FF7::FF7CondJumpInstruction::getDestAddress() const
