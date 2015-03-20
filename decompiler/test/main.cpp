@@ -184,19 +184,6 @@ TEST(FF7Field, FunctionMetaData_Parse_StartEnd)
     ASSERT_EQ(true, meta.IsStart());
 }
 
-TEST(FF7World, Asm)
-{
-    DummyFormatter dummy;
-    FF7::FF7FieldEngine eng(dummy);
-
-    InstVec insts;
-    FF7::FF7Disassembler d(dummy, &eng, insts);
-
-    d.Assemble("NOP");
-
-}
-
-
 TEST(FF7World, DISABLED_DisAsm)
 {
     for (int i = 0; i < 256; i++)
@@ -275,3 +262,182 @@ int main(int argc, char** argv)
     ::testing::InitGoogleMock(&argc, argv);
     return RUN_ALL_TESTS();
 }
+
+class Tokenzier
+{
+public:
+    Tokenzier(const std::string& input)
+        : mData(input)
+    {
+
+    }
+
+    enum class eTokenType
+    {
+        eWhiteSpace,
+        eText,
+        eNumber,
+        eLineBreak,
+        eInvalid,
+        eEof
+    };
+
+    class Token
+    {
+    public:
+        Token(eTokenType type, std::string text)
+            : mType(type), mText(text)
+        {
+
+        }
+
+        Token(eTokenType type)
+            : mType(type)
+        {
+
+        }
+
+        std::string AsString() const
+        {
+            return mText;
+        }
+
+        eTokenType Type() const { return mType; }
+    private:
+        std::string mText;
+        eTokenType mType;
+    };
+
+
+    Token Next()
+    {
+        char item = ' ';
+
+        if (!mData)
+        {
+            return Token(eTokenType::eEof);
+        }
+
+        mData.read(&item, 1);
+
+        bool space = std::isspace(item, mLoc);
+        if (space)
+        {
+            // eWhiteSpace, consumes until not whitespace
+            do
+            {
+                mData.read(&item, 1);
+                if (!mData)
+                {
+                    return Token(eTokenType::eEof);
+                }
+                space = std::isspace(item, mLoc);
+            } while (space);
+        }
+
+        const bool alpha = std::isalpha(item, mLoc);
+        if (alpha)
+        {
+            if (item == ';')
+            {
+                // Begin comment, consume until eLineBreak
+                bool isLineBreak = false;
+                do
+                {
+                    mData.read(&item, 1);
+                    if (!mData)
+                    {
+                        return Token(eTokenType::eEof);
+                    } 
+                    isLineBreak = item == '\r' || item == '\n';
+                } while (!isLineBreak);
+
+                return Token(eTokenType::eLineBreak);
+            }
+            else
+            {
+                std::string text(1, item);
+
+                // eText, consume until eLineBreak or whitespace
+                bool isLineBreakOrWhitespace = false;
+                do
+                {
+                    mData.read(&item, 1);
+                    if (!mData)
+                    {
+                        return Token(eTokenType::eText, text);
+                    }
+                    isLineBreakOrWhitespace = item == '\r' || item == '\n' || std::isspace(item, mLoc);
+                    if (!isLineBreakOrWhitespace)
+                    {
+                        text.push_back(item);
+                    }
+                } while (!isLineBreakOrWhitespace);
+
+                return Token(eTokenType::eText, text);
+            }
+        }
+        else
+        {
+            if (std::isdigit(item, mLoc))
+            {
+                // eNumber, consume until eLineBreak or whitespace, each item before that must be a digit
+                return Token(eTokenType::eNumber);
+            }
+            else if (item == '\r' || item == '\n')
+            {
+                // eLineBreak
+                return Token(eTokenType::eNumber);
+            }
+            else
+            {
+                // eInvalid
+                return Token(eTokenType::eInvalid);
+            }
+        }
+    }
+
+private:
+    std::locale mLoc;
+    std::stringstream mData;
+};
+
+
+
+TEST(Tokenzier, Empty)
+{
+    Tokenzier t("");
+    ASSERT_EQ(Tokenzier::eTokenType::eEof, t.Next().Type());
+}
+
+TEST(Tokenzier, ReadText)
+{
+    Tokenzier t("Hello");
+    Tokenzier::Token token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
+    ASSERT_EQ("Hello", token.AsString());
+}
+
+TEST(Tokenzier, ReadWhiteSpace)
+{
+
+}
+
+TEST(Tokenzier, ReadNewLine)
+{
+
+}
+
+
+TEST(FF7Field, Asm)
+{
+    DummyFormatter dummy;
+    FF7::FF7FieldEngine eng(dummy);
+
+    InstVec insts;
+    FF7::FF7Disassembler d(dummy, &eng, insts);
+
+    d.Assemble("NOP");
+
+}
+

@@ -42,7 +42,6 @@ void SimpleDisassembler::readParams(InstPtr inst, const char *typeString)
 {
     // Handle [] blocks as working on an individual element (i.e a BYTE,WORD etc)
     // this syntax allows picking of nibbles and bit fields into their own parameters.
-
     while (*typeString)
     {
         std::string typeStr(typeString, 1);
@@ -64,6 +63,28 @@ void SimpleDisassembler::readParams(InstPtr inst, const char *typeString)
         else
         {
             inst->_params.push_back(readParameter(inst, typeStr));
+        }
+        typeString++;
+    }
+}
+
+void  SimpleDisassembler::readParams(InstPtr inst, const char *typeString, const std::vector<std::string>& params)
+{
+    while (*typeString)
+    {
+        std::string typeStr(typeString, 1);
+        if (typeStr == "N") // Read nibbles 
+        {
+         
+            _address++;
+        }
+        else if (typeStr == "U")
+        {
+            _address++;
+        }
+        else
+        {
+           // inst->_params.push_back(readParameter(inst, typeStr));
         }
         typeString++;
     }

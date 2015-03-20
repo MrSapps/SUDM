@@ -38,6 +38,7 @@ protected:
 	 * @param typeString NUL-terminated string describing the type of each parameter.
 	 */
 	void readParams(InstPtr inst, const char *typeString);
+    void readParams(InstPtr inst, const char *typeString, const std::vector<std::string>& params);
 
 	/**
 	 * Reads data for a single parameter.

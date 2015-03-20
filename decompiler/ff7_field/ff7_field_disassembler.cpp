@@ -347,6 +347,9 @@ std::vector<unsigned char> FF7::FF7Disassembler::Assemble(const std::string& inp
         address += it->second->mOpCodeSize;
 
         // TODO: Parse params & size
+        parts.push_back("TEST");
+        parts.erase(parts.begin());
+        readParams(inst, it->second->mArgumentFormat, parts);
 
         insts.push_back(inst);
     }
