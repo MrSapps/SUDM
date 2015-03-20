@@ -129,7 +129,7 @@ void FF7::FF7SimpleCodeGenerator::generate(InstVec& insts, const Graph& /*g*/)
             }
             else if ((*instruction)->isUncondJump())
             {
-                addOutputLine((boost::format("goto ::label_0x%1$X::") % (*instruction)->getDestAddress()).str());
+                addOutputLine((boost::format("goto label_0x%1$X") % (*instruction)->getDestAddress()).str());
             }
             // else, was already output'd
         }

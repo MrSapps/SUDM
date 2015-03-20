@@ -185,7 +185,7 @@ public:
     {
         // LUA has no continue keyword
         //throw InternalDecompilerError();
-        return "-- TODO continue not supprted in LUA!";
+        return "-- TODO continue not supported in LUA!";
     }
 
     virtual std::string Goto(uint32 target) override
