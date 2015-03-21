@@ -184,7 +184,8 @@ TEST(FF7Field, FunctionMetaData_Parse_StartEnd)
     ASSERT_EQ(true, meta.IsStart());
 }
 
-TEST(FF7World, DISABLED_DisAsm)
+/*
+TEST(FF7World, DisAsm)
 {
     for (int i = 0; i < 256; i++)
     {
@@ -256,6 +257,7 @@ TEST(FF7World, DISABLED_DisAsm)
         ASSERT_TRUE(output.empty() == false);
     }
 }
+*/
 
 int main(int argc, char** argv)
 {

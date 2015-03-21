@@ -103,42 +103,42 @@ void checkFlow(const InstVec& insts)
     ASSERT_OP_LEN(FF7::eOpcodes::REQ, 3);
     ASSERT_PARAM_UNSIGNED(1);
     ASSERT_PARAM_UNSIGNED(2);
-    ASSERT_PARAM_UNSIGNED(3);
+    ASSERT_PARAM_UNSIGNED(0);
     index++;
 
     ASSERT_OP_LEN(FF7::eOpcodes::REQSW, 3);
     ASSERT_PARAM_UNSIGNED(1);
     ASSERT_PARAM_UNSIGNED(2);
-    ASSERT_PARAM_UNSIGNED(3);
+    ASSERT_PARAM_UNSIGNED(0);
     index++;
 
     ASSERT_OP_LEN(FF7::eOpcodes::REQEW, 3);
     ASSERT_PARAM_UNSIGNED(1);
     ASSERT_PARAM_UNSIGNED(2);
-    ASSERT_PARAM_UNSIGNED(3);
+    ASSERT_PARAM_UNSIGNED(0);
     index++;
 
     ASSERT_OP_LEN(FF7::eOpcodes::PREQ, 3);
     ASSERT_PARAM_UNSIGNED(1);
     ASSERT_PARAM_UNSIGNED(2);
-    ASSERT_PARAM_UNSIGNED(3);
+    ASSERT_PARAM_UNSIGNED(0);
     index++;
 
     ASSERT_OP_LEN(FF7::eOpcodes::PRQSW, 3);
     ASSERT_PARAM_UNSIGNED(1);
     ASSERT_PARAM_UNSIGNED(2);
-    ASSERT_PARAM_UNSIGNED(3);
+    ASSERT_PARAM_UNSIGNED(0);
     index++;
 
     ASSERT_OP_LEN(FF7::eOpcodes::PRQEW, 3);
     ASSERT_PARAM_UNSIGNED(1);
     ASSERT_PARAM_UNSIGNED(2);
-    ASSERT_PARAM_UNSIGNED(3);
+    ASSERT_PARAM_UNSIGNED(0);
     index++;
 
     ASSERT_OP_LEN(FF7::eOpcodes::RETTO, 2);
     ASSERT_PARAM_UNSIGNED(2);
-    ASSERT_PARAM_UNSIGNED(1);
+    ASSERT_PARAM_UNSIGNED(0);
     index++;
 
     ASSERT_OP_LEN(FF7::eOpcodes::JMPF, 1);
@@ -1913,15 +1913,15 @@ void checkUncat(const InstVec& insts)
 
 #include "lzs.h"
 
-TEST(FF7Field, DISABLED_Decomp_AllOpcodes)
+TEST(FF7Field, Decomp_AllOpcodes)
 //TEST(FF7Field, Decomp_AllOpcodes)
 {
     // TODO:
     // this "fails", but it appears to be due to the .dat making references to scripts that don't exist
     // to get it working, the Flow section of the .dat needs to be corrected, and then the DisasmAllOpcodes test needs to be adjusted so it still works
 
-    std::cout << "ready" << std::endl;
-    std::cin.ignore();
+    //std::cout << "ready" << std::endl;
+   // std::cin.ignore();
 
     auto scriptBytes = Lzs::Decompress(BinaryReader::ReadAll("decompiler/test/ff7_all_opcodes_by_category.dat"));
     //auto scriptBytes = Lzs::Decompress(BinaryReader::ReadAll("decompiler/test/anfrst_1.dat"));

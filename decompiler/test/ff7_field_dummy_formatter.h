@@ -36,9 +36,15 @@ public:
     }
 
     // Renames an animation, return empty string for generated name
-    virtual std::string AnimationName(int) override
+    virtual std::string AnimationName(int /*charId*/, int /*id*/) override
     {
         return "";
+    }
+
+    // Get name of char from its id
+    virtual std::string CharName(int charId) override
+    {
+        return std::to_string(charId);
     }
 
     // Renames a function in an entity

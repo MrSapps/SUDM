@@ -19,7 +19,10 @@ namespace SUDM
         virtual std::string EntityName(const std::string& entity) = 0;
 
         // Renames an animation, return empty string for generated name
-        virtual std::string AnimationName(int id) = 0;
+        virtual std::string AnimationName(int charId, int id) = 0;
+
+        // Get name of char from its id
+        virtual std::string CharName(int charId) = 0;
 
         // Renames a function in an entity
         virtual std::string FunctionName(const std::string& entity, const std::string& funcName) = 0;
@@ -51,10 +54,10 @@ namespace SUDM
             * returns a string containing [textToPrepend] [decompiled script] [textToAppend]
             */
             DecompiledScript Decompile(std::string scriptName,
-                                  const std::vector<unsigned char>& scriptBytes,
-                                  IScriptFormatter& formatter, 
-                                  std::string textToAppend = "", 
-                                  std::string textToPrepend = "");
+                const std::vector<unsigned char>& scriptBytes,
+                IScriptFormatter& formatter,
+                std::string textToAppend = "",
+                std::string textToPrepend = "");
         }
     }
 }

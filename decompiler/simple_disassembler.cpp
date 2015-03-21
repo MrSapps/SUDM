@@ -68,7 +68,7 @@ void SimpleDisassembler::readParams(InstPtr inst, const char *typeString)
     }
 }
 
-void  SimpleDisassembler::readParams(InstPtr inst, const char *typeString, const std::vector<std::string>& params)
+void SimpleDisassembler::readParams(InstPtr inst, const char *typeString, const std::vector<std::string>& params)
 {
     while (*typeString)
     {

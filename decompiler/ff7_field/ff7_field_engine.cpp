@@ -808,7 +808,7 @@ void FF7::FF7MathInstruction::processSaturatedMINUS2(CodeGenerator* codeGen)
 void FF7::FF7MathInstruction::processSaturatedINC(CodeGenerator* codeGen)
 {
     // TODO: check for assignment to value
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned());
     // TODO: repect destination bank sizes and negative wraparound
     codeGen->addOutputLine((boost::format("%1% = %1% + 1") % destination).str());
     codeGen->addOutputLine((boost::format("if (%1% > 255); %1% = 255; end") % destination).str());
@@ -817,7 +817,7 @@ void FF7::FF7MathInstruction::processSaturatedINC(CodeGenerator* codeGen)
 void FF7::FF7MathInstruction::processSaturatedINC2(CodeGenerator* codeGen)
 {
     // TODO: check for assignment to value
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned());
     // TODO: repect destination bank sizes and negative wraparound
     codeGen->addOutputLine((boost::format("%1% = %1% + 1") % destination).str());
     codeGen->addOutputLine((boost::format("if (%1% > 32767); %1% = 32767; end") % destination).str());
@@ -826,7 +826,7 @@ void FF7::FF7MathInstruction::processSaturatedINC2(CodeGenerator* codeGen)
 void FF7::FF7MathInstruction::processSaturatedDEC(CodeGenerator* codeGen)
 {
     // TODO: check for assignment to value
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned());
     // TODO: repect destination bank sizes and positive wraparound
     codeGen->addOutputLine((boost::format("%1% = %1% - 1") % destination).str());
     codeGen->addOutputLine((boost::format("if (%1% < 0); %1% = 0; end") % destination).str());
@@ -835,9 +835,9 @@ void FF7::FF7MathInstruction::processSaturatedDEC(CodeGenerator* codeGen)
 void FF7::FF7MathInstruction::processSaturatedDEC2(CodeGenerator* codeGen)
 {
     // TODO: check for assignment to value
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned());
     // TODO: repect destination bank sizes and positive wraparound
-    codeGen->addOutputLine((boost::format("%1% = %1% - 1")).str());
+    codeGen->addOutputLine((boost::format("%1% = %1% - 1") % destination).str());
     codeGen->addOutputLine((boost::format("if (%1% < 0); %1% = 0; end") % destination).str());
 }
 
