@@ -310,6 +310,15 @@ public:
         eTokenType mType;
     };
 
+    bool IsLineBreak(char item)
+    {
+        return item == '\r' || item == '\n';
+    }
+
+    bool IsSpace(char item, std::locale& loc)
+    {
+        return std::isspace(item, loc) && !IsLineBreak(item);
+    }
 
     Token Next()
     {
@@ -322,7 +331,7 @@ public:
 
         mData.read(&item, 1);
 
-        bool space = std::isspace(item, mLoc);
+        bool space = IsSpace(item, mLoc);
         if (space)
         {
             // eWhiteSpace, consumes until not whitespace
@@ -333,8 +342,22 @@ public:
                 {
                     return Token(eTokenType::eEof);
                 }
-                space = std::isspace(item, mLoc);
+                space = IsSpace(item, mLoc);
             } while (space);
+        }
+
+        if (IsLineBreak(item))
+        {
+            do
+            {
+                // If next char is a line break then consume it
+                item = static_cast<char>(mData.peek());
+                if (IsLineBreak(item))
+                {
+                    mData.read(&item, 1);
+                }
+            } while (IsLineBreak(item));
+            return Token(eTokenType::eLineBreak);
         }
 
         const bool alpha = std::isalpha(item, mLoc);
@@ -369,7 +392,7 @@ public:
                     {
                         return Token(eTokenType::eText, text);
                     }
-                    isLineBreakOrWhitespace = item == '\r' || item == '\n' || std::isspace(item, mLoc);
+                    isLineBreakOrWhitespace = IsLineBreak(item) || IsSpace(item, mLoc);
                     if (!isLineBreakOrWhitespace)
                     {
                         text.push_back(item);
@@ -384,11 +407,6 @@ public:
             if (std::isdigit(item, mLoc))
             {
                 // eNumber, consume until eLineBreak or whitespace, each item before that must be a digit
-                return Token(eTokenType::eNumber);
-            }
-            else if (item == '\r' || item == '\n')
-            {
-                // eLineBreak
                 return Token(eTokenType::eNumber);
             }
             else
@@ -415,21 +433,46 @@ TEST(Tokenzier, Empty)
 TEST(Tokenzier, ReadText)
 {
     Tokenzier t("Hello");
-    Tokenzier::Token token = t.Next();
-    ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
-    ASSERT_EQ("Hello", token.AsString());
+    {
+        Tokenzier::Token token = t.Next();
+        ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
+        ASSERT_EQ("Hello", token.AsString());
+    }
+    {
+        Tokenzier::Token token = t.Next();
+        ASSERT_EQ(Tokenzier::eTokenType::eEof, token.Type());
+        ASSERT_EQ("", token.AsString());
+    }
 }
 
 TEST(Tokenzier, ReadWhiteSpace)
 {
-
+    Tokenzier t("\t ");
+    {
+        Tokenzier::Token token = t.Next();
+        ASSERT_EQ(Tokenzier::eTokenType::eEof, token.Type());
+        ASSERT_EQ("", token.AsString());
+    }
 }
 
 TEST(Tokenzier, ReadNewLine)
 {
-
+    Tokenzier t("\r\n\r\r\n\n");
+    {
+        Tokenzier::Token token = t.Next();
+        ASSERT_EQ(Tokenzier::eTokenType::eLineBreak, token.Type());
+        ASSERT_EQ("", token.AsString());
+    }
+    {
+        Tokenzier::Token token = t.Next();
+        ASSERT_EQ(Tokenzier::eTokenType::eEof, token.Type());
+        ASSERT_EQ("", token.AsString());
+    }
 }
 
+// TODO: Read number
+
+// TODO: Combos, whitespace, new line, text, number, eof
 
 TEST(FF7Field, Asm)
 {
