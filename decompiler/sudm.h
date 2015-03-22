@@ -12,22 +12,22 @@ namespace SUDM
     public:
         virtual ~IScriptFormatter() = default;
 
-        // Renames a variable, return empty string for generated name
+        // Renames a variable, return empty string for generated name, can return empty
         virtual std::string VarName(unsigned int bank, unsigned int addr) = 0;
 
-        // Renames an entity
+        // Renames an entity, can't return empty
         virtual std::string EntityName(const std::string& entity) = 0;
 
-        // Renames an animation, return empty string for generated name
+        // Names an animation, can't return empty
         virtual std::string AnimationName(int charId, int id) = 0;
 
-        // Get name of char from its id
+        // Get name of char from its id, can't return empty
         virtual std::string CharName(int charId) = 0;
 
-        // Renames a function in an entity
+        // Renames a function in an entity, can't return empty
         virtual std::string FunctionName(const std::string& entity, const std::string& funcName) = 0;
 
-        // Sets the header comment for a function in an entity
+        // Sets the header comment for a function in an entity, can return empty
         virtual std::string FunctionComment(const std::string& entity, const std::string& funcName) = 0;
     };
 

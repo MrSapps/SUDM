@@ -35,10 +35,10 @@ public:
         return entity;
     }
 
-    // Renames an animation, return empty string for generated name
-    virtual std::string AnimationName(int /*charId*/, int /*id*/) override
+    // Names an animation
+    virtual std::string AnimationName(int /*charId*/, int id) override
     {
-        return "";
+        return std::to_string(id);
     }
 
     // Get name of char from its id
@@ -56,6 +56,6 @@ public:
     // Sets the header comment for a function in an entity
     virtual std::string FunctionComment(const std::string& , const std::string& ) override
     {
-        return "";
+        return "function comment";
     }
 };

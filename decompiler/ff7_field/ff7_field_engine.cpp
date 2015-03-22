@@ -25,7 +25,7 @@ std::unique_ptr<CodeGenerator> FF7::FF7FieldEngine::getCodeGenerator(const InstV
     //return std::make_unique<FF7CodeGenerator>(this, insts, output);
 
     // dessert: the not-as-nice-but-at-least-it-works version
-    return std::make_unique<FF7SimpleCodeGenerator>(this, insts, output);
+    return std::make_unique<FF7SimpleCodeGenerator>(this, insts, output, mFormatter);
 }
 
 void FF7::FF7FieldEngine::postCFG(InstVec& /*insts*/, Graph /*g*/)
@@ -170,34 +170,10 @@ void FF7::FF7FieldEngine::MarkInfiniteLoopGroups(InstVec& insts, Graph g)
     }
 }
 
-static std::string GetVarName(uint32 bank, uint32 addr)
+void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator* codeGen)
 {
-    if (bank == 0)
-    {
-        // Just a number
-        return std::to_string(addr);
-    }
-    else if (bank == 1 || bank == 2 || bank == 3 || bank == 13 || bank == 15)
-    {
-        // TODO: Get the textual name of the var such as tifaLovePoints
-        return "var_" + std::to_string(bank) + "_" + std::to_string(addr);
-    }
-    else if (bank == 5)
-    {
-        return "temp5_" + std::to_string(addr);
-    }
-    else if (bank == 6)
-    {
-        return "temp6_" + std::to_string(addr);
-    }
-    else
-    {
-        throw UnknownBankException();
-    }
-}
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
 
-void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engine*, CodeGenerator*)
-{
     std::string funcName;
     if (_opcode == eOpcodes::IFKEYON)
     {
@@ -229,8 +205,8 @@ void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engi
 
     std::string op;
     uint32 type = _params[4]->getUnsigned();
-    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
 
     switch (type)
     {
@@ -588,7 +564,8 @@ void FF7::FF7ModuleInstruction::processInst(Function& func, ValueStack&, Engine*
 
 void FF7::FF7ModuleInstruction::processBATTLE(CodeGenerator* codeGen)
 {
-    const auto& battleId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& battleId = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[1]->getUnsigned());
     codeGen->addOutputLine((boost::format("-- field:battle_run( %1% )") % battleId).str());
 }
 
@@ -600,6 +577,7 @@ void FF7::FF7ModuleInstruction::processBTLON(CodeGenerator* codeGen)
 void FF7::FF7MathInstruction::processInst(Function& func, ValueStack&, Engine* /*engine*/, CodeGenerator *codeGen)
 {
     //FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
 
     FunctionMetaData md(func._metadata);
 
@@ -688,11 +666,10 @@ void FF7::FF7MathInstruction::processInst(Function& func, ValueStack&, Engine* /
     {
         const uint32 srcBank = _params[0]->getUnsigned();
         const uint32 srcAddrOrValue = _params[2]->getUnsigned();
-        auto s = GetVarName(srcBank, srcAddrOrValue);
-
+        auto s = FF7::FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, srcBank, srcAddrOrValue);
         const uint32 dstBank = _params[1]->getUnsigned();
         const uint32 dstAddr = _params[3]->getUnsigned();
-        auto d = GetVarName(dstBank, dstAddr);
+        auto d = FF7::FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, dstBank, dstAddr);
 
         codeGen->addOutputLine(s + " = " + s + " % " + d + codeGen->TargetLang().LineTerminator());
     }
@@ -767,9 +744,11 @@ void FF7::FF7MathInstruction::processInst(Function& func, ValueStack&, Engine* /
 
 void FF7::FF7MathInstruction::processSaturatedPLUS(CodeGenerator* codeGen)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: check for assignment to value
-    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     // TODO: repect destination bank sizes and negative wraparound
     codeGen->addOutputLine((boost::format("%1% = %1% + %2%") % lhs % rhs).str());
     codeGen->addOutputLine((boost::format("if (%1% > 255); %1% = 255; end") % lhs).str());
@@ -777,9 +756,11 @@ void FF7::FF7MathInstruction::processSaturatedPLUS(CodeGenerator* codeGen)
 
 void FF7::FF7MathInstruction::processSaturatedPLUS2(CodeGenerator* codeGen)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: check for assignment to value
-    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     // TODO: repect destination bank sizes and negative wraparound
     codeGen->addOutputLine((boost::format("%1% = %1% + %2%") % lhs % rhs).str());
     codeGen->addOutputLine((boost::format("if (%1% > 32767); %1% = 32767; end") % lhs).str());
@@ -787,9 +768,11 @@ void FF7::FF7MathInstruction::processSaturatedPLUS2(CodeGenerator* codeGen)
 
 void FF7::FF7MathInstruction::processSaturatedMINUS(CodeGenerator* codeGen)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: check for assignment to value
-    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     // TODO: repect destination bank sizes and positive wraparound
     codeGen->addOutputLine((boost::format("%1% = %1% - %2%") % lhs % rhs).str());
     codeGen->addOutputLine((boost::format("if (%1% < 0); %1% = 0; end") % lhs).str());
@@ -797,9 +780,11 @@ void FF7::FF7MathInstruction::processSaturatedMINUS(CodeGenerator* codeGen)
 
 void FF7::FF7MathInstruction::processSaturatedMINUS2(CodeGenerator* codeGen)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: check for assignment to value
-    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     // TODO: repect destination bank sizes and positive wraparound
     codeGen->addOutputLine((boost::format("%1% = %1% - %2%") % lhs % rhs).str());
     codeGen->addOutputLine((boost::format("if (%1% < 0); %1% = 0; end") % lhs).str());
@@ -807,8 +792,10 @@ void FF7::FF7MathInstruction::processSaturatedMINUS2(CodeGenerator* codeGen)
 
 void FF7::FF7MathInstruction::processSaturatedINC(CodeGenerator* codeGen)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: check for assignment to value
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[1]->getUnsigned());
     // TODO: repect destination bank sizes and negative wraparound
     codeGen->addOutputLine((boost::format("%1% = %1% + 1") % destination).str());
     codeGen->addOutputLine((boost::format("if (%1% > 255); %1% = 255; end") % destination).str());
@@ -816,8 +803,10 @@ void FF7::FF7MathInstruction::processSaturatedINC(CodeGenerator* codeGen)
 
 void FF7::FF7MathInstruction::processSaturatedINC2(CodeGenerator* codeGen)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: check for assignment to value
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[1]->getUnsigned());
     // TODO: repect destination bank sizes and negative wraparound
     codeGen->addOutputLine((boost::format("%1% = %1% + 1") % destination).str());
     codeGen->addOutputLine((boost::format("if (%1% > 32767); %1% = 32767; end") % destination).str());
@@ -825,8 +814,10 @@ void FF7::FF7MathInstruction::processSaturatedINC2(CodeGenerator* codeGen)
 
 void FF7::FF7MathInstruction::processSaturatedDEC(CodeGenerator* codeGen)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: check for assignment to value
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[1]->getUnsigned());
     // TODO: repect destination bank sizes and positive wraparound
     codeGen->addOutputLine((boost::format("%1% = %1% - 1") % destination).str());
     codeGen->addOutputLine((boost::format("if (%1% < 0); %1% = 0; end") % destination).str());
@@ -834,8 +825,10 @@ void FF7::FF7MathInstruction::processSaturatedDEC(CodeGenerator* codeGen)
 
 void FF7::FF7MathInstruction::processSaturatedDEC2(CodeGenerator* codeGen)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: check for assignment to value
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[1]->getUnsigned());
     // TODO: repect destination bank sizes and positive wraparound
     codeGen->addOutputLine((boost::format("%1% = %1% - 1") % destination).str());
     codeGen->addOutputLine((boost::format("if (%1% < 0); %1% = 0; end") % destination).str());
@@ -850,18 +843,22 @@ void FF7::FF7MathInstruction::processRDMSD(CodeGenerator* codeGen)
 
 void FF7::FF7MathInstruction::processSETBYTE_SETWORD(CodeGenerator* codeGen)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: check for assignment to value
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     // TODO: respect destination bank sizes (16-bit writes only affect low byte)
     codeGen->addOutputLine((boost::format("%1% = %2%") % destination % source).str());
 }
 
 void FF7::FF7MathInstruction::processBITON(CodeGenerator* codeGen)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: check for assignment to value
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& bitIndex = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& bitIndex = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     // TODO: respect destination bank sizes (16-bit writes only affect low byte)
     // TODO: Lua didn't get bitwise ops until a later version than we are using. these need to be handled C++-side
     codeGen->addOutputLine((boost::format("-- %1% = %1% | (0x01 << %2%) -- alt: %1% = bit32.bor( %1%, bit32.lshift( 1, %2% ) )") % destination % bitIndex).str());
@@ -869,25 +866,31 @@ void FF7::FF7MathInstruction::processBITON(CodeGenerator* codeGen)
 
 void FF7::FF7MathInstruction::processPLUSx_MINUSx(CodeGenerator* codeGen, const std::string& op)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: check for assignment to value
-    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    const auto& lhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& rhs = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     // TODO: repect destination bank sizes and wraparound
     codeGen->addOutputLine((boost::format("%1% = %1% %2% %3%") % lhs % op % rhs).str());
 }
 
 void FF7::FF7MathInstruction::processINCx_DECx(CodeGenerator* codeGen, const std::string& op)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: check for assignment to value
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[1]->getUnsigned());
     // TODO: repect destination bank sizes and wraparound
     codeGen->addOutputLine((boost::format("%1% = %1% %2% 1") % destination % op).str());
 }
 
 void FF7::FF7MathInstruction::processRANDOM(CodeGenerator* codeGen)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: check for assignment to value
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[1]->getUnsigned());
     // TODO: repect destination bank sizes (16-bit writes only affect low byte)
     // TODO: RNG emulation?
     codeGen->addOutputLine((boost::format("%1% = math.random( 0, 255 )") % destination).str());
@@ -1133,18 +1136,21 @@ void FF7::FF7PartyInstruction::processInst(Function& func, ValueStack&, Engine* 
 
 void FF7::FF7PartyInstruction::processSTITM(CodeGenerator* codeGen)
 {
-    const auto& itemId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& amount = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
+    const auto& itemId = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& amount = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     codeGen->addOutputLine((boost::format("FFVII.add_item( %1%, %2% )") % itemId % amount).str());
 }
 
 void FF7::FF7PartyInstruction::processPRTYE(CodeGenerator* codeGen)
 {
-    auto characterId1 = FF7CodeGeneratorHelpers::GetCharacterNameById(_params[0]->getUnsigned());
+    FF7SimpleCodeGenerator* gc = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    auto characterId1 = gc->mFormatter.CharName(_params[0]->getUnsigned());
     characterId1 = (characterId1 == "") ? "nil" : ("\"" + characterId1 + "\"");
-    auto characterId2 = FF7CodeGeneratorHelpers::GetCharacterNameById(_params[1]->getUnsigned());
+    auto characterId2 = gc->mFormatter.CharName(_params[1]->getUnsigned());
     characterId2 = (characterId2 == "") ? "nil" : ("\"" + characterId2 + "\"");
-    auto characterId3 = FF7CodeGeneratorHelpers::GetCharacterNameById(_params[2]->getUnsigned());
+    auto characterId3 = gc->mFormatter.CharName(_params[2]->getUnsigned());
     characterId3 = (characterId3 == "") ? "nil" : ("\"" + characterId3 + "\"");
     codeGen->addOutputLine((boost::format("FFVII.set_party( %1%, %2%, %3% )") % characterId1 % characterId2 % characterId3).str());
 }
@@ -1266,11 +1272,11 @@ void FF7::FF7ModelInstruction::processInst(Function& func, ValueStack&, Engine* 
         break;
 
     case eOpcodes::DFANM:
-        processDFANM(codeGen, md.EntityName());
+        processDFANM(codeGen, md.EntityName(), md.CharacterId());
         break;
 
     case eOpcodes::ANIME1:
-        processANIME1(codeGen, md.EntityName());
+        processANIME1(codeGen, md.EntityName(), md.CharacterId());
         break;
 
     case eOpcodes::VISI:
@@ -1362,15 +1368,15 @@ void FF7::FF7ModelInstruction::processInst(Function& func, ValueStack&, Engine* 
         break;
 
     case eOpcodes::ANIM_2:
-        processANIM_2(codeGen, md.EntityName());
+        processANIM_2(codeGen, md.EntityName(), md.CharacterId());
         break;
 
     case eOpcodes::CANIM2:
-        processCANIM2(codeGen, md.EntityName());
+        processCANIM2(codeGen, md.EntityName(), md.CharacterId());
         break;
 
     case eOpcodes::CANM_2:
-        processCANM_2(codeGen, md.EntityName());
+        processCANM_2(codeGen, md.EntityName(), md.CharacterId());
         break;
 
     case eOpcodes::ASPED:
@@ -1457,9 +1463,10 @@ void FF7::FF7ModelInstruction::processCHAR(CodeGenerator* codeGen, const std::st
     codeGen->addOutputLine((boost::format("self.%1% = entity_manager:get_entity( \"%1%\" )") % entity).str());
 }
 
-void FF7::FF7ModelInstruction::processDFANM(CodeGenerator* codeGen, const std::string& entity)
+void FF7::FF7ModelInstruction::processDFANM(CodeGenerator* codeGen, const std::string& entity, int charId)
 {
     // ID will be fixed-up downstream
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
     auto animationId = _params[0]->getUnsigned();
     // TODO: check for zero
     auto speed = 1.0f / _params[1]->getUnsigned();
@@ -1467,13 +1474,14 @@ void FF7::FF7ModelInstruction::processDFANM(CodeGenerator* codeGen, const std::s
     codeGen->addOutputLine((boost::format("self.%1%:play_animation( %2% )") % entity % animationId).str());
 }
 
-void FF7::FF7ModelInstruction::processANIME1(CodeGenerator* codeGen, const std::string& entity)
+void FF7::FF7ModelInstruction::processANIME1(CodeGenerator* codeGen, const std::string& entity, int charId)
 {
     // ID will be fixed-up downstream
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
     auto animationId = _params[0]->getUnsigned();
     // TODO: check for zero
     auto speed = 1.0f / _params[1]->getUnsigned();
-    codeGen->addOutputLine((boost::format("self.%1%:play_animation( %2% ) -- speed %3%") % entity % animationId % speed).str());
+    codeGen->addOutputLine((boost::format("self.%1%:play_animation( %2% ) -- speed %3%") % entity % cg->mFormatter.AnimationName(charId, animationId) % speed).str());
     codeGen->addOutputLine((boost::format("self.%1%:animation_sync()") % entity).str());
 }
 
@@ -1484,42 +1492,52 @@ void FF7::FF7ModelInstruction::processVISI(CodeGenerator* codeGen, const std::st
 
 void FF7::FF7ModelInstruction::processXYZI(CodeGenerator* codeGen, const std::string& entity)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: variable scale
     float scale = 128.0f;
-    const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[4]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
-    const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[5]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
-    const auto& z = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[2]->getUnsigned(), _params[6]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
-    const auto& triangleId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[3]->getUnsigned(), _params[7]->getUnsigned());
+    const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[4]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
+    const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[5]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
+    const auto& z = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[2]->getUnsigned(), _params[6]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
+    const auto& triangleId = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[3]->getUnsigned(), _params[7]->getUnsigned());
     codeGen->addOutputLine((boost::format("self.%1%:set_position( %2%, %3%, %4% ) -- triangle ID %5%") % entity % x % y % z % triangleId).str());
 }
 
 void FF7::FF7ModelInstruction::processMOVE(CodeGenerator* codeGen, const std::string& entity)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: variable scale
     float scale = 128.0f;
-    const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
-    const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
+    const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
+    const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
     codeGen->addOutputLine((boost::format("self.%1%:move_to_position( %2%, %3% )") % entity % x % y).str());
     codeGen->addOutputLine((boost::format("self.%1%:move_sync()") % entity).str());
 }
 
 void FF7::FF7ModelInstruction::processMSPED(CodeGenerator* codeGen, const std::string& entity)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: variable scale
     float scale = 128.0f;
-    const auto& speed = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[2]->getUnsigned(), FF7CodeGeneratorHelpers::ValueType::Float, 256.0f * scale / 30.0f);
+    const auto& speed = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[2]->getUnsigned(), FF7CodeGeneratorHelpers::ValueType::Float, 256.0f * scale / 30.0f);
     codeGen->addOutputLine((boost::format("self.%1%:set_move_auto_speed( %2% )") % entity % speed).str());
 }
 
 void FF7::FF7ModelInstruction::processDIR(CodeGenerator* codeGen, const std::string& entity)
 {
-    const auto& degrees = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[1]->getUnsigned(), FF7CodeGeneratorHelpers::ValueType::Float, 256.0f / 360.0f);
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
+    const auto& degrees = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[1]->getUnsigned(), FF7CodeGeneratorHelpers::ValueType::Float, 256.0f / 360.0f);
     codeGen->addOutputLine((boost::format("self.%1%:set_rotation( %2% )") % entity % degrees).str());
 }
 
 void FF7::FF7ModelInstruction::processTURNGEN(CodeGenerator* codeGen, const std::string& entity)
 {
-    const auto& degrees = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[2]->getUnsigned(), FF7CodeGeneratorHelpers::ValueType::Float, 256.0f / 360.0f);
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
+    const auto& degrees = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[2]->getUnsigned(), FF7CodeGeneratorHelpers::ValueType::Float, 256.0f / 360.0f);
 
     std::string direction;
     switch (_params[3]->getUnsigned())
@@ -1562,43 +1580,49 @@ void FF7::FF7ModelInstruction::processTURNGEN(CodeGenerator* codeGen, const std:
 
 void FF7::FF7ModelInstruction::processGETAI(CodeGenerator* codeGen, const FF7FieldEngine& engine)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // TODO: check for assignment to literal
-    const auto& variable = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    const auto& variable = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     const auto& entity = engine.EntityByIndex(_params[2]->getUnsigned());
     codeGen->addOutputLine((boost::format("%1% = entity_manager:get_entity( \"%2%\" ):get_move_triangle_id()") % variable % entity.Name()).str());
 }
 
-void FF7::FF7ModelInstruction::processANIM_2(CodeGenerator* codeGen, const std::string& entity)
+void FF7::FF7ModelInstruction::processANIM_2(CodeGenerator* codeGen, const std::string& entity, int charId)
 {
     // ID will be fixed-up downstream
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
     auto animationId = _params[0]->getUnsigned();
     // TODO: check for zero
     auto speed = 1.0f / _params[1]->getUnsigned();
-    codeGen->addOutputLine((boost::format("self.%1%:play_animation_stop( %2% ) -- speed %3%") % entity % animationId % speed).str());
+    codeGen->addOutputLine((boost::format("self.%1%:play_animation_stop( %2% ) -- speed %3%") % entity % cg->mFormatter.AnimationName(charId, animationId) % speed).str());
     codeGen->addOutputLine((boost::format("self.%1%:animation_sync()") % entity).str());
 }
 
-void FF7::FF7ModelInstruction::processCANIM2(CodeGenerator* codeGen, const std::string& entity)
+void FF7::FF7ModelInstruction::processCANIM2(CodeGenerator* codeGen, const std::string& entity, int charId)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    auto animationId = _params[0]->getUnsigned();
+    auto startFrame = _params[1]->getUnsigned() / 30.0f;
+    auto endFrame = _params[2]->getUnsigned() / 30.0f;
+    // TODO: check for zero
+    auto speed = 1.0f / _params[3]->getUnsigned();
+    codeGen->addOutputLine((boost::format("self.%1%:play_animation( %2%, %3%, %4% ) -- speed %5%") % entity % cg->mFormatter.AnimationName(charId, animationId) % startFrame % endFrame % speed).str());
+    codeGen->addOutputLine((boost::format("self.%1%:animation_sync()") % entity).str());
+}
+
+void FF7::FF7ModelInstruction::processCANM_2(CodeGenerator* codeGen, const std::string& entity, int charId)
+{
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
     // ID will be fixed-up downstream
     auto animationId = _params[0]->getUnsigned();
     auto startFrame = _params[1]->getUnsigned() / 30.0f;
     auto endFrame = _params[2]->getUnsigned() / 30.0f;
     // TODO: check for zero
     auto speed = 1.0f / _params[3]->getUnsigned();
-    codeGen->addOutputLine((boost::format("self.%1%:play_animation( %2%, %3%, %4% ) -- speed %5%") % entity % animationId % startFrame % endFrame % speed).str());
-    codeGen->addOutputLine((boost::format("self.%1%:animation_sync()") % entity).str());
-}
 
-void FF7::FF7ModelInstruction::processCANM_2(CodeGenerator* codeGen, const std::string& entity)
-{
-    // ID will be fixed-up downstream
-    auto animationId = _params[0]->getUnsigned();
-    auto startFrame = _params[1]->getUnsigned() / 30.0f;
-    auto endFrame = _params[2]->getUnsigned() / 30.0f;
-    // TODO: check for zero
-    auto speed = 1.0f / _params[3]->getUnsigned();
-    codeGen->addOutputLine((boost::format("self.%1%:play_animation_stop( %2%, %3%, %4% ) -- speed %5%") % entity % animationId % startFrame % endFrame % speed).str());
+    codeGen->addOutputLine((boost::format("self.%1%:play_animation_stop( %2%, %3%, %4% ) -- speed %5%") % entity % cg->mFormatter.AnimationName(charId, animationId) % startFrame % endFrame % speed).str());
     codeGen->addOutputLine((boost::format("self.%1%:animation_sync()") % entity).str());
 }
 
@@ -1742,66 +1766,74 @@ void FF7::FF7BackgroundInstruction::processInst(Function& func, ValueStack&, Eng
 
 void FF7::FF7BackgroundInstruction::processBGON(CodeGenerator* codeGen)
 {
-    const auto& backgroundId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& layerId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& backgroundId = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& layerId = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     codeGen->addOutputLine((boost::format("-- field:background_on( %1%, %2% )") % backgroundId % layerId).str());
 }
 
 void FF7::FF7BackgroundInstruction::processBGOFF(CodeGenerator* codeGen)
 {
-    const auto& backgroundId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& layerId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& backgroundId = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& layerId = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     codeGen->addOutputLine((boost::format("-- field:background_off( %1%, %2% )") % backgroundId % layerId).str());
 }
 
 void FF7::FF7BackgroundInstruction::processBGCLR(CodeGenerator* codeGen)
 {
-    const auto& backgroundId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[2]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& backgroundId = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[2]->getUnsigned());
     codeGen->addOutputLine((boost::format("-- field:background_clear( %1% )") % backgroundId).str());
 }
 
 void FF7::FF7BackgroundInstruction::processSTPAL(CodeGenerator* codeGen)
 {
-    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     auto numEntries = _params[4]->getUnsigned() + 1;
     codeGen->addOutputLine((boost::format("-- store palette %1% to position %2%, start CLUT index 0, %3% entries") % source % destination % numEntries).str());
 }
 
 void FF7::FF7BackgroundInstruction::processLDPAL(CodeGenerator* codeGen)
 {
-    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     auto numEntries = _params[4]->getUnsigned() + 1;
     codeGen->addOutputLine((boost::format("-- load palette %2% from position %1%, start CLUT index 0, %3% entries") % source % destination % numEntries).str());
 }
 
 void FF7::FF7BackgroundInstruction::processCPPAL(CodeGenerator* codeGen)
 {
-    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     auto numEntries = _params[4]->getUnsigned() + 1;
     codeGen->addOutputLine((boost::format("-- copy palette %1% to palette %2%, %3% entries") % source % destination % numEntries).str());
 }
 
 void FF7::FF7BackgroundInstruction::processADPAL(CodeGenerator* codeGen)
 {
-    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[6]->getUnsigned());
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[7]->getUnsigned());
-    const auto& r = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[4]->getUnsigned(), _params[10]->getUnsigned());
-    const auto& g = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[3]->getUnsigned(), _params[9]->getUnsigned());
-    const auto& b = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[2]->getUnsigned(), _params[8]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[6]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[7]->getUnsigned());
+    const auto& r = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[4]->getUnsigned(), _params[10]->getUnsigned());
+    const auto& g = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[3]->getUnsigned(), _params[9]->getUnsigned());
+    const auto& b = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[2]->getUnsigned(), _params[8]->getUnsigned());
     auto numEntries = _params[11]->getUnsigned() + 1;
     codeGen->addOutputLine((boost::format("-- add RGB(%3%, %4%, %5%) to %6% entries of palette stored at position %1%, storing result in position %2%") % source % destination % r % g % b % numEntries).str());
 }
 
 void FF7::FF7BackgroundInstruction::processMPPAL2(CodeGenerator* codeGen)
 {
-    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[6]->getUnsigned());
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[7]->getUnsigned());
-    const auto& r = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[4]->getUnsigned(), _params[10]->getUnsigned());
-    const auto& g = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[3]->getUnsigned(), _params[9]->getUnsigned());
-    const auto& b = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[2]->getUnsigned(), _params[8]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& source = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[6]->getUnsigned());
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[7]->getUnsigned());
+    const auto& r = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[4]->getUnsigned(), _params[10]->getUnsigned());
+    const auto& g = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[3]->getUnsigned(), _params[9]->getUnsigned());
+    const auto& b = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[2]->getUnsigned(), _params[8]->getUnsigned());
     auto numEntries = _params[11]->getUnsigned() + 1;
     codeGen->addOutputLine((boost::format("-- multiply RGB(%3%, %4%, %5%) by %6% entries of palette stored at position %1%, storing result in position %2%") % source % destination % r % g % b % numEntries).str());
 }
@@ -1902,27 +1934,29 @@ void FF7::FF7CameraInstruction::processNFADE(CodeGenerator* codeGen)
         codeGen->addOutputLine("-- fade:clear()");
         return;
     }
-
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
     const std::string type = rawType == 12 ? "Fade.SUBTRACT" : "Fade.ADD";
-    const auto& r = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[5]->getUnsigned());
-    const auto& g = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[6]->getUnsigned());
-    const auto& b = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[2]->getUnsigned(), _params[7]->getUnsigned());
-    const auto& unknown = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[3]->getUnsigned(), _params[8]->getUnsigned());
+    const auto& r = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[5]->getUnsigned());
+    const auto& g = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[6]->getUnsigned());
+    const auto& b = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[2]->getUnsigned(), _params[7]->getUnsigned());
+    const auto& unknown = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[3]->getUnsigned(), _params[8]->getUnsigned());
     codeGen->addOutputLine((boost::format("-- fade:fade( %2%, %3%, %4%, %1%, %5% )") % type % r % g % b % unknown).str());
 }
 
 void FF7::FF7CameraInstruction::processSCR2D(CodeGenerator* codeGen)
 {
-    const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getSigned());
-    const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getSigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getSigned());
+    const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getSigned());
     codeGen->addOutputLine((boost::format("background2d:scroll_to_position( %1%, %2%, Background2D.NONE, 0 )") % x % y).str());
 }
 
 void FF7::FF7CameraInstruction::processSCR2DC(CodeGenerator* codeGen)
 {
-    const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[4]->getSigned());
-    const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[5]->getSigned());
-    const auto& speed = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[3]->getUnsigned(), _params[6]->getUnsigned(), FF7CodeGeneratorHelpers::ValueType::Float, 30.0f);
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[4]->getSigned());
+    const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[5]->getSigned());
+    const auto& speed = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[3]->getUnsigned(), _params[6]->getUnsigned(), FF7CodeGeneratorHelpers::ValueType::Float, 30.0f);
     codeGen->addOutputLine((boost::format("background2d:scroll_to_position( %1%, %2%, Background2D.SMOOTH, %3% )") % x % y % speed).str());
 }
 
@@ -1947,9 +1981,10 @@ void FF7::FF7CameraInstruction::processFADE(CodeGenerator* codeGen)
         break;
     }
 
-    const auto& r = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[4]->getUnsigned());
-    const auto& g = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[5]->getUnsigned());
-    const auto& b = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[2]->getUnsigned(), _params[6]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& r = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[4]->getUnsigned());
+    const auto& g = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[5]->getUnsigned());
+    const auto& b = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[2]->getUnsigned(), _params[6]->getUnsigned());
     // TODO: needs to be divided by 30.0f?
     auto speed = _params[7]->getUnsigned();
     auto start = _params[9]->getUnsigned();
@@ -2035,11 +2070,12 @@ void FF7::FF7AudioVideoInstruction::processInst(Function& func, ValueStack&, Eng
 
 void FF7::FF7AudioVideoInstruction::processAKAO2(CodeGenerator* codeGen)
 {
-    const auto& param1 = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[7]->getUnsigned());
-    const auto& param2 = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[8]->getUnsigned());
-    const auto& param3 = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[2]->getUnsigned(), _params[9]->getUnsigned());
-    const auto& param4 = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[3]->getUnsigned(), _params[10]->getUnsigned());
-    const auto& param5 = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[5]->getUnsigned(), _params[11]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& param1 = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[7]->getUnsigned());
+    const auto& param2 = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[8]->getUnsigned());
+    const auto& param3 = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[2]->getUnsigned(), _params[9]->getUnsigned());
+    const auto& param4 = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[3]->getUnsigned(), _params[10]->getUnsigned());
+    const auto& param5 = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[5]->getUnsigned(), _params[11]->getUnsigned());
     auto op = _params[6]->getUnsigned();
     codeGen->addOutputLine((boost::format("-- music:execute_akao( 0x%6$02x, %1%, %2%, %3%, %4%, %5% )") % param1 % param2 % param3 % param4 % param5 % op).str());
 }
@@ -2051,18 +2087,20 @@ void FF7::FF7AudioVideoInstruction::processMUSIC(CodeGenerator* codeGen)
 
 void FF7::FF7AudioVideoInstruction::processSOUND(CodeGenerator* codeGen)
 {
-    const auto& soundId = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[2]->getUnsigned());
-    const auto& panning = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[3]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& soundId = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+    const auto& panning = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
     codeGen->addOutputLine((boost::format("-- music:execute_akao( 0x20, %1%, %2% )") % soundId % panning).str());
 }
 
 void FF7::FF7AudioVideoInstruction::processAKAO(CodeGenerator* codeGen)
 {
-    const auto& param1 = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[0]->getUnsigned(), _params[7]->getUnsigned());
-    const auto& param2 = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[8]->getUnsigned());
-    const auto& param3 = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[2]->getUnsigned(), _params[9]->getUnsigned());
-    const auto& param4 = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[3]->getUnsigned(), _params[10]->getUnsigned());
-    const auto& param5 = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[5]->getUnsigned(), _params[11]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& param1 = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[7]->getUnsigned());
+    const auto& param2 = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[8]->getUnsigned());
+    const auto& param3 = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[2]->getUnsigned(), _params[9]->getUnsigned());
+    const auto& param4 = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[3]->getUnsigned(), _params[10]->getUnsigned());
+    const auto& param5 = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[5]->getUnsigned(), _params[11]->getUnsigned());
     auto op = _params[6]->getUnsigned();
     codeGen->addOutputLine((boost::format("-- music:execute_akao( 0x%6$02x, %1%, %2%, %3%, %4%, %5% )") % param1 % param2 % param3 % param4 % param5 % op).str());
 }
@@ -2085,7 +2123,8 @@ void FF7::FF7AudioVideoInstruction::processMOVIE(CodeGenerator* codeGen)
 void FF7::FF7AudioVideoInstruction::processMVIEF(CodeGenerator* codeGen)
 {
     // TODO: check for assignment to value
-    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(_params[1]->getUnsigned(), _params[2]->getUnsigned());
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto& destination = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[2]->getUnsigned());
     codeGen->addOutputLine((boost::format("-- %1% = field:get_movie_frame()") % destination).str());
 }
 

@@ -5,6 +5,7 @@
 #include <deque>
 #include <unordered_map>
 #include "make_unique.h"
+#include "sudm.h"
 
 namespace FF7
 {
@@ -144,9 +145,9 @@ namespace FF7
     class FF7SimpleCodeGenerator : public CodeGenerator
     {
     public:
-        FF7SimpleCodeGenerator(Engine *engine, const InstVec& insts, std::ostream &output)
+        FF7SimpleCodeGenerator(Engine *engine, const InstVec& insts, std::ostream &output, SUDM::IScriptFormatter& formatter)
             : CodeGenerator(engine, output, kFIFOArgOrder, kLIFOArgOrder),
-            mInsts(insts)
+            mInsts(insts), mFormatter(formatter)
         {
             mTargetLang = std::make_unique<LuaTargetLanguage>();
         }
@@ -161,6 +162,8 @@ namespace FF7
     private:
         const InstVec& mInsts;
         std::vector<CodeLine> mLines;
+    public:
+        SUDM::IScriptFormatter& mFormatter;
     };
 
     namespace FF7CodeGeneratorHelpers
@@ -171,18 +174,13 @@ namespace FF7
             Float = 1
         };
 
-        extern const std::unordered_map<uint32, const std::string> CharacterNamesById;
-        extern const std::unordered_map<uint32, const std::unordered_map<uint32, const std::string>> VariableNamesByBankAndAddress;
-
         const std::string FormatInstructionNotImplemented(const std::string& entity, uint32 address, uint32 opcode);
         const std::string FormatInstructionNotImplemented(const std::string& entity, uint32 address, const Instruction& instruction);
         const std::string FormatBool(uint32 value);
         const std::string FormatInvertedBool(uint32 value);
-        const std::string GetCharacterNameById(uint32 value);
-        const std::string GetVariableNameByBankAndAddress(uint32 bank, uint32 address);
-        
+ 
         template<typename TValue>
-        const std::string FormatValueOrVariable(uint32 bank, TValue valueOrAddress, ValueType valueType = ValueType::Integer, float scale = 1.0f)
+        const std::string FormatValueOrVariable(SUDM::IScriptFormatter& formatter, uint32 bank, TValue valueOrAddress, ValueType valueType = ValueType::Integer, float scale = 1.0f)
         {
             switch (bank)
             {
@@ -203,13 +201,14 @@ namespace FF7
             case 15:
             {
                 auto address = static_cast<uint32>(valueOrAddress) & 0xFF;
-                auto friendlyName = GetVariableNameByBankAndAddress(bank, address);
+                auto friendlyName = formatter.VarName(bank, valueOrAddress);
                 return (boost::format("FFVII.Data.%1%") % (friendlyName == "" ? (boost::format("var_%1%_%2%") % bank % address).str() : friendlyName)).str();
             }
             case 5:
             case 6:
                 return (boost::format("temp%1%_%2%") % bank % (static_cast<uint32>(valueOrAddress) & 0xFF)).str();
             default:
+                //throw UnknownBankException();
                 return (boost::format("unknown_%1%_%2%") % bank % (static_cast<uint32>(valueOrAddress) & 0xFF)).str();
             }
         }

@@ -171,8 +171,8 @@ namespace FF7
         void processTLKON(CodeGenerator* codeGen, const std::string& entity);
         void processPC(CodeGenerator* codeGen, const std::string& entity);
         void processCHAR(CodeGenerator* codeGen, const std::string& entity);
-        void processDFANM(CodeGenerator* codeGen, const std::string& entity);
-        void processANIME1(CodeGenerator* codeGen, const std::string& entity);
+        void processDFANM(CodeGenerator* codeGen, const std::string& entity, int charId);
+        void processANIME1(CodeGenerator* codeGen, const std::string& entity, int charId);
         void processVISI(CodeGenerator* codeGen, const std::string& entity);
         void processXYZI(CodeGenerator* codeGen, const std::string& entity);
         void processMOVE(CodeGenerator* codeGen, const std::string& entity);
@@ -180,9 +180,9 @@ namespace FF7
         void processDIR(CodeGenerator* codeGen, const std::string& entity);
         void processTURNGEN(CodeGenerator* codeGen, const std::string& entity);
         void processGETAI(CodeGenerator* codeGen, const FF7FieldEngine& engine);
-        void processANIM_2(CodeGenerator* codeGen, const std::string& entity);
-        void processCANIM2(CodeGenerator* codeGen, const std::string& entity);
-        void processCANM_2(CodeGenerator* codeGen, const std::string& entity);
+        void processANIM_2(CodeGenerator* codeGen, const std::string& entity, int charId);
+        void processCANIM2(CodeGenerator* codeGen, const std::string& entity, int charId);
+        void processCANM_2(CodeGenerator* codeGen, const std::string& entity, int charId);
         void processCC(CodeGenerator* codeGen, const FF7FieldEngine& engine);
         void processSOLID(CodeGenerator* codeGen, const std::string& entity);
     };
