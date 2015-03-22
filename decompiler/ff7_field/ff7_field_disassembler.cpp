@@ -6,6 +6,7 @@
 #include "make_unique.h"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
+#include "ff7_field_codegen.h"
 
 FF7::FF7Disassembler::FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7FieldEngine* engine, InstVec& insts, const std::vector<unsigned char>& rawScriptData)
     : SimpleDisassembler(insts),
@@ -215,7 +216,21 @@ void FF7::FF7Disassembler::AddFunc(std::string entityName, size_t entityIndex, s
         func->_name = funcName;
     }
 
-    const int id = FindId(func->mStartAddr, func->mEndAddr, _insts);
+    int id = FindId(func->mStartAddr, func->mEndAddr, _insts);
+    // If there is no ID check if there was an ID for this entity in any of its other functions and use that instead
+    if (id == -1)
+    {
+        for (auto& func : mEngine->_functions)
+        {
+            FunctionMetaData metaData(func.second._metadata);
+            if (metaData.EntityName() == entityName && metaData.CharacterId() != -1)
+            {
+                id = metaData.CharacterId();
+                break;
+            }
+        }
+    }
+
     metaData += std::to_string(id) + "_" + entityName;
     func->_metadata = metaData;
 
