@@ -198,7 +198,7 @@ void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engi
 
     if (!funcName.empty())
     {
-        ValuePtr v = new UnqotedStringValue(funcName + " (" + std::to_string(_params[0]->getUnsigned()) + "))");
+        ValuePtr v = new UnqotedStringValue(funcName + "(" + std::to_string(_params[0]->getUnsigned()) + ")");
         stack.push(v);
         return;
     }
@@ -1470,9 +1470,9 @@ void FF7::FF7ModelInstruction::processDFANM(CodeGenerator* codeGen, const std::s
     auto animationId = _params[0]->getUnsigned();
     // TODO: check for zero
     auto speed = 1.0f / _params[1]->getUnsigned();
-    codeGen->addOutputLine((boost::format("self.%1%:set_default_animation( %2% ) -- speed %3%") % entity % animationId % speed).str());
+    codeGen->addOutputLine((boost::format("self.%1%:set_default_animation( \"%2%\" ) -- speed %3%") % entity % animationId % speed).str());
 
-    codeGen->addOutputLine((boost::format("self.%1%:play_animation( %2% )") % entity % cg->mFormatter.AnimationName(charId, animationId)).str());
+    codeGen->addOutputLine((boost::format("self.%1%:play_animation( \"%2%\" )") % entity % cg->mFormatter.AnimationName(charId, animationId)).str());
 }
 
 void FF7::FF7ModelInstruction::processANIME1(CodeGenerator* codeGen, const std::string& entity, int charId)
@@ -1482,7 +1482,7 @@ void FF7::FF7ModelInstruction::processANIME1(CodeGenerator* codeGen, const std::
     auto animationId = _params[0]->getUnsigned();
     // TODO: check for zero
     auto speed = 1.0f / _params[1]->getUnsigned();
-    codeGen->addOutputLine((boost::format("self.%1%:play_animation( %2% ) -- speed %3%") % entity % cg->mFormatter.AnimationName(charId, animationId) % speed).str());
+    codeGen->addOutputLine((boost::format("self.%1%:play_animation( \"%2%\" ) -- speed %3%") % entity % cg->mFormatter.AnimationName(charId, animationId) % speed).str());
     codeGen->addOutputLine((boost::format("self.%1%:animation_sync()") % entity).str());
 }
 
@@ -1596,7 +1596,7 @@ void FF7::FF7ModelInstruction::processANIM_2(CodeGenerator* codeGen, const std::
     auto animationId = _params[0]->getUnsigned();
     // TODO: check for zero
     auto speed = 1.0f / _params[1]->getUnsigned();
-    codeGen->addOutputLine((boost::format("self.%1%:play_animation_stop( %2% ) -- speed %3%") % entity % cg->mFormatter.AnimationName(charId, animationId) % speed).str());
+    codeGen->addOutputLine((boost::format("self.%1%:play_animation_stop( \"%2%\" ) -- speed %3%") % entity % cg->mFormatter.AnimationName(charId, animationId) % speed).str());
     codeGen->addOutputLine((boost::format("self.%1%:animation_sync()") % entity).str());
 }
 
@@ -1608,7 +1608,7 @@ void FF7::FF7ModelInstruction::processCANIM2(CodeGenerator* codeGen, const std::
     auto endFrame = _params[2]->getUnsigned() / 30.0f;
     // TODO: check for zero
     auto speed = 1.0f / _params[3]->getUnsigned();
-    codeGen->addOutputLine((boost::format("self.%1%:play_animation( %2%, %3%, %4% ) -- speed %5%") % entity % cg->mFormatter.AnimationName(charId, animationId) % startFrame % endFrame % speed).str());
+    codeGen->addOutputLine((boost::format("self.%1%:play_animation( \"%2%\", %3%, %4% ) -- speed %5%") % entity % cg->mFormatter.AnimationName(charId, animationId) % startFrame % endFrame % speed).str());
     codeGen->addOutputLine((boost::format("self.%1%:animation_sync()") % entity).str());
 }
 
@@ -1623,7 +1623,7 @@ void FF7::FF7ModelInstruction::processCANM_2(CodeGenerator* codeGen, const std::
     // TODO: check for zero
     auto speed = 1.0f / _params[3]->getUnsigned();
 
-    codeGen->addOutputLine((boost::format("self.%1%:play_animation_stop( %2%, %3%, %4% ) -- speed %5%") % entity % cg->mFormatter.AnimationName(charId, animationId) % startFrame % endFrame % speed).str());
+    codeGen->addOutputLine((boost::format("self.%1%:play_animation_stop( \"%2%\", %3%, %4% ) -- speed %5%") % entity % cg->mFormatter.AnimationName(charId, animationId) % startFrame % endFrame % speed).str());
     codeGen->addOutputLine((boost::format("self.%1%:animation_sync()") % entity).str());
 }
 
