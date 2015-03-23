@@ -198,7 +198,7 @@ void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engi
 
     if (!funcName.empty())
     {
-        ValuePtr v = new StringValue("if (" + funcName + " (" + std::to_string(_params[0]->getUnsigned()) + "))) then");
+        ValuePtr v = new UnqotedStringValue(funcName + " (" + std::to_string(_params[0]->getUnsigned()) + "))");
         stack.push(v);
         return;
     }
@@ -249,7 +249,7 @@ void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engi
     case 9:
     {
         op = "hasbit("+ source + ", bit(" + destination + "))";
-        ValuePtr v = new StringValue(op);
+        ValuePtr v = new UnqotedStringValue(op);
         stack.push(v);
     }
         return;
@@ -257,7 +257,7 @@ void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engi
     case 0xA:
     {
         op = "not hasbit(" + source + ", bit(" + destination + "))";
-        ValuePtr v = new StringValue(op);
+        ValuePtr v = new UnqotedStringValue(op);
         stack.push(v);
     }
         return;
@@ -1471,7 +1471,8 @@ void FF7::FF7ModelInstruction::processDFANM(CodeGenerator* codeGen, const std::s
     // TODO: check for zero
     auto speed = 1.0f / _params[1]->getUnsigned();
     codeGen->addOutputLine((boost::format("self.%1%:set_default_animation( %2% ) -- speed %3%") % entity % animationId % speed).str());
-    codeGen->addOutputLine((boost::format("self.%1%:play_animation( %2% )") % entity % animationId).str());
+
+    codeGen->addOutputLine((boost::format("self.%1%:play_animation( %2% )") % entity % cg->mFormatter.AnimationName(charId, animationId)).str());
 }
 
 void FF7::FF7ModelInstruction::processANIME1(CodeGenerator* codeGen, const std::string& entity, int charId)

@@ -292,6 +292,13 @@ public:
 	virtual std::ostream &print(std::ostream &output) const;
 };
 
+class UnqotedStringValue : public StringValue
+{
+public:
+    UnqotedStringValue(std::string str) : StringValue(str) { }
+    virtual std::ostream &print(std::ostream &output) const override;
+};
+
 /**
  * Value representing a variable.
  */

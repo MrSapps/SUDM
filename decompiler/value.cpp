@@ -174,6 +174,11 @@ std::ostream &StringValue::print(std::ostream &output) const {
 	return output << "\"" << _str << "\"";
 }
 
+std::ostream& UnqotedStringValue::print(std::ostream& output) const
+{
+    return output << _str;
+}
+
 std::ostream &VarValue::print(std::ostream &output) const {
 	return output << _varName;
 }
