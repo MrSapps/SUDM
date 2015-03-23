@@ -1470,7 +1470,7 @@ void FF7::FF7ModelInstruction::processDFANM(CodeGenerator* codeGen, const std::s
     auto animationId = _params[0]->getUnsigned();
     // TODO: check for zero
     auto speed = 1.0f / _params[1]->getUnsigned();
-    codeGen->addOutputLine((boost::format("self.%1%:set_default_animation( \"%2%\" ) -- speed %3%") % entity % animationId % speed).str());
+    codeGen->addOutputLine((boost::format("self.%1%:set_default_animation( \"%2%\" ) -- speed %3%") % entity % cg->mFormatter.AnimationName(charId, animationId) % speed).str());
 
     codeGen->addOutputLine((boost::format("self.%1%:play_animation( \"%2%\" )") % entity % cg->mFormatter.AnimationName(charId, animationId)).str());
 }
