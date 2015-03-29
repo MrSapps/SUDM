@@ -265,14 +265,14 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
         const size_t endPos = nextScriptEntryPoint + kSectionPointersSize;
 
         // Read the init script, which means stop at the first return
-        AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, isStart, isEnd, true, "on_init");
+        AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, isStart, isEnd, true, "on_start");
 
         // Not at the end of this script? Then the remaining data is the "main" script
         auto streamPos = mStream->Position();
         if (streamPos != endPos)
         {
             // The "main" script we should also only have 1 return statement
-            AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, false, isEnd, true, "on_start");
+            AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, false, isEnd, true, "on_update");
             streamPos = mStream->Position();
             if (streamPos != endPos)
             {

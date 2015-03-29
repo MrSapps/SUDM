@@ -358,9 +358,17 @@ std::ostream& FF7::FF7UncondJumpInstruction::print(std::ostream &output) const
 }
 
 
-void FF7::FF7UncondJumpInstruction::processInst(Function&, ValueStack&, Engine*, CodeGenerator*)
+void FF7::FF7UncondJumpInstruction::processInst(Function&, ValueStack&, Engine*, CodeGenerator* cg)
 {
-
+    switch (_opcode)
+    {
+    case eOpcodes::JMPB:
+    case eOpcodes::JMPBL:
+        // HACK: Hard loop will hang the game, insert a wait to yield control
+        cg->addOutputLine("-- Hack, yield control for possible inf loop");
+        cg->addOutputLine("script:wait(0)");
+        break;
+    }
 }
 
 static void WriteTodo(CodeGenerator *codeGen, std::string entityName, std::string opCode)
