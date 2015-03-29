@@ -108,6 +108,12 @@ void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
     // Read the script header
     mHeader.Read(*mStream);
 
+    if ((mHeader.mScale % 512) != 0)
+    {
+        throw InternalDecompilerError();
+    }
+    mEngine->mScaleFactor = mHeader.mScale / 512;
+
     // Loop through the scripts for each entity
     for (size_t entityNumber = 0; entityNumber < mHeader.mEntityScripts.size(); entityNumber++)
     {

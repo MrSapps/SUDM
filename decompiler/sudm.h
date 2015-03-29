@@ -42,6 +42,7 @@ namespace SUDM
             {
                 std::string luaScript;
                 std::map<std::string, int> entities;
+                unsigned int scaleFactor;
             };
 
             /*
