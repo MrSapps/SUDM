@@ -215,7 +215,7 @@ void FF7::FF7CondJumpInstruction::processInst(Function&, ValueStack &stack, Engi
         break;
 
     case 1:
-        op = "!=";
+        op = "~=";
         break;
 
     case 2:
