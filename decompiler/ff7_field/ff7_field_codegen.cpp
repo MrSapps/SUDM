@@ -126,6 +126,12 @@ void FF7::FF7SimpleCodeGenerator::generate(InstVec& insts, const Graph& /*g*/)
             if ((*instruction)->isCondJump())
             {
                 addOutputLine((boost::format("if (%s) then") % stack.pop()->getString()).str(), false, true);
+
+                // If there are no more instructions then ensure end is outputted
+                if (instruction + 1 == std::end(function->second))
+                {
+                    addOutputLine("end", true, false);
+                }
             }
             else if ((*instruction)->isUncondJump())
             {
