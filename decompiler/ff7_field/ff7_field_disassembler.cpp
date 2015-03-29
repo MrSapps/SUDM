@@ -111,7 +111,13 @@ void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
     // Loop through the scripts for each entity
     for (size_t entityNumber = 0; entityNumber < mHeader.mEntityScripts.size(); entityNumber++)
     {
-        const std::string entityName = mFormatter.EntityName(mHeader.mFieldEntityNames[entityNumber].data());
+        std::string strOriginalName = mHeader.mFieldEntityNames[entityNumber].data();
+        if (strOriginalName.empty())
+        {
+            // If the entity name was blank in the file then use a consistent generated name
+            strOriginalName = "entity_" + std::to_string(entityNumber);
+        }
+        const std::string entityName = mFormatter.EntityName(strOriginalName);
 
         // Only parse each script one
         std::set<uint16> parsedScripts;
