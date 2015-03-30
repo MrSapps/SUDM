@@ -56,7 +56,7 @@ namespace SUDM
                 auto cg = engine.getCodeGenerator(insts, output);
                 cg->generate(insts, graph);
                 ds.luaScript = textToPrepend + output.str() + textToAppend;
-
+                ds.scaleFactor = engine.ScaleFactor();
                 ds.entities = engine.GetEntities();
                 return ds;
             }

@@ -108,10 +108,22 @@ void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
     // Read the script header
     mHeader.Read(*mStream);
 
+    if ((mHeader.mScale % 512) != 0)
+    {
+        throw InternalDecompilerError();
+    }
+    mEngine->mScaleFactor = mHeader.mScale / 512;
+
     // Loop through the scripts for each entity
     for (size_t entityNumber = 0; entityNumber < mHeader.mEntityScripts.size(); entityNumber++)
     {
-        const std::string entityName = mFormatter.EntityName(mHeader.mFieldEntityNames[entityNumber].data());
+        std::string strOriginalName = mHeader.mFieldEntityNames[entityNumber].data();
+        if (strOriginalName.empty())
+        {
+            // If the entity name was blank in the file then use a consistent generated name
+            strOriginalName = "entity_" + std::to_string(entityNumber);
+        }
+        const std::string entityName = mFormatter.EntityName(strOriginalName);
 
         // Only parse each script one
         std::set<uint16> parsedScripts;
@@ -265,14 +277,14 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
         const size_t endPos = nextScriptEntryPoint + kSectionPointersSize;
 
         // Read the init script, which means stop at the first return
-        AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, isStart, isEnd, true, "on_init");
+        AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, isStart, isEnd, true, "on_start");
 
         // Not at the end of this script? Then the remaining data is the "main" script
         auto streamPos = mStream->Position();
         if (streamPos != endPos)
         {
             // The "main" script we should also only have 1 return statement
-            AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, false, isEnd, true, "on_start");
+            AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, false, isEnd, true, "on_update");
             streamPos = mStream->Position();
             if (streamPos != endPos)
             {
