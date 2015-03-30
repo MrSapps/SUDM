@@ -57,11 +57,7 @@ void FF7::FF7Disassembler::ReadHeader()
     // Read the script header
     mHeader.Read(*mStream);
 
-    if ((mHeader.mScale % 512) != 0)
-    {
-        throw InternalDecompilerError();
-    }
-    mScaleFactor = mHeader.mScale / 512;
+    mScaleFactor = static_cast<float>(mHeader.mScale) / 512.0f;
 }
 
 void FF7::FF7Disassembler::open(const char *filename)

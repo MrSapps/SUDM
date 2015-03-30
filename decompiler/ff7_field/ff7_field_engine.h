@@ -71,14 +71,14 @@ namespace FF7
             }
             return it->second;
         }
-        unsigned int ScaleFactor() const { return mScaleFactor; }
+        float ScaleFactor() const { return mScaleFactor; }
     private:
         void RemoveExtraneousReturnStatements(InstVec& insts, Graph g);
         void RemoveTrailingInfiniteLoops(InstVec& insts, Graph g);
         void MarkInfiniteLoopGroups(InstVec& insts, Graph g);
         SUDM::IScriptFormatter& mFormatter;
         std::map<size_t, Entity> mEntityIndexMap;
-        unsigned int mScaleFactor = 1;
+        float mScaleFactor = 1.0f;
     };
 
     class FF7UncondJumpInstruction : public UncondJumpInstruction

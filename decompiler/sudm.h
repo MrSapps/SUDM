@@ -44,7 +44,7 @@ namespace SUDM
                 std::map<std::string, int> entities;
             };
 
-            unsigned int ScaleFactor(const std::vector<unsigned char>& scriptBytes);
+            float ScaleFactor(const std::vector<unsigned char>& scriptBytes);
 
             /*
             * Throws ::InternalDecompilerError on failure.

@@ -25,7 +25,7 @@ namespace SUDM
 
         namespace Field
         {
-            unsigned int ScaleFactor(const std::vector<unsigned char>& scriptBytes)
+            float ScaleFactor(const std::vector<unsigned char>& scriptBytes)
             {
                 // Could be cleaner, but just does enough work to pull out the fields scale
                 IScriptFormatter formatter;

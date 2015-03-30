@@ -304,7 +304,7 @@ namespace FF7
     public:
         virtual void doDisassemble() throw(std::exception) override;
         std::vector<unsigned char> Assemble(const std::string& input);
-        unsigned int ScaleFactor() const { return mScaleFactor; }
+        float ScaleFactor() const { return mScaleFactor; }
     private:
         void DisassembleIndivdualScript(std::string entityName,
             size_t entityIndex,
@@ -420,7 +420,7 @@ namespace FF7
         ScriptHeader mHeader;
         bool mbFromRaw = false;
         SUDM::IScriptFormatter& mFormatter;
-        unsigned int mScaleFactor = 1;
+        float mScaleFactor = 1.0f;
     };
 
 }
