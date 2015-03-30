@@ -279,16 +279,29 @@ public:
         eWhiteSpace,
         eText,
         eNumber,
-        eLineBreak,
         eInvalid,
+        eArgumentDelmiter,
+        eOpenBracket,
+        eCloseBracket,
+        eOpenCurlyBracket,
+        eCloseCurlyBracket,
+        eQuote,
         eEof
     };
 
     class Token
     {
     public:
+        Token() = default;
+
         Token(eTokenType type, std::string text)
             : mType(type), mText(text)
+        {
+
+        }
+
+        Token(eTokenType type, int number)
+            : mType(type), mNumber(number)
         {
 
         }
@@ -304,10 +317,16 @@ public:
             return mText;
         }
 
+        int AsNumber() const
+        {
+            return mNumber;
+        }
+
         eTokenType Type() const { return mType; }
     private:
         std::string mText;
-        eTokenType mType;
+        int mNumber = 0;
+        eTokenType mType = eTokenType::eInvalid;
     };
 
     bool IsLineBreak(char item)
@@ -318,6 +337,19 @@ public:
     bool IsSpace(char item, std::locale& loc)
     {
         return std::isspace(item, loc) && !IsLineBreak(item);
+    }
+
+    bool IsAlpha(char item)
+    {
+        return
+            (item >= 'A' && item <= 'Z') || 
+            (item >= 'a' && item <= 'z') ||
+            item == '_';
+    }
+
+    bool IsDigit(char item, std::locale& loc)
+    {
+        return std::isdigit(item, loc);
     }
 
     Token Next()
@@ -331,10 +363,18 @@ public:
 
         mData.read(&item, 1);
 
-        bool space = IsSpace(item, mLoc);
-        if (space)
+        bool eof = false;
+        item = ConsumeWhiteSpace(item, eof);
+        if (eof)
         {
-            // eWhiteSpace, consumes until not whitespace
+            return Token(eTokenType::eEof);
+        }
+
+        // Begin comment, consume until eLineBreak
+        const bool startComment = item == ';';
+        if (startComment)
+        {
+            bool isLineBreak = false;
             do
             {
                 mData.read(&item, 1);
@@ -342,82 +382,133 @@ public:
                 {
                     return Token(eTokenType::eEof);
                 }
-                space = IsSpace(item, mLoc);
-            } while (space);
-        }
+                isLineBreak = IsLineBreak(item);
+            } while (!isLineBreak);
 
-        if (IsLineBreak(item))
-        {
-            do
+            item = ConsumeWhiteSpace(item, eof);
+            if (eof)
             {
-                // If next char is a line break then consume it
-                item = static_cast<char>(mData.peek());
-                if (IsLineBreak(item))
-                {
-                    mData.read(&item, 1);
-                }
-            } while (IsLineBreak(item));
-            return Token(eTokenType::eLineBreak);
+                return Token(eTokenType::eEof);
+            }
         }
-
-        const bool alpha = std::isalpha(item, mLoc);
+        
+        if (item == ',')
+        {
+            return Token(eTokenType::eArgumentDelmiter, ",");
+        }
+        else if (item == '(')
+        {
+            return Token(eTokenType::eOpenBracket, "(");
+        }
+        else if (item == ')')
+        {
+            return Token(eTokenType::eCloseBracket, ")");
+        }
+        else if (item == '{')
+        {
+            return Token(eTokenType::eOpenCurlyBracket, "{");
+        }
+        else if (item == '}')
+        {
+            return Token(eTokenType::eCloseCurlyBracket, "}");
+        }
+        else if (item == '"')
+        {
+            return Token(eTokenType::eQuote, "\"");
+        }
+        const bool alpha = IsAlpha(item) || item == ';';
         if (alpha)
         {
-            if (item == ';')
+
+            std::string text(1, item);
+
+            // eText, consume until eLineBreak or whitespace
+            bool stillAlphaOrDigit = false;
+            do
             {
-                // Begin comment, consume until eLineBreak
-                bool isLineBreak = false;
-                do
+                mData.read(&item, 1);
+                if (!mData)
                 {
-                    mData.read(&item, 1);
-                    if (!mData)
+                    return Token(eTokenType::eText, text);
+                }
+                // Strings can end with a :
+                stillAlphaOrDigit = IsAlpha(item) || IsDigit(item, mLoc) || item == ':';
+                if (stillAlphaOrDigit)
+                {
+                    text.push_back(item);
+                    if (item == ':')
                     {
-                        return Token(eTokenType::eEof);
-                    } 
-                    isLineBreak = item == '\r' || item == '\n';
-                } while (!isLineBreak);
+                        break;
+                    }
+                }
+                else
+                {
+                    // Put the char back
+                    mData.seekg(-1, std::ios::cur);
+                }
+            } while (stillAlphaOrDigit);
 
-                return Token(eTokenType::eLineBreak);
-            }
-            else
+            return Token(eTokenType::eText, text);
+
+        }
+        else if (IsDigit(item, mLoc) || item == '-') // Start of negative number
+        {
+            // eNumber, consume until eLineBreak or whitespace, each item before that must be a digit
+            std::string text(1, item);
+            bool isANumber = true;
+            do
             {
-                std::string text(1, item);
-
-                // eText, consume until eLineBreak or whitespace
-                bool isLineBreakOrWhitespace = false;
-                do
+                mData.read(&item, 1);
+                if (!mData && item == '-')
                 {
-                    mData.read(&item, 1);
-                    if (!mData)
-                    {
-                        return Token(eTokenType::eText, text);
-                    }
-                    isLineBreakOrWhitespace = IsLineBreak(item) || IsSpace(item, mLoc);
-                    if (!isLineBreakOrWhitespace)
-                    {
-                        text.push_back(item);
-                    }
-                } while (!isLineBreakOrWhitespace);
-
-                return Token(eTokenType::eText, text);
-            }
+                    // We ONLY have a -, this is invalid
+                    return Token(eTokenType::eInvalid);
+                }
+                else if (!mData)
+                {
+                    return Token(eTokenType::eNumber, std::stoi(text));
+                }
+                isANumber = IsDigit(item, mLoc);
+                if (isANumber)
+                {
+                    text.push_back(item);
+                }
+                else
+                {
+                    // Put the char back
+                    mData.seekg(-1, std::ios::cur);
+                }
+            } while (isANumber);
+            return Token(eTokenType::eNumber, std::stoi(text));
         }
         else
         {
-            if (std::isdigit(item, mLoc))
-            {
-                // eNumber, consume until eLineBreak or whitespace, each item before that must be a digit
-                return Token(eTokenType::eNumber);
-            }
-            else
-            {
-                // eInvalid
-                return Token(eTokenType::eInvalid);
-            }
+            // eInvalid
+            return Token(eTokenType::eInvalid);
         }
     }
 
 private:
+    char ConsumeWhiteSpace(char item, bool& eof)
+    {
+        // Eat all whitespace
+        bool space = IsSpace(item, mLoc) || IsLineBreak(item);
+        if (space)
+        {
+            do
+            {
+                mData.read(&item, 1);
+                if (!mData)
+                {
+                    eof = true;
+                    return item;
+                }
+                space = IsSpace(item, mLoc) || IsLineBreak(item);
+            } while (space);
+        }
+        return item;
+    }
+
     std::locale mLoc;
     std::stringstream mData;
 };
@@ -433,46 +524,388 @@ TEST(Tokenzier, Empty)
 TEST(Tokenzier, ReadText)
 {
     Tokenzier t("Hello");
+    Tokenzier::Token token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
+    ASSERT_EQ("Hello", token.AsString());
+}
+
+TEST(Tokenzier, ReadText2)
+{
+    Tokenzier t("Hello world");
+    Tokenzier::Token token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
+    ASSERT_EQ("Hello", token.AsString());
+
+    token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
+    ASSERT_EQ("world", token.AsString());
+}
+
+
+// Check !"£$%^&*-+<>?;'[]#\/`¬ are marked as invalid and () is not part of text
+TEST(Tokenzier, ReadInvalidText)
+{
+    const char kInvalidChars[] = R"(;!£$%^&*-+<>?'[]#\/`¬)";
+    const int kNumChars = sizeof(kInvalidChars) / sizeof(char);
+    for (int i = 0; i < kNumChars; i++)
     {
+        Tokenzier t(std::string(1,kInvalidChars[i]));
         Tokenzier::Token token = t.Next();
-        ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
-        ASSERT_EQ("Hello", token.AsString());
-    }
-    {
-        Tokenzier::Token token = t.Next();
-        ASSERT_EQ(Tokenzier::eTokenType::eEof, token.Type());
+        if (i == 0)
+        {
+            // ; without a line break becomes EOF
+            ASSERT_EQ(Tokenzier::eTokenType::eEof, token.Type());
+        }
+        else
+        {
+            ASSERT_EQ(Tokenzier::eTokenType::eInvalid, token.Type());
+        }
         ASSERT_EQ("", token.AsString());
     }
+}
+
+TEST(Tokenzier, ReadInvalidText2)
+{
+    Tokenzier t("H!£$%^");
+    Tokenzier::Token token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
+    ASSERT_EQ("H", token.AsString());
+
+    token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eInvalid, token.Type());
+    ASSERT_EQ("", token.AsString());
+
+}
+
+
+TEST(Tokenzier, ReadBrackets)
+{
+    {
+        Tokenzier t("(");
+        Tokenzier::Token token = t.Next();
+        ASSERT_EQ(Tokenzier::eTokenType::eOpenBracket, token.Type());
+        ASSERT_EQ("(", token.AsString());
+    }
+    {
+        Tokenzier t(")");
+        Tokenzier::Token token = t.Next();
+        ASSERT_EQ(Tokenzier::eTokenType::eCloseBracket, token.Type());
+        ASSERT_EQ(")", token.AsString());
+    }
+}
+
+TEST(Tokenzier, ReadLabel)
+{
+    Tokenzier t("Hello:");
+    Tokenzier::Token token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
+    ASSERT_EQ("Hello:", token.AsString());
+}
+
+TEST(Tokenzier, ReadLabel2)
+{
+    Tokenzier t("Hello:a");
+    Tokenzier::Token token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
+    ASSERT_EQ("Hello:", token.AsString());
 }
 
 TEST(Tokenzier, ReadWhiteSpace)
 {
     Tokenzier t("\t ");
-    {
-        Tokenzier::Token token = t.Next();
-        ASSERT_EQ(Tokenzier::eTokenType::eEof, token.Type());
-        ASSERT_EQ("", token.AsString());
-    }
+    Tokenzier::Token token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eEof, token.Type());
+    ASSERT_EQ("", token.AsString());
+
+}
+
+TEST(Tokenzier, ReadArgumentDelimiter)
+{
+    Tokenzier t(",");
+    Tokenzier::Token token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eArgumentDelmiter, token.Type());
+    ASSERT_EQ(",", token.AsString());
+
 }
 
 TEST(Tokenzier, ReadNewLine)
 {
     Tokenzier t("\r\n\r\r\n\n");
-    {
-        Tokenzier::Token token = t.Next();
-        ASSERT_EQ(Tokenzier::eTokenType::eLineBreak, token.Type());
-        ASSERT_EQ("", token.AsString());
-    }
-    {
-        Tokenzier::Token token = t.Next();
-        ASSERT_EQ(Tokenzier::eTokenType::eEof, token.Type());
-        ASSERT_EQ("", token.AsString());
-    }
+    Tokenzier::Token token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eEof, token.Type());
+    ASSERT_EQ("", token.AsString());
 }
 
-// TODO: Read number
+TEST(Tokenzier, ReadNegativeNumber)
+{
+    Tokenzier t("-12345");
+    Tokenzier::Token token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eNumber, token.Type());
+    ASSERT_EQ(-12345, token.AsNumber());
+}
 
-// TODO: Combos, whitespace, new line, text, number, eof
+TEST(Tokenzier, ReadNumber)
+{
+    Tokenzier t("12345");
+    Tokenzier::Token token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eNumber, token.Type());
+    ASSERT_EQ(12345, token.AsNumber());
+}
+
+TEST(Tokenzier, ReadQuote)
+{
+    Tokenzier t("\"");
+    Tokenzier::Token token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eQuote, token.Type());
+    ASSERT_EQ("\"", token.AsString());
+}
+
+TEST(Tokenzier, ReadCurlyBrackets)
+{
+    Tokenzier t("{}");
+    Tokenzier::Token token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eOpenCurlyBracket, token.Type());
+    ASSERT_EQ("{", token.AsString());
+
+    token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eCloseCurlyBracket, token.Type());
+    ASSERT_EQ("}", token.AsString());
+}
+
+// Combos, whitespace, new line, text, number, argument delimiter eof
+TEST(Tokenzier, Combos)
+{
+
+    Tokenzier t(" \nText1234:1234,;Fool1\nFool2");
+    Tokenzier::Token token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
+    ASSERT_EQ("Text1234:", token.AsString());
+
+    token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eNumber, token.Type());
+    ASSERT_EQ(1234, token.AsNumber());
+
+    token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eArgumentDelmiter, token.Type());
+    ASSERT_EQ(",", token.AsString());
+
+    token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
+    ASSERT_EQ("Fool2", token.AsString());
+
+    token = t.Next();
+    ASSERT_EQ(Tokenzier::eTokenType::eEof, token.Type());
+    ASSERT_EQ("", token.AsString());
+}
+
+class Parser
+{
+public:
+    Parser(const std::string& src)
+        : mTokenzier(src)
+    {
+
+    }
+
+    void Parse()
+    {
+        std::deque<Tokenzier::Token> tokenStack;
+        for (;;)
+        {
+            Tokenzier::Token token = mTokenzier.Next();
+            if (token.Type() == Tokenzier::eTokenType::eInvalid)
+            {
+                std::cout << "ERROR INVALID TOKEN" << std::endl;
+                return;
+            }
+
+            if (token.Type() == Tokenzier::eTokenType::eEof)
+            {
+                break;
+            }
+            tokenStack.push_back(token);
+        }
+        Parse(tokenStack);
+    }
+
+private:
+    void Parse(std::deque<Tokenzier::Token>& tokens)
+    {
+        while (tokens.empty() == false)
+        {
+            // Everything at the top level should be an entity
+            ParseEntity(tokens);
+        }
+    }
+
+    void ParseEntity(std::deque<Tokenzier::Token>& tokens)
+    {
+        // Starts with entity keyword
+        ExpectText("Entity", NextToken(tokens));
+
+        // Entity name is quoted string within brackets
+        ExpectToken(Tokenzier::eTokenType::eOpenBracket, tokens);
+        std::string entityName = ExpectQuotedString(tokens);
+        ExpectToken(Tokenzier::eTokenType::eCloseBracket, tokens);
+
+        std::cout << "ParseEntity: " << entityName.c_str() << std::endl;
+
+        // Entity body within { }'s
+        ExpectToken(Tokenzier::eTokenType::eOpenCurlyBracket, tokens);
+
+        // Handle empty {}'s case
+        if (PeekTokenType(tokens) != Tokenzier::eTokenType::eCloseCurlyBracket)
+        {
+            ParseEntityMethods(tokens);
+        }
+        ExpectToken(Tokenzier::eTokenType::eCloseCurlyBracket, tokens);
+
+    }
+    
+    void ParseEntityMethods(std::deque<Tokenzier::Token>& tokens)
+    {
+        while (tokens.empty() == false)
+        {
+            // Marks the end of functions
+            if (PeekTokenType(tokens) == Tokenzier::eTokenType::eCloseCurlyBracket)
+            {
+                break;
+            }
+            // Otherwise must be fn name() { } decl
+            ParseEntityMethod(tokens);
+        }
+    }
+
+    void ParseEntityMethod(std::deque<Tokenzier::Token>& tokens)
+    {
+        // Starts with fn keyword
+        ExpectText("fn", NextToken(tokens));
+
+        // Function name
+        Tokenzier::Token text = NextToken(tokens);
+        ExpectTokenType(Tokenzier::eTokenType::eText, text);
+      
+        std::cout << "Entity function: " << text.AsString().c_str() << std::endl;
+
+        // Brackets end function name
+        ExpectToken(Tokenzier::eTokenType::eOpenBracket, tokens);
+        ExpectToken(Tokenzier::eTokenType::eCloseBracket, tokens);
+
+        //  Body within { } 's,
+        ExpectToken(Tokenzier::eTokenType::eOpenCurlyBracket, tokens);
+
+        // handle empty {}'s case
+        if (PeekTokenType(tokens) != Tokenzier::eTokenType::eCloseCurlyBracket)
+        {
+            ParseEntityMethodBody(tokens);
+        }
+        ExpectToken(Tokenzier::eTokenType::eCloseCurlyBracket, tokens);
+
+    }
+    
+    void ParseEntityMethodBody(std::deque<Tokenzier::Token>& tokens)
+    {
+        while (tokens.empty() == false)
+        {
+            // } is the end of the function
+            if (PeekTokenType(tokens) == Tokenzier::eTokenType::eCloseCurlyBracket)
+            {
+                // TODO: Validate semantics of instructions parsed
+                break;
+            }
+            Tokenzier::Token text = NextToken(tokens);
+            ExpectTokenType(Tokenzier::eTokenType::eText, text);
+
+            // Label
+            std::string str = text.AsString();
+            if (str.back() == ':')
+            {
+                std::cout << "LABEL:" << str.c_str() << std::endl;
+            }
+            // instruction/mnemonic
+            else
+            {
+                std::cout << "INSTRUCTION:" << str.c_str() << std::endl;
+                ParseInstruction(str, tokens);
+            }
+        }
+    }
+
+    void ParseInstruction(const std::string& inst, std::deque<Tokenzier::Token>& tokens)
+    {
+        // TODO: Handle any arguments
+    }
+
+    std::string ExpectQuotedString(std::deque<Tokenzier::Token>& tokens)
+    {
+        ExpectToken(Tokenzier::eTokenType::eQuote, tokens);
+        Tokenzier::Token text = NextToken(tokens);
+        ExpectTokenType(Tokenzier::eTokenType::eText, text);
+        ExpectToken(Tokenzier::eTokenType::eQuote, tokens);
+        return text.AsString();
+    }
+
+    Tokenzier::eTokenType PeekTokenType(const std::deque<Tokenzier::Token>& tokens)
+    {
+        return PeekToken(tokens).Type();
+    }
+
+    void ExpectTokenType(Tokenzier::eTokenType type, const Tokenzier::Token& token)
+    {
+        if (token.Type() != type)
+        {
+            throw std::runtime_error("Wrong token type");
+        }
+    }
+
+    void ExpectToken(Tokenzier::eTokenType type, std::deque<Tokenzier::Token>& tokens)
+    {
+        ExpectTokenType(type, NextToken(tokens).Type());
+    }
+
+    void ExpectText(const std::string& expectedText, const Tokenzier::Token& token)
+    {
+        if (token.Type() != Tokenzier::eTokenType::eText)
+        {
+            throw std::runtime_error("Wrong token type");
+        }
+
+        if (token.AsString() != expectedText)
+        {
+            throw std::runtime_error("Wrong text");
+        }
+    }
+
+    Tokenzier::Token NextToken(std::deque<Tokenzier::Token>& tokens)
+    {
+        if (tokens.empty())
+        {
+            throw std::runtime_error("No tokens left");
+        }
+        Tokenzier::Token ret = tokens.front();
+        tokens.pop_front();
+        return ret;
+    }
+
+    Tokenzier::Token PeekToken(const std::deque<Tokenzier::Token>& tokens)
+    {
+        if (tokens.empty())
+        {
+            throw std::runtime_error("No tokens left");
+        }
+        return tokens.front();
+    }
+
+    Tokenzier mTokenzier;
+};
+
+TEST(Parser, SimpleScript)
+{
+    Parser p("Entity(\"Testing\") { fn init() { start: NOP ;JMPB start\n  } fn main() { }  fn script1() { ;IFUB 0, 0, 1, 2, 0, lfalse NOP lfalse:\n  }  } ; Example\n Entity(\"Second\")\n {\n fn\n init()\n {\n }\n }");
+    p.Parse();
+}
+
+// TODO: Assembler
 
 TEST(FF7Field, Asm)
 {
