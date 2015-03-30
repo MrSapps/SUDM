@@ -153,6 +153,7 @@ namespace FF7
         }
         virtual void generate(InstVec& insts, const Graph &g) override;
         virtual void addOutputLine(std::string s, bool unindentBefore = false, bool indentAfter = false) override;
+        float ScaleFactor() const;
     protected:
         virtual std::string constructFuncSignature(const Function &func) override;
         virtual void onEndFunction(const Function& func) override;

@@ -163,6 +163,11 @@ void FF7::FF7SimpleCodeGenerator::addOutputLine(std::string s, bool unindentBefo
     mLines.push_back(CodeLine(s, unindentBefore, indentAfter));
 }
 
+float FF7::FF7SimpleCodeGenerator::ScaleFactor() const
+{
+    return static_cast<FF7::FF7FieldEngine*>(_engine)->ScaleFactor();
+}
+
 void FF7::FF7SimpleCodeGenerator::onBeforeStartFunction(const Function& func)
 {
     // Start class

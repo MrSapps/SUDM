@@ -1506,9 +1506,7 @@ void FF7::FF7ModelInstruction::processVISI(CodeGenerator* codeGen, const std::st
 void FF7::FF7ModelInstruction::processXYZI(CodeGenerator* codeGen, const std::string& entity)
 {
     FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
-
-    // TODO: variable scale
-    float scale = 128.0f;
+    const float scale = 128.0f * cg->ScaleFactor();
     const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[4]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
     const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[5]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
     const auto& z = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[2]->getUnsigned(), _params[6]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
@@ -1519,9 +1517,7 @@ void FF7::FF7ModelInstruction::processXYZI(CodeGenerator* codeGen, const std::st
 void FF7::FF7ModelInstruction::processMOVE(CodeGenerator* codeGen, const std::string& entity)
 {
     FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
-
-    // TODO: variable scale
-    float scale = 128.0f;
+    const float scale = 128.0f * cg->ScaleFactor();
     const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
     const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getSigned(), FF7CodeGeneratorHelpers::ValueType::Float, scale);
     codeGen->addOutputLine((boost::format("self.%1%:move_to_position( %2%, %3% )") % entity % x % y).str());
@@ -1531,9 +1527,7 @@ void FF7::FF7ModelInstruction::processMOVE(CodeGenerator* codeGen, const std::st
 void FF7::FF7ModelInstruction::processMSPED(CodeGenerator* codeGen, const std::string& entity)
 {
     FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
-
-    // TODO: variable scale
-    float scale = 128.0f;
+    const float scale = 128.0f * cg->ScaleFactor();
     const auto& speed = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[2]->getUnsigned(), FF7CodeGeneratorHelpers::ValueType::Float, 256.0f * scale / 30.0f);
     codeGen->addOutputLine((boost::format("self.%1%:set_move_auto_speed( %2% )") % entity % speed).str());
 }
