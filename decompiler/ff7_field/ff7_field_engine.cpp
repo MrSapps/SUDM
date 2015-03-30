@@ -11,7 +11,9 @@
 
 std::unique_ptr<Disassembler> FF7::FF7FieldEngine::getDisassembler(InstVec &insts, const std::vector<unsigned char>& rawScriptData)
 {
-    return std::make_unique<FF7Disassembler>(mFormatter, this, insts, rawScriptData);
+    auto ret = std::make_unique<FF7Disassembler>(mFormatter, this, insts, rawScriptData);
+    mScaleFactor = ret->ScaleFactor();
+    return std::move(ret);
 }
 
 std::unique_ptr<Disassembler> FF7::FF7FieldEngine::getDisassembler(InstVec &insts)
