@@ -17,6 +17,7 @@ FF7::FF7Disassembler::FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7Fiel
     kSectionPointersSize = 0; // If loading a raw section then we don't have a "sections header" to skip
     auto dataCopy = rawScriptData;
     mStream = std::make_unique<BinaryReader>(std::move(dataCopy));
+    ReadHeader();
 }
 
 FF7::FF7Disassembler::FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7FieldEngine *engine, InstVec &insts)
@@ -32,10 +33,42 @@ FF7::FF7Disassembler::~FF7Disassembler()
 
 }
 
+void FF7::FF7Disassembler::ReadHeader()
+{
+    if (!mbFromRaw)
+    {
+        // First read the file section pointers
+        for (int i = 0; i < kNumSections; i++)
+        {
+            mSections[i] = mStream->ReadU32();
+        }
+
+        // Now fix up from PSX RAM pointers to simple file offsets
+        const uint32 basePtr = mSections[0];
+        for (int i = 0; i < kNumSections; i++)
+        {
+            mSections[i] = (mSections[i] - basePtr) + kSectionPointersSize;
+        }
+
+        // Now seek to the script section
+        mStream->Seek(mSections[eScript]);
+    }
+
+    // Read the script header
+    mHeader.Read(*mStream);
+
+    if ((mHeader.mScale % 512) != 0)
+    {
+        throw InternalDecompilerError();
+    }
+    mScaleFactor = mHeader.mScale / 512;
+}
+
 void FF7::FF7Disassembler::open(const char *filename)
 {
     // Read all of the file, decompress it, then stuff it into a stream
     mStream = std::make_unique<BinaryReader>(Lzs::Decompress(BinaryReader::ReadAll(filename)));
+    ReadHeader();
 }
 
 uint32 FF7::FF7Disassembler::GetEndOfScriptOffset(uint16 curEntryPoint, size_t entityIndex, size_t scriptIndex)
@@ -86,34 +119,6 @@ struct ScriptInfo
 
 void FF7::FF7Disassembler::doDisassemble() throw(std::exception)
 {
-    if (!mbFromRaw)
-    {
-        // First read the file section pointers
-        for (int i = 0; i < kNumSections; i++)
-        {
-            mSections[i] = mStream->ReadU32();
-        }
-
-        // Now fix up from PSX RAM pointers to simple file offsets
-        const uint32 basePtr = mSections[0];
-        for (int i = 0; i < kNumSections; i++)
-        {
-            mSections[i] = (mSections[i] - basePtr) + kSectionPointersSize;
-        }
-
-        // Now seek to the script section
-        mStream->Seek(mSections[eScript]);
-    }
-
-    // Read the script header
-    mHeader.Read(*mStream);
-
-    if ((mHeader.mScale % 512) != 0)
-    {
-        throw InternalDecompilerError();
-    }
-    mEngine->mScaleFactor = mHeader.mScale / 512;
-
     // Loop through the scripts for each entity
     for (size_t entityNumber = 0; entityNumber < mHeader.mEntityScripts.size(); entityNumber++)
     {

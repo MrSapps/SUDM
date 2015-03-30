@@ -25,6 +25,16 @@ namespace SUDM
 
         namespace Field
         {
+            unsigned int ScaleFactor(const std::vector<unsigned char>& scriptBytes)
+            {
+                // Could be cleaner, but just does enough work to pull out the fields scale
+                IScriptFormatter formatter;
+                ::FF7::FF7FieldEngine engine(formatter);
+                InstVec insts;
+                engine.getDisassembler(insts, scriptBytes);
+                return engine.ScaleFactor();
+            }
+
             DecompiledScript Decompile(std::string scriptName,
                                   const std::vector<unsigned char>& scriptBytes,
                                   IScriptFormatter& formatter, 
@@ -56,7 +66,6 @@ namespace SUDM
                 auto cg = engine.getCodeGenerator(insts, output);
                 cg->generate(insts, graph);
                 ds.luaScript = textToPrepend + output.str() + textToAppend;
-                ds.scaleFactor = engine.ScaleFactor();
                 ds.entities = engine.GetEntities();
                 return ds;
             }

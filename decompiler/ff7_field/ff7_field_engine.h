@@ -79,7 +79,6 @@ namespace FF7
         SUDM::IScriptFormatter& mFormatter;
         std::map<size_t, Entity> mEntityIndexMap;
         unsigned int mScaleFactor = 1;
-        friend class FF7Disassembler;
     };
 
     class FF7UncondJumpInstruction : public UncondJumpInstruction

@@ -297,9 +297,14 @@ namespace FF7
         FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7FieldEngine* engine, InstVec& insts);
         FF7Disassembler(SUDM::IScriptFormatter& formatter, FF7FieldEngine* engine, InstVec& insts, const std::vector<unsigned char>& rawScriptData);
         ~FF7Disassembler();
+
+    private:
+        // DO NOT USE - todo, remove from base
         virtual void open(const char *filename) override;
+    public:
         virtual void doDisassemble() throw(std::exception) override;
         std::vector<unsigned char> Assemble(const std::string& input);
+        unsigned int ScaleFactor() const { return mScaleFactor; }
     private:
         void DisassembleIndivdualScript(std::string entityName,
             size_t entityIndex,
@@ -317,6 +322,7 @@ namespace FF7
         FF7FieldEngine* mEngine;
 
         uint32 mHeaderEndPos = 0;
+        void ReadHeader();
         void ReadHeader(BinaryReader& reader)
         {
             mHeader.Read(reader);
@@ -414,6 +420,7 @@ namespace FF7
         ScriptHeader mHeader;
         bool mbFromRaw = false;
         SUDM::IScriptFormatter& mFormatter;
+        unsigned int mScaleFactor = 1;
     };
 
 }

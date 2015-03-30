@@ -13,22 +13,22 @@ namespace SUDM
         virtual ~IScriptFormatter() = default;
 
         // Renames a variable, return empty string for generated name, can return empty
-        virtual std::string VarName(unsigned int bank, unsigned int addr) = 0;
+        virtual std::string VarName(unsigned int /*bank*/, unsigned int /*addr*/) { return ""; }
 
         // Renames an entity, can't return empty
-        virtual std::string EntityName(const std::string& entity) = 0;
+        virtual std::string EntityName(const std::string& entity) { return entity; }
 
         // Names an animation, can't return empty
-        virtual std::string AnimationName(int charId, int id) = 0;
+        virtual std::string AnimationName(int /*charId*/, int id)  { return std::to_string(id); }
 
         // Get name of char from its id, can't return empty
-        virtual std::string CharName(int charId) = 0;
+        virtual std::string CharName(int charId) { return std::to_string(charId);  }
 
         // Renames a function in an entity, can't return empty
-        virtual std::string FunctionName(const std::string& entity, const std::string& funcName) = 0;
+        virtual std::string FunctionName(const std::string& /*entity*/, const std::string& funcName) { return funcName; }
 
         // Sets the header comment for a function in an entity, can return empty
-        virtual std::string FunctionComment(const std::string& entity, const std::string& funcName) = 0;
+        virtual std::string FunctionComment(const std::string& /*entity*/, const std::string& /*funcName*/)  { return ""; }
     };
 
     namespace FF7
@@ -42,8 +42,9 @@ namespace SUDM
             {
                 std::string luaScript;
                 std::map<std::string, int> entities;
-                unsigned int scaleFactor;
             };
+
+            unsigned int ScaleFactor(const std::vector<unsigned char>& scriptBytes);
 
             /*
             * Throws ::InternalDecompilerError on failure.

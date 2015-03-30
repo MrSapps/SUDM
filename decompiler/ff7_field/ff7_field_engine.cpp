@@ -16,7 +16,9 @@ std::unique_ptr<Disassembler> FF7::FF7FieldEngine::getDisassembler(InstVec &inst
 
 std::unique_ptr<Disassembler> FF7::FF7FieldEngine::getDisassembler(InstVec &insts)
 {
-    return std::make_unique<FF7Disassembler>(mFormatter, this, insts);
+    auto ret = std::make_unique<FF7Disassembler>(mFormatter, this, insts);
+    mScaleFactor = ret->ScaleFactor();
+    return std::move(ret);
 }
 
 std::unique_ptr<CodeGenerator> FF7::FF7FieldEngine::getCodeGenerator(const InstVec& insts, std::ostream &output)
