@@ -299,47 +299,18 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
     }
 }
 
-struct TInstructRecord
-{
-    unsigned char mOpCodeSize;
-    unsigned int mOpCode;
-    const char* mMnemonic;
-    const char* mArgumentFormat;
-    std::function<InstPtr()> mFactoryFunc;
-};
 
-const TInstructRecord kOpcodes[] =
+const FF7::TInstructRecord kOpcodes[] =
 {
     // Flow
     { 1, FF7::eOpcodes::RET, "RET", "", FF7::FF7ControlFlowInstruction::Create },
     { 1, FF7::eOpcodes::REQ, "REQ", "BU", FF7::FF7ControlFlowInstruction::Create },
     { 1, FF7::eOpcodes::REQSW, "REQSW", "BU", FF7::FF7ControlFlowInstruction::Create },
     { 1, FF7::eOpcodes::REQEW, "REQEW", "BU", FF7::FF7ControlFlowInstruction::Create },
-    /*
-    { 1, FF7::eOpcodes::PREQ, "PREQ", "BU", FF7::FF7ControlFlowInstruction },
-    { 1, FF7::eOpcodes::PRQSW, "PRQSW", "BU", FF7::FF7ControlFlowInstruction },
-    { 1, FF7::eOpcodes::PRQEW, "PRQEW", "BU", FF7::FF7ControlFlowInstruction },
-    { 1, FF7::eOpcodes::RETTO, "RETTO", "U", FF7::FF7ControlFlowInstruction },
-    { 1, FF7::eOpcodes::JMPF, "JMPF", "B", FF7::FF7UncondJumpInstruction },
-    { 1, FF7::eOpcodes::JMPFL, "JMPFL", "w", FF7::FF7UncondJumpInstruction },
-    { 1, FF7::eOpcodes::JMPB, "JMPB", "B", FF7::FF7UncondJumpInstruction },
-    { 1, FF7::eOpcodes::JMPBL, "JMPBL", FF7::FF7UncondJumpInstruction, 0, "w" },
-    { 1, FF7::eOpcodes::IFUB, "IFUB", FF7::FF7CondJumpInstruction, 0, "NBBBB" },
-    { 1, FF7::eOpcodes::IFUBL, "IFUBL", FF7::FF7CondJumpInstruction, 0, "NBBBw" },
-    { 1, FF7::eOpcodes::IFSW, "IFSW", FF7::FF7CondJumpInstruction, 0, "NwwBB" },
-    { 1, FF7::eOpcodes::IFSWL, "IFSWL", FF7::FF7CondJumpInstruction, 0, "NwwBw" },
-    { 1, FF7::eOpcodes::IFUW, "IFUW", FF7CondJumpInstruction, 0, "NwwBB" },
-    { 1, FF7::eOpcodes::IFUWL, "IFUWL", FF7::FF7CondJumpInstruction, 0, "NwwBw" },
-    { 1, FF7::eOpcodes::WAIT, "WAIT", FF7::FF7ControlFlowInstruction, 0, "w" },
-    { 1, FF7::eOpcodes::IFKEY, "IFKEY", FF7::FF7CondJumpInstruction, 0, "wB" },
-    { 1, FF7::eOpcodes::IFKEYON, "IFKEYON", FF7::FF7CondJumpInstruction, 0, "wB" },
-    { 1, FF7::eOpcodes::IFKEYOFF, "IFKEYOFF", FF7::FF7CondJumpInstruction, 0, "wB" },*/
-    { 1, FF7::eOpcodes::NOP, "NOP", "", FF7::FF7NoOperationInstruction::Create }/*,
-                                                                                { 1, FF7::eOpcodes::IFPRTYQ, "IFPRTYQ", FF7::FF7CondJumpInstruction, 0, "BB" },
-                                                                                { 1, FF7::eOpcodes::IFMEMBQ, "IFMEMBQ", FF7::FF7CondJumpInstruction, 0, "BB" },*/
+    { 1, FF7::eOpcodes::NOP, "NOP", "", FF7::FF7NoOperationInstruction::Create }
 };
 
-std::vector<unsigned char> FF7::FF7Disassembler::Assemble(const std::string& input)
+std::map<std::string, const FF7::TInstructRecord*> FF7::FieldInstructions()
 {
     // Convert the array to a map that we can query on by mnemonic
     std::map<std::string, const TInstructRecord*> mnemonicToInstructionRecords;
@@ -347,44 +318,7 @@ std::vector<unsigned char> FF7::FF7Disassembler::Assemble(const std::string& inp
     {
         mnemonicToInstructionRecords[kOpcodes[i].mMnemonic] = &kOpcodes[i];
     }
-
-    // TODO: Label parsing
-
-    std::vector<unsigned char> r;
-
-    std::stringstream is(input);
-
-    InstVec insts;
-    unsigned int address = 0;
-
-    std::string line;
-    while (std::getline(is, line))
-    {
-        std::vector<std::string> parts;
-        boost::split(parts, line, boost::is_any_of(" "), boost::token_compress_on);
-
-        auto it = mnemonicToInstructionRecords.find(parts[0]);
-        if (it == std::end(mnemonicToInstructionRecords))
-        {
-            // Unknown opcode
-        }
-
-        InstPtr inst = it->second->mFactoryFunc();
-
-        inst->_address = address;
-        address += it->second->mOpCodeSize;
-
-        // TODO: Parse params & size
-        parts.push_back("TEST");
-        parts.erase(parts.begin());
-        readParams(inst, it->second->mArgumentFormat, parts);
-
-        insts.push_back(inst);
-    }
-
-    // TODO: Serialize instructions back to raw byte code
-
-    return r;
+    return mnemonicToInstructionRecords;
 }
 
 void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
