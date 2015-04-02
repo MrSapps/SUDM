@@ -1581,7 +1581,8 @@ void FF7::FF7ModelInstruction::processTURNGEN(CodeGenerator* codeGen, const std:
         break;
     }
 
-    codeGen->addOutputLine((boost::format("self.%1%:turn_to_direction( %1%, %2%, %3%, %4%, %5% )") % entity % degrees % direction % stepType % steps).str());
+    const float scaledSteps = static_cast<float>(steps) / 30.0f;
+    codeGen->addOutputLine((boost::format("self.%1%:turn_to_direction( %2%, %3%, %4%, %5% )") % entity % degrees % direction % stepType % scaledSteps).str());
     codeGen->addOutputLine((boost::format("self.%1%:turn_sync()") % entity).str());
 }
 
