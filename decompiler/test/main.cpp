@@ -567,10 +567,10 @@ TEST(Tokenzier, ReadText2)
 }
 
 
-// Check !"£$%^&*-+<>?;'[]#\/`¬ are marked as invalid and () is not part of text
+// Check !"Â£$%^&*-+<>?;'[]#\/`Â¬ are marked as invalid and () is not part of text
 TEST(Tokenzier, ReadInvalidText)
 {
-    const char kInvalidChars[] = R"(;!£$%^&*-+<>?'[]#\/`¬)";
+    const char kInvalidChars[] = R"(;!Â£$%^&*-+<>?'[]#\/`Â¬)";
     const int kNumChars = sizeof(kInvalidChars) / sizeof(char);
     for (int i = 0; i < kNumChars; i++)
     {
@@ -591,7 +591,7 @@ TEST(Tokenzier, ReadInvalidText)
 
 TEST(Tokenzier, ReadInvalidText2)
 {
-    Tokenzier t("H!£$%^");
+    Tokenzier t("H!Â£$%^");
     Tokenzier::Token token = t.Next();
     ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
     ASSERT_EQ("H", token.AsString());
@@ -749,7 +749,7 @@ public:
             }
         }
 
-        virtual const char* what() const  override
+        virtual const char* what() throw() const  override
         {
             return mMsg.c_str();
         }
