@@ -1953,10 +1953,12 @@ void FF7::FF7CameraInstruction::processNFADE(CodeGenerator* codeGen)
 
 void FF7::FF7CameraInstruction::processSCR2D(CodeGenerator* codeGen)
 {
+    // kUpScaler
+
     FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
     const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getSigned());
     const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getSigned());
-    codeGen->addOutputLine((boost::format("background2d:scroll_to_position( %1%, %2%, Background2D.NONE, 0 )") % x % y).str());
+    codeGen->addOutputLine((boost::format("background2d:scroll_to_position( %1% * 3, %2% * 3, Background2D.NONE, 0 )") % x % y).str());
 }
 
 void FF7::FF7CameraInstruction::processSCR2DC(CodeGenerator* codeGen)
@@ -1965,7 +1967,7 @@ void FF7::FF7CameraInstruction::processSCR2DC(CodeGenerator* codeGen)
     const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[4]->getSigned());
     const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[5]->getSigned());
     const auto& speed = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[3]->getUnsigned(), _params[6]->getUnsigned(), FF7CodeGeneratorHelpers::ValueType::Float, 30.0f);
-    codeGen->addOutputLine((boost::format("background2d:scroll_to_position( %1%, %2%, Background2D.SMOOTH, %3% )") % x % y % speed).str());
+    codeGen->addOutputLine((boost::format("background2d:scroll_to_position( %1% * 3, %2% * 3, Background2D.SMOOTH, %3% )") % x % y % speed).str());
 }
 
 void FF7::FF7CameraInstruction::processFADE(CodeGenerator* codeGen)
