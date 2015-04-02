@@ -1211,9 +1211,8 @@ void checkModel(const InstVec& insts)
     ASSERT_PARAM_UNSIGNED(3000);
     index++;
 
-    ASSERT_OP_LEN(FF7::eOpcodes::DIR, 3);
-    ASSERT_PARAM_UNSIGNED(1);
-    ASSERT_PARAM_UNSIGNED(2);
+    ASSERT_OP_LEN(FF7::eOpcodes::DIR, 2);
+    ASSERT_PARAM_UNSIGNED(0x12);
     ASSERT_PARAM_UNSIGNED(3);
     index++;
 

@@ -582,7 +582,7 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             OPCODE(eOpcodes::CANIM1, "CANIM1", FF7ModelInstruction, 0, "BBBB");
             OPCODE(eOpcodes::CANM_1, "CANM!1", FF7ModelInstruction, 0, "BBBB");
             OPCODE(eOpcodes::MSPED, "MSPED", FF7ModelInstruction, 0, "Nw");
-            OPCODE(eOpcodes::DIR, "DIR", FF7ModelInstruction, 0, "NB");
+            OPCODE(eOpcodes::DIR, "DIR", FF7ModelInstruction, 0, "BB");
             OPCODE(eOpcodes::TURNGEN, "TURNGEN", FF7ModelInstruction, 0, "NBBBB");
             OPCODE(eOpcodes::TURN, "TURN", FF7ModelInstruction, 0, "NBBBB");
             OPCODE(eOpcodes::DIRA, "DIRA", FF7ModelInstruction, 0, "B");

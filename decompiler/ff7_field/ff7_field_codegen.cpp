@@ -201,6 +201,13 @@ void FF7::FF7SimpleCodeGenerator::onStartFunction(const Function& func)
         }
     }
     addOutputLine("]]\n");
+
+    if (func._name == "on_start" || func._name == "init")
+    {
+        addOutputLine("-- HACK ensure camera follows cloud, fix in engine properly later");
+        addOutputLine("background2d:autoscroll_to_entity(entity_manager:get_entity(\"Cloud\"))");
+    }
+  
 }
 
 void FF7::FF7SimpleCodeGenerator::onEndFunction(const Function& func)
