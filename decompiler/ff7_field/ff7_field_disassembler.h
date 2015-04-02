@@ -290,6 +290,17 @@ namespace FF7
         RESET = 0xFF
     };
 
+    struct TInstructRecord
+    {
+        unsigned char mOpCodeSize;
+        unsigned int mOpCode;
+        const char* mMnemonic;
+        const char* mArgumentFormat;
+        std::function<InstPtr()> mFactoryFunc;
+    };
+
+    std::map<std::string, const TInstructRecord*> FieldInstructions();
+
     class FF7FieldEngine;
     class FF7Disassembler : public SimpleDisassembler
     {
@@ -303,7 +314,6 @@ namespace FF7
         virtual void open(const char *filename) override;
     public:
         virtual void doDisassemble() throw(std::exception) override;
-        std::vector<unsigned char> Assemble(const std::string& input);
         float ScaleFactor() const { return mScaleFactor; }
     private:
         void DisassembleIndivdualScript(std::string entityName,
