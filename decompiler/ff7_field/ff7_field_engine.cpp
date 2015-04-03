@@ -600,10 +600,10 @@ void FF7::FF7ModuleInstruction::processMAPJUMP(CodeGenerator* codeGen, Function&
         md.EntityName(), 
         func._name,
         _address,
-        static_cast<float>(_params[1]->getSigned()), // X
-        static_cast<float>(_params[2]->getSigned()), // Y
-        static_cast<float>(_params[3]->getSigned()), // Walk mesh triangle ID
-        static_cast<float>(_params[4]->getSigned()));
+        _params[1]->getSigned(), // X
+        _params[2]->getSigned(), // Y
+        _params[3]->getSigned(), // Walk mesh triangle ID
+        _params[4]->getSigned());
 
     const std::string targetMapName = cg->mFormatter.MapName(targetMapId);
     codeGen->addOutputLine("load_field_map_request(\"" + targetMapName + "\", \"" + sourceSpawnPointName + "\")");
