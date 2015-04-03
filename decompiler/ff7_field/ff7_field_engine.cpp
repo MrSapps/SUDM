@@ -601,9 +601,9 @@ void FF7::FF7ModuleInstruction::processMAPJUMP(CodeGenerator* codeGen, Function&
         md.EntityName(), 
         func._name,
         _address,
-        static_cast<float>(_params[1]->getSigned()) * scale, // X
-        static_cast<float>(_params[2]->getSigned()) * scale, // Y
-        static_cast<float>(_params[3]->getSigned()) * scale, // Z TODO check this isn't actually triangle ID
+        static_cast<float>(_params[1]->getSigned()) / scale, // X
+        static_cast<float>(_params[2]->getSigned()) / scale, // Y
+        static_cast<float>(_params[3]->getSigned()) / scale, // Z TODO check this isn't actually triangle ID
        (static_cast<float>(_params[4]->getSigned()) / 256.0f) * 360.0f);
 
     const std::string targetMapName = cg->mFormatter.MapName(targetMapId);
