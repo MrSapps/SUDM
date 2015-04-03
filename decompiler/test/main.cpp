@@ -749,7 +749,7 @@ public:
             }
         }
 
-        virtual const char* what() throw() const  override
+        virtual const char* what() const throw() override
         {
             return mMsg.c_str();
         }
