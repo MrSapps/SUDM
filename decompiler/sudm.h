@@ -12,6 +12,18 @@ namespace SUDM
     public:
         virtual ~IScriptFormatter() = default;
 
+        virtual void AddSpawnPoint(unsigned int /*targetMapId*/, const std::string& /*entity*/, const std::string& /*funcName*/, unsigned int /*address*/, float /*x*/, float /*y*/, float /*z*/, float /*angle*/) 
+        {
+
+        }
+
+        virtual std::string SpawnPointName(unsigned int targetMapId, const std::string& entity, const std::string& funcName, unsigned int address)
+        {
+            return std::to_string(targetMapId) + "_" + entity + "_" + funcName + "_" + std::to_string(address);
+        }
+
+        virtual std::string MapName(unsigned int mapId) { return std::to_string(mapId); }
+
         // Renames a variable, return empty string for generated name, can return empty
         virtual std::string VarName(unsigned int /*bank*/, unsigned int /*addr*/) { return ""; }
 

@@ -121,6 +121,7 @@ namespace FF7
     private:
         void processBATTLE(CodeGenerator* codeGen);
         void processBTLON(CodeGenerator* codeGen);
+        void processMAPJUMP(CodeGenerator* codeGen, Function& func);
     };
 
     class FF7MathInstruction : public StoreInstruction

@@ -534,7 +534,7 @@ void FF7::FF7ModuleInstruction::processInst(Function& func, ValueStack&, Engine*
         break;
 
     case eOpcodes::MAPJUMP:
-        WriteTodo(codeGen, md.EntityName(), "MAPJUMP");
+        processMAPJUMP(codeGen, func);
         break;
 
     case eOpcodes::LSTMP:
@@ -586,6 +586,28 @@ void FF7::FF7ModuleInstruction::processBATTLE(CodeGenerator* codeGen)
 void FF7::FF7ModuleInstruction::processBTLON(CodeGenerator* codeGen)
 {
     codeGen->addOutputLine((boost::format("-- field:random_encounter_on( %1% )") % FF7CodeGeneratorHelpers::FormatInvertedBool(_params[0]->getUnsigned())).str());
+}
+
+void FF7::FF7ModuleInstruction::processMAPJUMP(CodeGenerator* codeGen, Function& func)
+{
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+    const auto targetMapId = _params[0]->getUnsigned();
+
+    FunctionMetaData md(func._metadata);
+    const std::string sourceSpawnPointName = cg->mFormatter.SpawnPointName(targetMapId, md.EntityName(), func._name, _address);
+
+    const float scale = 128.0f * cg->ScaleFactor();
+    cg->mFormatter.AddSpawnPoint(targetMapId,
+        md.EntityName(), 
+        func._name,
+        _address,
+        static_cast<float>(_params[1]->getSigned()) * scale, // X
+        static_cast<float>(_params[2]->getSigned()) * scale, // Y
+        static_cast<float>(_params[3]->getSigned()) * scale, // Z TODO check this isn't actually triangle ID
+       (static_cast<float>(_params[4]->getSigned()) / 256.0f) * 360.0f);
+
+    const std::string targetMapName = cg->mFormatter.MapName(targetMapId);
+    codeGen->addOutputLine("load_field_map_request(\"" + targetMapName + "\", \"" + sourceSpawnPointName + "\"");
 }
 
 void FF7::FF7MathInstruction::processInst(Function& func, ValueStack&, Engine* /*engine*/, CodeGenerator *codeGen)
