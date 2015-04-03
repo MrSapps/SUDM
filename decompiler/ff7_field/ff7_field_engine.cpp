@@ -554,11 +554,13 @@ void FF7::FF7ModuleInstruction::processInst(Function& func, ValueStack&, Engine*
         break;
 
     case eOpcodes::MPJPO:
-        WriteTodo(codeGen, md.EntityName(), "MPJPO");
+        // Gateway function will do nothing if this is set to true
+        codeGen->addOutputLine("FFVII.Data.DisableGateways=" + _params[0]->getUnsigned() ? "true" : "false");
         break;
 
     case eOpcodes::PMJMP:
-        WriteTodo(codeGen, md.EntityName(), "PMJMP");
+        // Prepare to change map, don't need to output anything for this
+        codeGen->addOutputLine("-- Prepare map change");
         break;
 
     case eOpcodes::PMJMP2:
