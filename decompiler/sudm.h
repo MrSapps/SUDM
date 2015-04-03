@@ -12,7 +12,7 @@ namespace SUDM
     public:
         virtual ~IScriptFormatter() = default;
 
-        virtual void AddSpawnPoint(unsigned int /*targetMapId*/, const std::string& /*entity*/, const std::string& /*funcName*/, unsigned int /*address*/, float /*x*/, float /*y*/, float /*z*/, float /*angle*/) 
+        virtual void AddSpawnPoint(unsigned int /*targetMapId*/, const std::string& /*entity*/, const std::string& /*funcName*/, unsigned int /*address*/, float /*x*/, float /*y*/, float /*triangleId*/, float /*angle*/) 
         {
 
         }
