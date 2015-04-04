@@ -284,15 +284,14 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
         auto streamPos = mStream->Position();
         if (streamPos != endPos)
         {
-            // The "main" script we should also only have 1 return statement
-            AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, false, isEnd, true, "on_update");
+            // The "main" script can have more than one return statement
+            AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, false, isEnd, false, "on_update");
             streamPos = mStream->Position();
+
+            // But should end exactly on the end pos
             if (streamPos != endPos)
             {
-                // We only ever expect 2 return statements in script 0
-                // the first gives us the "init" script, the second gives
-                // us the "main" script, anymore is an error
-                throw TooManyReturnStatementsException();
+                throw InternalDecompilerError();
             }
         }
 

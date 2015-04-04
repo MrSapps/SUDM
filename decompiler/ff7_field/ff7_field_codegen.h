@@ -201,13 +201,21 @@ namespace FF7
             case 13:
             case 15:
             {
-                auto address = static_cast<uint32>(valueOrAddress) & 0xFF;
-                auto friendlyName = formatter.VarName(bank, valueOrAddress);
+                const auto address = static_cast<uint32>(valueOrAddress) & 0xFF;
+                const auto friendlyName = formatter.VarName(bank, valueOrAddress);
                 return (boost::format("FFVII.Data.%1%") % (friendlyName == "" ? (boost::format("FFVII.Data.var_%1%_%2%") % bank % address).str() : friendlyName)).str();
             }
             case 5:
             case 6:
-                return (boost::format("FFVII.Data.temp%1%_%2%") % bank % (static_cast<uint32>(valueOrAddress) & 0xFF)).str();
+            {
+                const auto address = static_cast<uint32>(valueOrAddress)& 0xFF;
+                const  auto friendlyName = formatter.VarName(bank, address);
+                if (friendlyName.empty())
+                {
+                    return (boost::format("FFVII.Data.temp%1%_%2%") % bank % address).str();
+                }
+                return "FFVII.Data." + friendlyName;
+            }
             default:
                 //throw UnknownBankException();
                 return (boost::format("FFVII.Data.unknown_%1%_%2%") % bank % (static_cast<uint32>(valueOrAddress) & 0xFF)).str();

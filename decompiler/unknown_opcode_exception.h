@@ -36,12 +36,6 @@ public:
     NotImplementedException() = default;
 };
 
-class TooManyReturnStatementsException : public InternalDecompilerError
-{
-public:
-    TooManyReturnStatementsException() = default;
-};
-
 class FF7ScriptHeaderInvalidException : public InternalDecompilerError
 {
 public:
