@@ -431,24 +431,27 @@ void FF7::FF7ControlFlowInstruction::processInst(Function& func, ValueStack&, En
 
 void FF7::FF7ControlFlowInstruction::processREQ(CodeGenerator* codeGen, const FF7FieldEngine& engine)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
     const auto& entity = engine.EntityByIndex(_params[0]->getSigned());
-    const auto& scriptName = entity.FunctionByIndex(_params[2]->getUnsigned());
+    const auto& scriptName = cg->mFormatter.FunctionName(entity.Name(), entity.FunctionByIndex(_params[2]->getUnsigned()));
     auto priority = _params[1]->getUnsigned();
     codeGen->addOutputLine((boost::format("script:request( Script.ENTITY, \"%1%\", \"%2%\", %3% )") % entity.Name() % scriptName % priority).str());
 }
 
 void FF7::FF7ControlFlowInstruction::processREQSW(CodeGenerator* codeGen, const FF7FieldEngine& engine)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
     const auto& entity = engine.EntityByIndex(_params[0]->getSigned());
-    const auto& scriptName = entity.FunctionByIndex(_params[2]->getUnsigned());
+    const auto& scriptName = cg->mFormatter.FunctionName(entity.Name(), entity.FunctionByIndex(_params[2]->getUnsigned()));
     auto priority = _params[1]->getUnsigned();
     codeGen->addOutputLine((boost::format("script:request_start_sync( Script.ENTITY, \"%1%\", \"%2%\", %3% )") % entity.Name() % scriptName % priority).str());
 }
 
 void FF7::FF7ControlFlowInstruction::processREQEW(CodeGenerator* codeGen, const FF7FieldEngine& engine)
 {
+    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
     const auto& entity = engine.EntityByIndex(_params[0]->getSigned());
-    const auto& scriptName = entity.FunctionByIndex(_params[2]->getUnsigned());
+    const auto& scriptName = cg->mFormatter.FunctionName(entity.Name(), entity.FunctionByIndex(_params[2]->getUnsigned()));
     auto priority = _params[1]->getUnsigned();
     codeGen->addOutputLine((boost::format("script:request_end_sync( Script.ENTITY, \"%1%\", \"%2%\", %3% )") % entity.Name() % scriptName % priority).str());
 }
