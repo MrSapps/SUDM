@@ -203,14 +203,14 @@ namespace FF7
             {
                 auto address = static_cast<uint32>(valueOrAddress) & 0xFF;
                 auto friendlyName = formatter.VarName(bank, valueOrAddress);
-                return (boost::format("FFVII.Data.%1%") % (friendlyName == "" ? (boost::format("var_%1%_%2%") % bank % address).str() : friendlyName)).str();
+                return (boost::format("FFVII.Data.%1%") % (friendlyName == "" ? (boost::format("FFVII.Data.var_%1%_%2%") % bank % address).str() : friendlyName)).str();
             }
             case 5:
             case 6:
-                return (boost::format("temp%1%_%2%") % bank % (static_cast<uint32>(valueOrAddress) & 0xFF)).str();
+                return (boost::format("FFVII.Data.temp%1%_%2%") % bank % (static_cast<uint32>(valueOrAddress) & 0xFF)).str();
             default:
                 //throw UnknownBankException();
-                return (boost::format("unknown_%1%_%2%") % bank % (static_cast<uint32>(valueOrAddress) & 0xFF)).str();
+                return (boost::format("FFVII.Data.unknown_%1%_%2%") % bank % (static_cast<uint32>(valueOrAddress) & 0xFF)).str();
             }
         }
     }
