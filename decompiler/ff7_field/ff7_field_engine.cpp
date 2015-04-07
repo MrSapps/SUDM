@@ -558,7 +558,7 @@ void FF7::FF7ModuleInstruction::processInst(Function& func, ValueStack&, Engine*
 
     case eOpcodes::MPJPO:
         // Gateway function will do nothing if this is set to true
-        codeGen->addOutputLine("FFVII.Data.DisableGateways=" + _params[0]->getUnsigned() ? "true" : "false");
+        codeGen->addOutputLine(std::string("FFVII.Data.DisableGateways=") + (_params[0]->getUnsigned() ? "true" : "false"));
         break;
 
     case eOpcodes::PMJMP:
