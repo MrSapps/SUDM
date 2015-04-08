@@ -255,7 +255,7 @@ void FF7::FF7Disassembler::AddFunc(std::string entityName, size_t entityIndex, s
 void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
     size_t entityIndex,
     size_t scriptIndex,
-    int16 scriptEntryPoint,
+    size_t scriptEntryPoint,
     uint32 nextScriptEntryPoint,
     bool isStart,
     bool isEnd)

@@ -3,6 +3,7 @@
 #include <fstream> 
 #include <sstream>
 #include <iterator>
+#include "unknown_opcode_exception.h"
 
 class BinaryReader
 {
@@ -38,8 +39,10 @@ public:
 
     void Seek(unsigned int pos)
     {
-        mStream.seekg(0);
-        mStream.seekg(pos);
+        if (!mStream.seekg(pos))
+        {
+            throw InternalDecompilerError();
+        }
     }
 
     unsigned int Position()
@@ -82,7 +85,10 @@ private:
     T InternalRead()
     {
         T r = {};
-        mStream.read(reinterpret_cast<char*>(&r), sizeof(r));
+        if (!mStream.read(reinterpret_cast<char*>(&r), sizeof(r)))
+        {
+            throw InternalDecompilerError();
+        }
         return r;
     }
 

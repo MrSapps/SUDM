@@ -449,11 +449,19 @@ void FF7::FF7ControlFlowInstruction::processREQSW(CodeGenerator* codeGen, const 
 
 void FF7::FF7ControlFlowInstruction::processREQEW(CodeGenerator* codeGen, const FF7FieldEngine& engine)
 {
-    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
-    const auto& entity = engine.EntityByIndex(_params[0]->getSigned());
-    const auto& scriptName = cg->mFormatter.FunctionName(entity.Name(), entity.FunctionByIndex(_params[2]->getUnsigned()));
-    auto priority = _params[1]->getUnsigned();
-    codeGen->addOutputLine((boost::format("script:request_end_sync( Script.ENTITY, \"%1%\", \"%2%\", %3% )") % entity.Name() % scriptName % priority).str());
+    try
+    {
+        FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+        const auto& entity = engine.EntityByIndex(_params[0]->getSigned());
+        const auto& scriptName = cg->mFormatter.FunctionName(entity.Name(), entity.FunctionByIndex(_params[2]->getUnsigned()));
+        auto priority = _params[1]->getUnsigned();
+        codeGen->addOutputLine((boost::format("script:request_end_sync( Script.ENTITY, \"%1%\", \"%2%\", %3% )") % entity.Name() % scriptName % priority).str());
+    }
+    catch (const InternalDecompilerError&)
+    {
+        codeGen->addOutputLine((boost::format("-- ERROR call to non existing function index %1%") % _params[2]->getUnsigned()).str());
+    }
+
 }
 
 void FF7::FF7ControlFlowInstruction::processRETTO(CodeGenerator* codeGen)
