@@ -553,12 +553,12 @@ void FF7::FF7ModuleInstruction::processInst(Function& func, ValueStack&, Engine*
         break;
 
     case eOpcodes::BTLMD:
-        codeGen->addOutputLine(FF7CodeGeneratorHelpers::FormatInstructionNotImplemented(md.EntityName(), _address, *this));
+        WriteTodo(codeGen, md.EntityName(), "BTLMD");
         break;
 
     case eOpcodes::MPJPO:
         // Gateway function will do nothing if this is set to true
-        codeGen->addOutputLine("FFVII.Data.DisableGateways=" + _params[0]->getUnsigned() ? "true" : "false");
+        codeGen->addOutputLine(std::string("FFVII.Data.DisableGateways=") + (_params[0]->getUnsigned() ? "true" : "false"));
         break;
 
     case eOpcodes::PMJMP:
@@ -1161,11 +1161,15 @@ void FF7::FF7PartyInstruction::processInst(Function& func, ValueStack&, Engine* 
         break;
 
     case eOpcodes::MMBLK:
-        codeGen->addOutputLine(FF7CodeGeneratorHelpers::FormatInstructionNotImplemented(md.EntityName(), _address, *this));
+        WriteTodo(codeGen, md.EntityName(), "MMBLK");
         break;
 
     case eOpcodes::MMBUK:
         WriteTodo(codeGen, md.EntityName(), "MMBUK");
+        break;
+
+    case eOpcodes::CHGLD:
+        WriteTodo(codeGen, md.EntityName(), "CHGLD");
         break;
 
     default:
@@ -2120,7 +2124,7 @@ void FF7::FF7AudioVideoInstruction::processInst(Function& func, ValueStack&, Eng
         break;
 
     case eOpcodes::FMUSC:
-        codeGen->addOutputLine(FF7CodeGeneratorHelpers::FormatInstructionNotImplemented(md.EntityName(), _address, *this));
+        WriteTodo(codeGen, md.EntityName(), "FMUSC");
         break;
 
     case eOpcodes::CMUSC:

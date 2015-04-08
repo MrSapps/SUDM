@@ -203,7 +203,11 @@ namespace FF7
             {
                 const auto address = static_cast<uint32>(valueOrAddress) & 0xFF;
                 const auto friendlyName = formatter.VarName(bank, valueOrAddress);
-                return (boost::format("FFVII.Data.%1%") % (friendlyName == "" ? (boost::format("FFVII.Data.var_%1%_%2%") % bank % address).str() : friendlyName)).str();
+                if (friendlyName.empty())
+                {
+                    return (boost::format("FFVII.Data.var_%1%_%2%") % bank % address).str();
+                }
+                return (boost::format("FFVII.Data.%1%") % friendlyName).str();
             }
             case 5:
             case 6:
@@ -212,7 +216,7 @@ namespace FF7
                 const  auto friendlyName = formatter.VarName(bank, address);
                 if (friendlyName.empty())
                 {
-                    return (boost::format("FFVII.Data.temp%1%_%2%") % bank % address).str();
+                    return (boost::format("FFVII.Data.temp_%1%_%2%") % bank % address).str();
                 }
                 return "FFVII.Data." + friendlyName;
             }
