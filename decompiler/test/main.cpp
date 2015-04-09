@@ -89,7 +89,7 @@ TEST(SimpleDisassembler, readParameter_B)
 
 TEST(SimpleDisassembler, readParameter_s)
 {
-    std::vector<unsigned char> data = { (unsigned char)-40 };
+    std::vector<unsigned char> data = { (unsigned char)-40, 0x0 };
     InstPtr inst = DoReadParameterTest("s", data);
 
     ASSERT_EQ(inst->_params.size(), 1);
@@ -107,7 +107,7 @@ TEST(SimpleDisassembler, readParameter_w)
 
 TEST(SimpleDisassembler, readParameter_i)
 {
-    std::vector<unsigned char> data = { (unsigned char)-0x30 };
+    std::vector<unsigned char> data = { (unsigned char)-0x30, 0x0, 0x0, 0x0 };
     InstPtr inst = DoReadParameterTest("i", data);
 
     ASSERT_EQ(inst->_params.size(), 1);
