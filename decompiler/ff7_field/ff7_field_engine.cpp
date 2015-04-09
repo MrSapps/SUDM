@@ -9,6 +9,33 @@
 
 #define GET(vertex) (boost::get(boost::vertex_name, g, vertex))
 
+/*
+OpCodes which need implementing (already done in DAT dumper)
+
+"BLINK"
+"XYI"
+"CMOVE"
+"MOVA"
+"TURA"
+"ANIMW"
+"FMOVE"
+"ANIME2"
+"ANIM_1"
+"CANIM1" ?
+"CANM_1"
+"TURN"
+"DIRA"
+"GETDIR"
+"GETAXY"
+"JUMP"
+"AXYZI"
+"LADER"
+"OFST"
+"TALKR"
+"ANIMB"
+"TURNW"
+*/
+
 std::unique_ptr<Disassembler> FF7::FF7FieldEngine::getDisassembler(InstVec &insts, const std::vector<unsigned char>& rawScriptData)
 {
     auto ret = std::make_unique<FF7Disassembler>(mFormatter, this, insts, rawScriptData);
@@ -489,7 +516,7 @@ void FF7::FF7ModuleInstruction::processInst(Function& func, ValueStack&, Engine*
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::ARROW:
-        WriteTodo(codeGen, md.EntityName(), "ARROW");
+        codeGen->addOutputLine((boost::format("game:pointer_enable(%1%)") % (_params[0]->getUnsigned() ? "true" : "false")).str());
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::PNAME:
@@ -505,7 +532,7 @@ void FF7::FF7ModuleInstruction::processInst(Function& func, ValueStack&, Engine*
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::FLMAT:
-        WriteTodo(codeGen, md.EntityName(), "FLMAT");
+        codeGen->addOutputLine("game:fill_materia()");
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::FLITM:
@@ -513,11 +540,11 @@ void FF7::FF7ModuleInstruction::processInst(Function& func, ValueStack&, Engine*
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::BTLCK:
-        WriteTodo(codeGen, md.EntityName(), "BTLCK");
+        codeGen->addOutputLine((boost::format("game:battle_enable(%1%)") % (_params[0]->getUnsigned() ? "true" : "false")).str());
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::MVLCK:
-        WriteTodo(codeGen, md.EntityName(), "MVLCK");
+        codeGen->addOutputLine((boost::format("game:movie_enable(%1%)") % (_params[0]->getUnsigned() ? "true" : "false")).str());
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::SPCNM:
@@ -525,7 +552,7 @@ void FF7::FF7ModuleInstruction::processInst(Function& func, ValueStack&, Engine*
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::RSGLB:
-        WriteTodo(codeGen, md.EntityName(), "RSGLB");
+        codeGen->addOutputLine("game:global_reset()");
         break;
 
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::CLITM:
@@ -601,7 +628,7 @@ void FF7::FF7ModuleInstruction::processBATTLE(CodeGenerator* codeGen)
 
 void FF7::FF7ModuleInstruction::processBTLON(CodeGenerator* codeGen)
 {
-    codeGen->addOutputLine((boost::format("-- field:random_encounter_on( %1% )") % FF7CodeGeneratorHelpers::FormatInvertedBool(_params[0]->getUnsigned())).str());
+    codeGen->addOutputLine((boost::format("field:random_encounter_on( %1% )") % FF7CodeGeneratorHelpers::FormatInvertedBool(_params[0]->getUnsigned())).str());
 }
 
 void FF7::FF7ModuleInstruction::processMAPJUMP(CodeGenerator* codeGen, Function& func)
@@ -1355,7 +1382,7 @@ void FF7::FF7ModelInstruction::processInst(Function& func, ValueStack&, Engine* 
         break;
 
     case eOpcodes::CMOVE:
-        WriteTodo(codeGen, md.EntityName(), "XYZ");
+        WriteTodo(codeGen, md.EntityName(), "CMOVE");
         break;
 
     case eOpcodes::MOVA:
