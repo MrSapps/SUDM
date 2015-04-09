@@ -1959,6 +1959,10 @@ void FF7::FF7CameraInstruction::processInst(Function& func, ValueStack&, Engine*
         WriteTodo(codeGen, md.EntityName(), "MVCAM");
         break;
 
+    case eOpcodes::SCRLA:
+        WriteTodo(codeGen, md.EntityName(), "SCRLA");
+        break;
+
     default:
         codeGen->addOutputLine(FF7CodeGeneratorHelpers::FormatInstructionNotImplemented(md.EntityName(), _address, _opcode));
     }
