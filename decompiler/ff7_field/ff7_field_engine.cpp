@@ -500,6 +500,10 @@ void FF7::FF7ModuleInstruction::processInst(Function& func, ValueStack&, Engine*
         WriteTodo(codeGen, md.EntityName(), "GMSPD");
         break;
 
+    case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::SMSPD:
+        WriteTodo(codeGen, md.EntityName(), "SMSPD");
+        break;
+
     case (eOpcodes::SPECIAL << 8) | eSpecialOpcodes::FLMAT:
         WriteTodo(codeGen, md.EntityName(), "FLMAT");
         break;
@@ -1835,6 +1839,10 @@ void FF7::FF7BackgroundInstruction::processInst(Function& func, ValueStack&, Eng
 
     case eOpcodes::ADPAL2:
         WriteTodo(codeGen, md.EntityName(), "ADPAL2");
+        break;
+
+    case eOpcodes::RTPAL2:
+        WriteTodo(codeGen, md.EntityName(), "RTPAL2");
         break;
 
     default:
