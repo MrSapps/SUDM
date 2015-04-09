@@ -449,11 +449,19 @@ void FF7::FF7ControlFlowInstruction::processREQSW(CodeGenerator* codeGen, const 
 
 void FF7::FF7ControlFlowInstruction::processREQEW(CodeGenerator* codeGen, const FF7FieldEngine& engine)
 {
-    FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
-    const auto& entity = engine.EntityByIndex(_params[0]->getSigned());
-    const auto& scriptName = cg->mFormatter.FunctionName(entity.Name(), entity.FunctionByIndex(_params[2]->getUnsigned()));
-    auto priority = _params[1]->getUnsigned();
-    codeGen->addOutputLine((boost::format("script:request_end_sync( Script.ENTITY, \"%1%\", \"%2%\", %3% )") % entity.Name() % scriptName % priority).str());
+    try
+    {
+        FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+        const auto& entity = engine.EntityByIndex(_params[0]->getSigned());
+        const auto& scriptName = cg->mFormatter.FunctionName(entity.Name(), entity.FunctionByIndex(_params[2]->getUnsigned()));
+        auto priority = _params[1]->getUnsigned();
+        codeGen->addOutputLine((boost::format("script:request_end_sync( Script.ENTITY, \"%1%\", \"%2%\", %3% )") % entity.Name() % scriptName % priority).str());
+    }
+    catch (const InternalDecompilerError&)
+    {
+        codeGen->addOutputLine((boost::format("-- ERROR call to non existing function index %1%") % _params[2]->getUnsigned()).str());
+    }
+
 }
 
 void FF7::FF7ControlFlowInstruction::processRETTO(CodeGenerator* codeGen)
@@ -1443,11 +1451,42 @@ void FF7::FF7ModelInstruction::processInst(Function& func, ValueStack&, Engine* 
         break;
 
     case eOpcodes::OFST:
+    {
+        /* TODO: Implement me
+        FF7SimpleCodeGenerator* cg = static_cast<FF7SimpleCodeGenerator*>(codeGen);
+
+        const auto& x = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[0]->getUnsigned(), _params[2]->getUnsigned());
+        const auto& y = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
+        const auto& z = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
+        const auto& speed = FF7CodeGeneratorHelpers::FormatValueOrVariable(cg->mFormatter, _params[1]->getUnsigned(), _params[3]->getUnsigned());
+
+        codeGen->addOutputLine((boost::format("%1%:offset_to_position( %2%, %3%, %4%, %5% )") % 
+            md.EntityName() %
+            x %
+            y %
+            z %
+            (_params[2]->getUnsigned() ? "Entity.SMOOTH" : "Entity.LINEAR") %
+            (_params[6]->getUnsigned() / 30.0f)
+            ).str());
+
+       
+        export_script->Log(entity_list[i] + ":offset_to_position( " + 
+            ParseGetVariable(GetU8(script + 1) >> 4, 
+            (s16)GetU16LE(script + 4), 0, downscaler) + ", " + 
+            ParseGetVariable(GetU8(script + 1) & 0x0F, 
+            (s16)GetU16LE(script + 6), false, downscaler) + ", " + 
+            ParseGetVariable(GetU8(script + 2) >> 4, 
+            (s16)GetU16LE(script + 8), false, downscaler) + ", " + 
+            ((type == 2) ? "Entity.SMOOTH" : "Entity.LINEAR") + ", " +
+            ParseGetVariable(GetU8(script + 2) & 0x0F, GetU16LE(script + 10), 0, 30.0f) + " )\n");
+            */
         WriteTodo(codeGen, md.EntityName(), "OFST");
+      
+    }
         break;
 
     case eOpcodes::OFSTW:
-        WriteTodo(codeGen, md.EntityName(), "OFSTW");
+        codeGen->addOutputLine(md.EntityName() + ":offset_sync()");
         break;
 
     case eOpcodes::TALKR:
