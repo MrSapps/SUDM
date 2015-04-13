@@ -723,6 +723,88 @@ TEST(Tokenzier, Combos)
     ASSERT_EQ("", token.AsString());
 }
 
+class Assembler
+{
+public:
+    class Method
+    {
+    public:
+        Method(const std::string& name)
+            : mName(name)
+        {
+
+        }
+    private:
+        std::string mName;
+    };
+
+    class Object
+    {
+    public:
+        Object(const std::string& name)
+            : mName(name)
+        {
+
+        }
+
+        const std::string& Name() const { return mName; }
+
+        Method* AddMethod(const std::string& name)
+        {
+            auto method = FindMethod(name);
+            if (!method)
+            {
+                mMethods[name] = std::make_unique<Method>(name);
+                return FindMethod(name);
+            }
+            return nullptr;
+        }
+    private:
+        Method* FindMethod(const std::string& name)
+        {
+            auto it = mMethods.find(name);
+            if (it == std::end(mMethods))
+            {
+                return nullptr;
+            }
+            return it->second.get();
+        }
+
+        std::string mName;
+        std::map<std::string, std::unique_ptr<Method>> mMethods;
+    };
+
+    Assembler()
+    {
+
+    }
+
+    // Something which wraps "methods"
+    Object* AddObject(const std::string& objectName)
+    {
+        auto obj = FindObject(objectName);
+        if (!obj)
+        {
+            mObjects[objectName] = std::make_unique<Object>(objectName);
+            return FindObject(objectName);
+        }
+        return nullptr;
+    }
+
+private:
+    Object* FindObject(const std::string& objectName)
+    {
+        auto it = mObjects.find(objectName);
+        if (it == std::end(mObjects))
+        {
+            return nullptr;
+        }
+        return it->second.get();
+    }
+
+    std::map<std::string, std::unique_ptr<Object>> mObjects;
+};
+
 class Parser
 {
 public:
@@ -756,6 +838,24 @@ public:
 
     private:
         std::string mMsg;
+    };
+
+    class DuplicateObjectNameException : public Exception
+    {
+    public:
+        DuplicateObjectNameException(const std::string& msg, const Tokenzier::Token& token) : Exception(msg, token) { }
+    };
+
+    class DuplicateMethodNameException : public Exception
+    {
+    public:
+        DuplicateMethodNameException(const std::string& msg, const Tokenzier::Token& token) : Exception(msg, token) { }
+    };
+
+    class UnknownOpCodeException : public Exception
+    {
+    public:
+        UnknownOpCodeException(const std::string& msg, const Tokenzier::Token& token) : Exception(msg, token) { }
     };
 
     Parser(const std::string& src)
@@ -801,10 +901,16 @@ private:
 
         // Entity name is quoted string within brackets
         ExpectToken(Tokenzier::eTokenType::eOpenBracket, tokens);
-        std::string entityName = ExpectQuotedString(tokens);
+        Tokenzier::Token entityNameToken = ExpectQuotedString(tokens);
         ExpectToken(Tokenzier::eTokenType::eCloseBracket, tokens);
 
-        std::cout << "ParseEntity: " << entityName.c_str() << std::endl;
+        std::cout << "ParseEntity: " << entityNameToken.AsString().c_str() << std::endl;
+
+        auto pObj = mAssembler.AddObject(entityNameToken.AsString());
+        if (!pObj)
+        {
+            throw DuplicateObjectNameException("Duplicated entity name", entityNameToken);
+        }
 
         // Entity body within { }'s
         ExpectToken(Tokenzier::eTokenType::eOpenCurlyBracket, tokens);
@@ -812,13 +918,13 @@ private:
         // Handle empty {}'s case
         if (PeekTokenType(tokens) != Tokenzier::eTokenType::eCloseCurlyBracket)
         {
-            ParseEntityMethods(tokens);
+            ParseEntityMethods(tokens, *pObj);
         }
         ExpectToken(Tokenzier::eTokenType::eCloseCurlyBracket, tokens);
 
     }
     
-    void ParseEntityMethods(std::deque<Tokenzier::Token>& tokens)
+    void ParseEntityMethods(std::deque<Tokenzier::Token>& tokens, Assembler::Object& obj)
     {
         while (tokens.empty() == false)
         {
@@ -828,11 +934,11 @@ private:
                 break;
             }
             // Otherwise must be fn name() { } decl
-            ParseEntityMethod(tokens);
+            ParseEntityMethod(tokens, obj);
         }
     }
 
-    void ParseEntityMethod(std::deque<Tokenzier::Token>& tokens)
+    void ParseEntityMethod(std::deque<Tokenzier::Token>& tokens, Assembler::Object& obj)
     {
         // Starts with fn keyword
         ExpectText("fn", NextToken(tokens));
@@ -842,6 +948,11 @@ private:
         ExpectTokenType(Tokenzier::eTokenType::eText, text);
       
         std::cout << "Entity function: " << text.AsString().c_str() << std::endl;
+        auto pMethod = obj.AddMethod(text.AsString());
+        if (!pMethod)
+        {
+            throw DuplicateMethodNameException("Duplicated function name", text);
+        }
 
         // Brackets end function name
         ExpectToken(Tokenzier::eTokenType::eOpenBracket, tokens);
@@ -853,13 +964,13 @@ private:
         // handle empty {}'s case
         if (PeekTokenType(tokens) != Tokenzier::eTokenType::eCloseCurlyBracket)
         {
-            ParseEntityMethodBody(tokens);
+            ParseEntityMethodBody(tokens, *pMethod);
         }
         ExpectToken(Tokenzier::eTokenType::eCloseCurlyBracket, tokens);
 
     }
     
-    void ParseEntityMethodBody(std::deque<Tokenzier::Token>& tokens)
+    void ParseEntityMethodBody(std::deque<Tokenzier::Token>& tokens, Assembler::Method& method)
     {
         while (tokens.empty() == false)
         {
@@ -867,6 +978,7 @@ private:
             if (PeekTokenType(tokens) == Tokenzier::eTokenType::eCloseCurlyBracket)
             {
                 // TODO: Validate semantics of instructions parsed
+
                 break;
             }
             Tokenzier::Token text = NextToken(tokens);
@@ -882,18 +994,18 @@ private:
             else
             {
                 std::cout << "INSTRUCTION:" << str.c_str() << std::endl;
-                ParseInstruction(text, tokens);
+                ParseInstruction(text, tokens, method);
             }
         }
     }
 
-    void ParseInstruction(const Tokenzier::Token& inst, std::deque<Tokenzier::Token>& tokens)
+    void ParseInstruction(const Tokenzier::Token& inst, std::deque<Tokenzier::Token>& tokens, Assembler::Method& method)
     {
         const auto insts = FF7::FieldInstructions();
         auto it = insts.find(inst.AsString());
         if (it == std::end(insts))
         {
-            throw Exception(inst.AsString() + " is not a known instruction", inst);
+            throw UnknownOpCodeException(inst.AsString() + " is not a known instruction", inst);
         }
 
         // TODO: Handle arguments correctly, validate labels
@@ -926,15 +1038,18 @@ private:
             }
         }
 
+        // TODO: Add instruction bytes, mark instructions with need addresses resolving
+        //method.AddInstruction();
+
     }
 
-    std::string ExpectQuotedString(std::deque<Tokenzier::Token>& tokens)
+    Tokenzier::Token ExpectQuotedString(std::deque<Tokenzier::Token>& tokens)
     {
         ExpectToken(Tokenzier::eTokenType::eQuote, tokens);
         Tokenzier::Token text = NextToken(tokens);
         ExpectTokenType(Tokenzier::eTokenType::eText, text);
         ExpectToken(Tokenzier::eTokenType::eQuote, tokens);
-        return text.AsString();
+        return text;
     }
 
     Tokenzier::eTokenType PeekTokenType(const std::deque<Tokenzier::Token>& tokens)
@@ -1038,12 +1153,14 @@ private:
             break;
 
         default:
+            // Shouldn't actually be possible
             throw Exception("Unknown token type: " + std::to_string(static_cast<int>(type)));
         }
         return ret;
     }
 
     Tokenzier mTokenzier;
+    Assembler mAssembler;
 };
 
 TEST(Parser, SimpleScript)
@@ -1056,15 +1173,29 @@ TEST(Parser, SimpleScript)
 TEST(Parser, UnknownOpcode)
 {
     Parser p("Entity(\"Testing\") { fn init() { FLUB } } ");
-    ASSERT_THROW(p.Parse(), Parser::Exception);
+    ASSERT_THROW(p.Parse(), Parser::UnknownOpCodeException);
 }
+
+// Parse duplicate entity name
+TEST(Parser, DuplicateObjectName)
+{
+    Parser p("Entity(\"Testing\") { fn init() {  } } Entity(\"Testing\") { fn init() {  } } ");
+    ASSERT_THROW(p.Parse(), Parser::DuplicateObjectNameException);
+}
+
+// Parse duplicate function name
+TEST(Parser, DuplicateMethodName)
+{
+    Parser p("Entity(\"Testing\") { fn init() { } fn init() { }  }");
+    ASSERT_THROW(p.Parse(), Parser::DuplicateMethodNameException);
+}
+
+// Parse too many entities
+// Parse too many functions
 
 // Parse not enough arguments
 // Parse too many arguments
-// Parse duplicate entity name
-// Parse duplicate function name
-// Parse too many entities
-// Parse too many functions
+
 // Parse IF's with missing labels
 // Parse generates warning on missing label
 
