@@ -759,8 +759,15 @@ public:
             }
             return nullptr;
         }
+
+        size_t MethodCount() const { return mMethods.size(); }
+        bool HasMethod(const std::string& name) const
+        {
+            return FindMethod(name) != nullptr;
+        }
+
     private:
-        Method* FindMethod(const std::string& name)
+        Method* FindMethod(const std::string& name) const
         {
             auto it = mMethods.find(name);
             if (it == std::end(mMethods))
@@ -791,8 +798,9 @@ public:
         return nullptr;
     }
 
+    size_t ObjectCount() const { return mObjects.size(); }
 private:
-    Object* FindObject(const std::string& objectName)
+    Object* FindObject(const std::string& objectName) const
     {
         auto it = mObjects.find(objectName);
         if (it == std::end(mObjects))
@@ -850,6 +858,30 @@ public:
     {
     public:
         DuplicateMethodNameException(const std::string& msg, const Tokenzier::Token& token) : Exception(msg, token) { }
+    };
+
+    class TooManyObjectsException : public Exception
+    {
+    public:
+        TooManyObjectsException(const std::string& msg, const Tokenzier::Token& token) : Exception(msg, token) { }
+    };
+
+    class TooManyMethodsException : public Exception
+    {
+    public:
+        TooManyMethodsException(const std::string& msg, const Tokenzier::Token& token) : Exception(msg, token) { }
+    };
+
+    class TooManyArgumentsException : public Exception
+    {
+    public:
+        TooManyArgumentsException(const std::string& msg, const Tokenzier::Token& token) : Exception(msg, token) { }
+    };
+
+    class ArgumentOutOfRangeException : public Exception
+    {
+    public:
+        ArgumentOutOfRangeException(const std::string& msg, const Tokenzier::Token& token) : Exception(msg, token) { }
     };
 
     class UnknownOpCodeException : public Exception
@@ -912,6 +944,11 @@ private:
             throw DuplicateObjectNameException("Duplicated entity name", entityNameToken);
         }
 
+        if (mAssembler.ObjectCount() >= 32)
+        {
+            throw TooManyObjectsException("There can only be 32 entities", entityNameToken);
+        }
+
         // Entity body within { }'s
         ExpectToken(Tokenzier::eTokenType::eOpenCurlyBracket, tokens);
 
@@ -954,6 +991,17 @@ private:
             throw DuplicateMethodNameException("Duplicated function name", text);
         }
 
+        size_t methodCount = obj.MethodCount();
+        if (obj.HasMethod("init") && obj.HasMethod("main"))
+        {
+            // init and main count as 1 script
+            methodCount--;
+        }
+        if (methodCount >= 32)
+        {
+            throw TooManyMethodsException("There can only be 31 scripts excluding init and main", text);
+        }
+
         // Brackets end function name
         ExpectToken(Tokenzier::eTokenType::eOpenBracket, tokens);
         ExpectToken(Tokenzier::eTokenType::eCloseBracket, tokens);
@@ -982,6 +1030,13 @@ private:
                 break;
             }
             Tokenzier::Token text = NextToken(tokens);
+
+            // Probably someone has a passed a number argument to an opcode that takes no arguments
+            if (text.Type() == Tokenzier::eTokenType::eNumber)
+            {
+                throw UnknownOpCodeException("Expected opcode text", text);
+            }
+
             ExpectTokenType(Tokenzier::eTokenType::eText, text);
 
             // Label
@@ -1011,19 +1066,39 @@ private:
         // TODO: Handle arguments correctly, validate labels
         const FF7::TInstructRecord* rec = it->second;
         const char* fmt = rec->mArgumentFormat;
+       // method.AddInstruction(rec->mOpCode, rec->mOpCodeSize);
+
+        // TODO: Flow control needs special handling
+
         while (*fmt)
         {
             bool handled = false;
             switch (*fmt)
             {
             case 'B':
-                ExpectTokenType(Tokenzier::eTokenType::eNumber, NextToken(tokens));
+            {
+                ExpectTokenType(Tokenzier::eTokenType::eNumber, PeekToken(tokens));
+                const auto token = NextToken(tokens);
+                if (token.AsNumber() < 0 || token.AsNumber() > 255)
+                {
+                    throw ArgumentOutOfRangeException("Byte argument must be between 0 and 255", token);
+                }
+                //method.AddInstructionArgument<unsigned char>(token.AsNumber());
                 handled = true;
+            }
                 break;
 
             case 'U':
-                ExpectTokenType(Tokenzier::eTokenType::eNumber, NextToken(tokens));
+            {
+                ExpectTokenType(Tokenzier::eTokenType::eNumber, PeekToken(tokens));
+                const auto token = NextToken(tokens);
+                if (token.AsNumber() < 0 || token.AsNumber() > 65535)
+                {
+                    throw ArgumentOutOfRangeException("Unsigned short argument must be between 0 and 65535", token);
+                }
+                //method.AddInstructionArgument<unsigned short int>(token.AsNumber());
                 handled = true;
+            }
                 break;
 
             default:
@@ -1038,9 +1113,10 @@ private:
             }
         }
 
-        // TODO: Add instruction bytes, mark instructions with need addresses resolving
-        //method.AddInstruction();
-
+        if (PeekTokenType(tokens) == Tokenzier::eTokenType::eArgumentDelmiter)
+        {
+            throw TooManyArgumentsException("Too many arguments for opcode", NextToken(tokens));
+        }
     }
 
     Tokenzier::Token ExpectQuotedString(std::deque<Tokenzier::Token>& tokens)
@@ -1191,13 +1267,66 @@ TEST(Parser, DuplicateMethodName)
 }
 
 // Parse too many entities
+TEST(Parser, TooManyEntities)
+{
+    std::string strScript;
+    for (int i = 0; i < 32; i++) // TODO: Find out what the actual limit is
+    {
+        const std::string entityName = "Test" + std::to_string(i);
+        const std::string entity = "Entity(\"" +  entityName  + "\") { fn init() { } }";
+        strScript += entity;
+    }
+    Parser p(strScript);
+    ASSERT_THROW(p.Parse(), Parser::TooManyObjectsException);
+}
+
+
 // Parse too many functions
+TEST(Parser, TooManyFunctions)
+{
+    std::string strFunctions;
+    for (int i = 0; i < 31; i++)
+    {
+        strFunctions += "fn test" + std::to_string(i) +"() { NOP NOP } ";
+    }
+
+    Parser p("Entity(\"Testing\") { fn init() { } fn main() { }" + strFunctions  +"}");
+    ASSERT_THROW(p.Parse(), Parser::TooManyMethodsException);
+}
+
+
+// Parse too many arguments
+TEST(Parser, TooManyArguments)
+{
+    {
+        Parser p("Entity(\"Testing\") { fn init() { NOP 1 } }");
+        ASSERT_THROW(p.Parse(), Parser::UnknownOpCodeException);
+    }
+
+    {
+         Parser p("Entity(\"Testing\") { fn init() { REQSW 1,2,3 } }");
+         ASSERT_THROW(p.Parse(), Parser::TooManyArgumentsException);
+    }
+}
+
 
 // Parse not enough arguments
-// Parse too many arguments
+TEST(Parser, NotEnoughArguments)
+{
+    Parser p("Entity(\"Testing\") { fn init() { REQSW 1 } }");
+    ASSERT_THROW(p.Parse(), Parser::Exception); // Expects , after 1
+}
+
+// Parse argument value out of range
+TEST(Parser, ArgumentOutOfRange)
+{
+    Parser p("Entity(\"Testing\") { fn init() { REQSW 256, 9999999 } }");
+    ASSERT_THROW(p.Parse(), Parser::ArgumentOutOfRangeException);
+}
 
 // Parse IF's with missing labels
-// Parse generates warning on missing label
+
+// Parse generates warning on unused label
 
 // TODO: Assembler
 
