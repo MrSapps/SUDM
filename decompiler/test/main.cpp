@@ -372,7 +372,7 @@ public:
         item = ConsumeWhiteSpace(item, eof);
         if (eof)
         {
-            return Token(eTokenType::eEof, mCurLine, mCurCol);
+            return Token(eTokenType::eEof, mCurLine, mCurCol-1);
         }
 
         // Begin comment, consume until eLineBreak
@@ -384,7 +384,7 @@ public:
             {
                 if (!ReadChar(item))
                 {
-                    return Token(eTokenType::eEof, mCurLine, mCurCol);
+                    return Token(eTokenType::eEof, mCurLine, mCurCol - 1);
                 }
                 isLineBreak = IsLineBreak(item);
             } while (!isLineBreak);
@@ -392,33 +392,33 @@ public:
             item = ConsumeWhiteSpace(item, eof);
             if (eof)
             {
-                return Token(eTokenType::eEof, mCurLine, mCurCol);
+                return Token(eTokenType::eEof, mCurLine, mCurCol - 1);
             }
         }
         
         if (item == ',')
         {
-            return Token(eTokenType::eArgumentDelmiter, ",", mCurLine, mCurCol);
+            return Token(eTokenType::eArgumentDelmiter, ",", mCurLine, mCurCol - 1);
         }
         else if (item == '(')
         {
-            return Token(eTokenType::eOpenBracket, "(", mCurLine, mCurCol);
+            return Token(eTokenType::eOpenBracket, "(", mCurLine, mCurCol - 1);
         }
         else if (item == ')')
         {
-            return Token(eTokenType::eCloseBracket, ")", mCurLine, mCurCol);
+            return Token(eTokenType::eCloseBracket, ")", mCurLine, mCurCol - 1);
         }
         else if (item == '{')
         {
-            return Token(eTokenType::eOpenCurlyBracket, "{", mCurLine, mCurCol);
+            return Token(eTokenType::eOpenCurlyBracket, "{", mCurLine, mCurCol - 1);
         }
         else if (item == '}')
         {
-            return Token(eTokenType::eCloseCurlyBracket, "}", mCurLine, mCurCol);
+            return Token(eTokenType::eCloseCurlyBracket, "}", mCurLine, mCurCol - 1);
         }
         else if (item == '"')
         {
-            return Token(eTokenType::eQuote, "\"", mCurLine, mCurCol);
+            return Token(eTokenType::eQuote, "\"", mCurLine, mCurCol-1);
         }
         const bool alpha = IsAlpha(item) || item == ';';
         if (alpha)
@@ -433,7 +433,7 @@ public:
             {
                 if (!ReadChar(item))
                 {
-                    return Token(eTokenType::eText, text, mCurLine, mCurCol);
+                    return Token(eTokenType::eText, text, mCurLine, startCol);
                 }
                 // Strings can end with a :
                 stillAlphaOrDigit = IsAlpha(item) || IsDigit(item, mLoc) || item == ':';
@@ -489,7 +489,7 @@ public:
         else
         {
             // eInvalid
-            return Token(eTokenType::eInvalid, mCurLine, mCurCol);
+            return Token(eTokenType::eInvalid, mCurLine, mCurCol-1);
         }
     }
 
@@ -521,7 +521,7 @@ private:
             if (IsLineBreak(output))
             {
                 mCurLine++;
-                mCurCol = 0;
+                mCurCol = 1;
             }
             else
             {
@@ -705,23 +705,33 @@ TEST(Tokenzier, Combos)
     Tokenzier::Token token = t.Next();
     ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
     ASSERT_EQ("Text1234:", token.AsString());
+    ASSERT_EQ(2, token.Line());
+    ASSERT_EQ(1, token.Column());
 
     token = t.Next();
     ASSERT_EQ(Tokenzier::eTokenType::eNumber, token.Type());
     ASSERT_EQ(1234, token.AsNumber());
+    ASSERT_EQ(2, token.Line());
+    ASSERT_EQ(10, token.Column());
 
     token = t.Next();
     ASSERT_EQ(Tokenzier::eTokenType::eArgumentDelmiter, token.Type());
     ASSERT_EQ(",", token.AsString());
+    ASSERT_EQ(2, token.Line());
+    ASSERT_EQ(15, token.Column());
 
     token = t.Next();
     ASSERT_EQ(Tokenzier::eTokenType::eText, token.Type());
     ASSERT_EQ("Fool2", token.AsString());
+    ASSERT_EQ(3, token.Line());
+    ASSERT_EQ(1, token.Column());
 
     token = t.Next();
     ASSERT_EQ(Tokenzier::eTokenType::eEof, token.Type());
     ASSERT_EQ("", token.AsString());
 }
+
+typedef std::vector<std::pair<std::string, Tokenzier::Token>> JumpToken;
 
 class Assembler
 {
@@ -734,8 +744,63 @@ public:
         {
 
         }
+
+        bool AddLabel(std::string name, const Tokenzier::Token& token)
+        {
+            // Labels end with ":" so chop that char off
+            name = name.substr(0, name.length() - 1);
+
+            auto it = mLabels.find(name);
+            if (it != std::end(mLabels))
+            {
+                return false;
+            }
+            mLabels.insert(std::make_pair(name, token));
+            return true;
+        }
+
+        void AddJump(const std::string& label, const Tokenzier::Token& token)
+        {
+            auto it = mJumps.find(label);
+            if (it != std::end(mJumps))
+            {
+                it->second.push_back(token);
+            }
+            else
+            {
+                std::vector<Tokenzier::Token> t;
+                t.push_back(token);
+                mJumps.insert(std::make_pair(label, t));
+            }
+        }
+
+        void VerifyAndResolveLabels(JumpToken& unreferencedLabels, JumpToken& undefinedLabels)
+        {
+            
+            for (const auto& jumpTarget : mJumps)
+            {
+                auto it = mLabels.find(jumpTarget.first);
+                if (it == std::end(mLabels))
+                {
+                    undefinedLabels.push_back(std::make_pair(jumpTarget.first, jumpTarget.second[0]));
+                }
+            }
+
+            for (const auto& label : mLabels)
+            {
+                auto it = mJumps.find(label.first);
+                if (it == std::end(mJumps))
+                {
+                    unreferencedLabels.push_back(std::make_pair(label.first, label.second));
+                }
+            }
+
+        }
+
     private:
         std::string mName;
+        std::map<std::string, Tokenzier::Token> mLabels;
+        std::map<std::string, std::vector<Tokenzier::Token>> mJumps;
     };
 
     class Object
@@ -884,6 +949,18 @@ public:
         ArgumentOutOfRangeException(const std::string& msg, const Tokenzier::Token& token) : Exception(msg, token) { }
     };
 
+    class DuplicateLabelException : public Exception
+    {
+    public:
+        DuplicateLabelException(const std::string& msg, const Tokenzier::Token& token) : Exception(msg, token) { }
+    };
+
+    class UndefinedLabelException : public Exception
+    {
+    public:
+        UndefinedLabelException(const std::string& msg, const Tokenzier::Token& token) : Exception(msg, token) { }
+    };
+
     class UnknownOpCodeException : public Exception
     {
     public:
@@ -1016,6 +1093,21 @@ private:
         }
         ExpectToken(Tokenzier::eTokenType::eCloseCurlyBracket, tokens);
 
+        JumpToken unreferencedLabels;
+        JumpToken undefinedLabels;
+        pMethod->VerifyAndResolveLabels(unreferencedLabels, undefinedLabels);
+        if (!undefinedLabels.empty())
+        {
+            throw UndefinedLabelException("Undefined label", undefinedLabels[0].second);
+        }
+        if (!unreferencedLabels.empty())
+        {
+            // Warn about unused labels
+            for (const auto& label : unreferencedLabels)
+            {
+                std::cout << "WARNING: label " + label.first + " is not used on line : " + std::to_string(label.second.Line()) + ", col : " + std::to_string(label.second.Column()) << std::endl;
+            }
+        }
     }
     
     void ParseEntityMethodBody(std::deque<Tokenzier::Token>& tokens, Assembler::Method& method)
@@ -1044,6 +1136,10 @@ private:
             if (str.back() == ':')
             {
                 std::cout << "LABEL:" << str.c_str() << std::endl;
+                if (!method.AddLabel(str.c_str(), text))
+                {
+                    throw DuplicateLabelException("Duplicated label", text);
+                }
             }
             // instruction/mnemonic
             else
@@ -1066,8 +1162,8 @@ private:
         // TODO: Handle arguments correctly, validate labels
         const FF7::TInstructRecord* rec = it->second;
         const char* fmt = rec->mArgumentFormat;
-       // method.AddInstruction(rec->mOpCode, rec->mOpCodeSize);
 
+        // method.AddInstruction(rec->mOpCode, rec->mOpCodeSize);
         // TODO: Flow control needs special handling
 
         while (*fmt)
@@ -1075,6 +1171,17 @@ private:
             bool handled = false;
             switch (*fmt)
             {
+                // TODO: Handle nibbles correctly
+                /*
+            case 'N':
+            {
+                // TODO
+                ExpectTokenType(Tokenzier::eTokenType::eNumber, PeekToken(tokens));
+                NextToken(tokens);
+                secondNib = !secondNib;
+            }
+            break;*/
+            case 'N':
             case 'B':
             {
                 ExpectTokenType(Tokenzier::eTokenType::eNumber, PeekToken(tokens));
@@ -1086,7 +1193,7 @@ private:
                 //method.AddInstructionArgument<unsigned char>(token.AsNumber());
                 handled = true;
             }
-                break;
+            break;
 
             case 'U':
             {
@@ -1099,12 +1206,26 @@ private:
                 //method.AddInstructionArgument<unsigned short int>(token.AsNumber());
                 handled = true;
             }
-                break;
+            break;
+
+            // Single byte label
+            case 'L':
+            {
+                ExpectTokenType(Tokenzier::eTokenType::eText, PeekToken(tokens));
+                const auto token = NextToken(tokens);
+                std::cout << "ADD JUMP: " << token.AsString() << std::endl;
+                method.AddJump(token.AsString(), token);
+                handled = true;
+            }
+            break;
 
             default:
+                // TODO: Throw
                 break;
             }
+            
             fmt++;
+
             // If we parsed and argument and there is another argument, then they
             // should be separated by an argument delimiter
             if (handled && *fmt)
@@ -1324,11 +1445,65 @@ TEST(Parser, ArgumentOutOfRange)
     ASSERT_THROW(p.Parse(), Parser::ArgumentOutOfRangeException);
 }
 
+// Parse duplicated labels
+TEST(Parser, DuplicatedLabels)
+{
+    Parser p("Entity(\"Testing\") { fn init() { label: label: } }");
+    ASSERT_THROW(p.Parse(), Parser::DuplicateLabelException);
+}
+
+// Parse IF
+TEST(Parser, ParseIf)
+{
+    // TODO: Could allow cleaner syntax:
+    //Parser p("Entity(\"Testing\") { fn init() { IFUB Var(1,2) > Var(0,4) foo NOP foo:  } }");
+    Parser p("Entity(\"Testing\") { fn init() { IFUB 1, 0, 20, 30, 1, foo NOP foo: } }");
+    p.Parse();
+}
+
 // Parse IF's with missing labels
+TEST(Parser, ParseIfMissingLabel)
+{
+    Parser p("Entity(\"Testing\") { fn init() { IFUB 1, 0, 20, 30, 1, foo NOP } }");
+    ASSERT_THROW(p.Parse(), Parser::UndefinedLabelException);
+}
 
 // Parse generates warning on unused label
+TEST(Parser, WarnsOnUnusedLabels)
+{
+    // TODO: Not auto checked as writes to std out, it should probably call back to us so we can check
+    Parser p("Entity(\"Testing\") { fn init() { IFUB 1, 0, 20, 30, 1, foo NOP foo: asdf: \nasdsds: \nhello: } }");
+    p.Parse();
 
-// TODO: Assembler
+}
+
+// Simple assemble / disassemble
+TEST(Parser, AssembleDisassemble)
+{
+    Parser p("Entity(\"Testing\") { fn main() { NOP }  fn init() { NOP } }");
+
+}
+
+// Parse IF's that jump after the if with no "gap"
+/*
+TEST(Parser, ZeroGapIf)
+{
+    Parser p("Entity(\"Testing\") { fn init() { IFUB 1, 0, 20, 30, 1, foo foo: } }");
+    ASSERT_THROW(p.Parse(), Parser::JumpHasNoGap);
+}
+*/
+
+// Parse var length arguments
+
+// Parse double meaning arguments
+
+// Parse all op codes
+
+// Assemble all op codes
+
+// Disassemble all assembled op codes + compare
+
+// Check function ends with RET or JUMPB/JMPBL - is this actually required?
 
 TEST(FF7Field, Asm)
 {

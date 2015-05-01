@@ -37,6 +37,19 @@ static inline unsigned int Nib1(unsigned int v)
     return (v >> 4) & 0xF;
 }
 
+// [8s]
+// [8u]
+// [16s]
+// [16u]
+// [32s]
+// [32u]
+// [4,4]
+// [8u...8u]
+
+// NBwwB
+// NBdB when N == 0
+// [ [8u EQ 0], [8u][8s][16s][8u] , [8u][8s][32u][8s] ]
+// j prefix = jump/label
 
 void SimpleDisassembler::readParams(InstPtr inst, const char *typeString)
 {

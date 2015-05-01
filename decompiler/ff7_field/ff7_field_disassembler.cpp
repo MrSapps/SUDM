@@ -306,7 +306,8 @@ const FF7::TInstructRecord kOpcodes[] =
     { 1, FF7::eOpcodes::REQ, "REQ", "BU", FF7::FF7ControlFlowInstruction::Create },
     { 1, FF7::eOpcodes::REQSW, "REQSW", "BU", FF7::FF7ControlFlowInstruction::Create },
     { 1, FF7::eOpcodes::REQEW, "REQEW", "BU", FF7::FF7ControlFlowInstruction::Create },
-    { 1, FF7::eOpcodes::NOP, "NOP", "", FF7::FF7NoOperationInstruction::Create }
+    { 1, FF7::eOpcodes::NOP, "NOP", "", FF7::FF7NoOperationInstruction::Create },
+    { 1, FF7::eOpcodes::IFUB, "IFUB", "NNBBBL", FF7::FF7NoOperationInstruction::Create }
 };
 
 std::map<std::string, const FF7::TInstructRecord*> FF7::FieldInstructions()
