@@ -367,6 +367,8 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
     }
     */
 
+    std::vector<unsigned int> exitAddrs;
+
     while (mStream->Position() < endPos)
     {
         uint8 opcode = mStream->ReadU8();
@@ -375,6 +377,7 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
         switch (opcode)
         {
             // Flow
+            OPCODE(eOpcodes::IFUB, "IFUB", FF7CondJumpInstruction, 0, "NBBBB");
             OPCODE(eOpcodes::RET, "RET", FF7ControlFlowInstruction, 0, "");
             OPCODE(eOpcodes::REQ, "REQ", FF7ControlFlowInstruction, 0, "BU");
             OPCODE(eOpcodes::REQSW, "REQSW", FF7ControlFlowInstruction, 0, "BU");
@@ -387,7 +390,6 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             OPCODE(eOpcodes::JMPFL, "JMPFL", FF7UncondJumpInstruction, 0, "w");
             OPCODE(eOpcodes::JMPB, "JMPB", FF7UncondJumpInstruction, 0, "B");
             OPCODE(eOpcodes::JMPBL, "JMPBL", FF7UncondJumpInstruction, 0, "w");
-            OPCODE(eOpcodes::IFUB, "IFUB", FF7CondJumpInstruction, 0, "NBBBB");
             OPCODE(eOpcodes::IFUBL, "IFUBL", FF7CondJumpInstruction, 0, "NBBBw");
             OPCODE(eOpcodes::IFSW, "IFSW", FF7CondJumpInstruction, 0, "NwwBB");
             OPCODE(eOpcodes::IFSWL, "IFSWL", FF7CondJumpInstruction, 0, "NwwBw");
@@ -690,7 +692,23 @@ void FF7::FF7Disassembler::ReadOpCodesToPositionOrReturn(size_t endPos)
             throw UnknownOpcodeException(this->_address, opcode);
         }
         INC_ADDR;
-        if (full_opcode == eOpcodes::RET)
+
+        // Are we within an "if" statement tracking
+        InstPtr i = this->_insts.back();
+        if (i->isCondJump())
+        {
+            exitAddrs.push_back(i->getDestAddress());
+        }
+        if (!exitAddrs.empty())
+        {
+            if (i->_address == exitAddrs.back())
+            {
+                exitAddrs.pop_back();
+            }
+        }
+
+        // Only bail if its the first RET that isn't within an "if" block
+        if (full_opcode == eOpcodes::RET && exitAddrs.empty())
         {
             return;
         }
