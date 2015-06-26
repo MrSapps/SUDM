@@ -6,6 +6,7 @@
 #include "util.h"
 #include "make_unique.h"
 #include "ff7_field_dummy_formatter.h"
+#include "lzs.h"
 
 #define FLOW_BASE 0
 #define FLOW_LABELS 13
@@ -58,6 +59,41 @@ void checkBackgnd(const InstVec& insts);
 void checkCamera(const InstVec& insts);
 void checkAv(const InstVec& insts);
 void checkUncat(const InstVec& insts);
+
+TEST(FF7Field, BugFixes)
+{
+
+    auto scriptBytes = Lzs::Decompress(BinaryReader::ReadAll("decompiler/test/bug_fixes.dat"));
+
+    // Remove section pointers, leave everything after the script data as this doesn't matter
+    const int kNumSections = 7;
+    scriptBytes.erase(scriptBytes.begin(), scriptBytes.begin() + kNumSections * sizeof(uint32));
+    DummyFormatter formatter;
+    SUDM::FF7::Field::DecompiledScript ds = SUDM::FF7::Field::Decompile("bug_fixes", scriptBytes, formatter, "", "EntityContainer = {}\n\n");
+    ASSERT_FALSE(ds.luaScript.empty());
+
+    // TODO: This check should be more robust
+    std::string expected =
+        "        self.BugTest:set_talkable( true )\n"
+        "        self.BugTest:set_talkable( false )\n"
+        "        self.BugTest:set_talkable( false )\n"
+        "        self.BugTest:set_visible( false )\n"
+        "        self.BugTest:set_visible( true )\n"
+        "        self.BugTest:set_visible( true )\n"
+        "        self.BugTest:set_solid( true )\n"
+        "        self.BugTest:set_solid( false )\n"
+        "        self.BugTest:set_solid( false )\n";
+    ASSERT_NE(std::string::npos, ds.luaScript.find(expected));
+
+    std::ofstream tmp("bug_fixes.lua");
+    if (!tmp.is_open())
+    {
+        throw std::runtime_error("Can't open bug_fixes.lua for writing");
+    }
+
+    tmp << ds.luaScript;
+
+}
 
 
 TEST(FF7Field, DisasmAllOpcodes)
@@ -1910,7 +1946,6 @@ void checkUncat(const InstVec& insts)
 #undef UNCAT_OPCODES
 
 
-#include "lzs.h"
 
 TEST(FF7Field, Decomp_AllOpcodes)
 //TEST(FF7Field, Decomp_AllOpcodes)

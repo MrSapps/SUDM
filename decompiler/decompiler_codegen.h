@@ -36,7 +36,7 @@ class Engine;
 
 class Function;
 
-const int kIndentAmount = 2; ///< How many spaces to use for each indent.
+const int kIndentAmount = 4; ///< How many spaces to use for each indent.
 
 /**
  * Enumeration for the different argument/operand orderings.
