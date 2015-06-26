@@ -271,7 +271,14 @@ void FF7::FF7Disassembler::DisassembleIndivdualScript(std::string entityName,
     // "Normal" script
     if (scriptIndex > 0)
     {
-        AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, isStart, isEnd, false, "");
+        if (scriptIndex == 1)
+        {
+            AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, isStart, isEnd, false, "on_interact");
+        }
+        else
+        {
+            AddFunc(entityName, entityIndex, scriptIndex, nextScriptEntryPoint, isStart, isEnd, false, "");
+        }
     }
     else
     {
