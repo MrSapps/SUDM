@@ -1090,6 +1090,8 @@ void FF7::FF7WindowInstruction::processMESSAGE(CodeGenerator* codeGen, const std
     auto windowId = _params[0]->getUnsigned();
     auto dialogId = _params[1]->getUnsigned();
     codeGen->addOutputLine((boost::format("dialog:dialog_set_text( \"%1%\", \"%2%_%3%\" )") % windowId % scriptName % dialogId).str());
+    codeGen->addOutputLine((boost::format("dialog:dialog_wait_for_close( \"%1%\" )") % windowId).str());
+
 }
 
 void FF7::FF7WindowInstruction::processWCLSE(CodeGenerator* codeGen)
