@@ -1763,7 +1763,11 @@ void FF7::FF7WalkmeshInstruction::processInst(Function& func, ValueStack&, Engin
         break;
 
     case eOpcodes::IDLCK:
-        WriteTodo(codeGen, md.EntityName(), "IDLCK");
+        // Triangle id, on or off
+        codeGen->addOutputLine(
+            (boost::format("entity_manager:lock_walkmesh( %1%, %2% )")
+            % _params[0]->getUnsigned()
+            % FF7CodeGeneratorHelpers::FormatBool(_params[1]->getUnsigned())).str());
         break;
 
     case eOpcodes::LINE:
