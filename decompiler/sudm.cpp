@@ -29,7 +29,7 @@ namespace SUDM
             {
                 // Could be cleaner, but just does enough work to pull out the fields scale
                 IScriptFormatter formatter;
-                ::FF7::FF7FieldEngine engine(formatter);
+                ::FF7::FF7FieldEngine engine(formatter, "Unused");
                 InstVec insts;
                 engine.getDisassembler(insts, scriptBytes);
                 return engine.ScaleFactor();
@@ -42,7 +42,7 @@ namespace SUDM
                                   std::string textToPrepend)
             {
                 // Disassemble the script
-                ::FF7::FF7FieldEngine engine(formatter);
+                ::FF7::FF7FieldEngine engine(formatter, scriptName);
                 InstVec insts;
 
                 auto disassembler = engine.getDisassembler(insts, scriptBytes);

@@ -69,7 +69,7 @@ TEST(FF7Field, ControlFlow)
 {
     InstVec insts;
     DummyFormatter formatter;
-    FF7::FF7FieldEngine engine(formatter);
+    FF7::FF7FieldEngine engine(formatter, "test");
 
     auto d = engine.getDisassembler(insts);
     d->open("decompiler/test/ff7_control_flow_test.dat");

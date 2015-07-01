@@ -974,9 +974,11 @@ void FF7::FF7MathInstruction::processRANDOM(CodeGenerator* codeGen)
     codeGen->addOutputLine((boost::format("%1% = math.random( 0, 255 )") % destination).str());
 }
 
-void FF7::FF7WindowInstruction::processInst(Function& func, ValueStack&, Engine* /*engine*/, CodeGenerator *codeGen)
+// ===========================================================================================================================================================
+
+void FF7::FF7WindowInstruction::processInst(Function& func, ValueStack&, Engine* engine, CodeGenerator *codeGen)
 {
-    //FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
+    FF7::FF7FieldEngine& eng = static_cast<FF7::FF7FieldEngine&>(*engine);
 
     FunctionMetaData md(func._metadata);
 
@@ -1007,7 +1009,7 @@ void FF7::FF7WindowInstruction::processInst(Function& func, ValueStack&, Engine*
         break;
 
     case eOpcodes::MESSAGE:
-        processMESSAGE(codeGen);
+        processMESSAGE(codeGen, eng.ScriptName());
         break;
 
     case eOpcodes::MPARA:
@@ -1051,7 +1053,7 @@ void FF7::FF7WindowInstruction::processInst(Function& func, ValueStack&, Engine*
         break;
 
     case eOpcodes::WCLSE:
-        WriteTodo(codeGen, md.EntityName(), "WCLSE");
+        processWCLSE(codeGen);
         break;
 
     case eOpcodes::WROW:
@@ -1071,12 +1073,30 @@ void FF7::FF7WindowInstruction::processInst(Function& func, ValueStack&, Engine*
     }
 }
 
-void FF7::FF7WindowInstruction::processMESSAGE(CodeGenerator* codeGen)
+void FF7::FF7WindowInstruction::processWINDOW(CodeGenerator* codeGen)
 {
-    // TODO: shouldn't this be something like "show window"?
+    // Init a new window - wont display till MESSAGE is used
+    auto windowId = _params[0]->getUnsigned();
+    auto x = _params[1]->getUnsigned();
+    auto y = _params[2]->getUnsigned();
+    auto width = _params[3]->getUnsigned();
+    auto height = _params[4]->getUnsigned();
+    codeGen->addOutputLine((boost::format("dialog:dialog_open( \"%1%\", %2%, %3%, %4%, %5%)") % windowId % x % y % width % height).str());
+}
+
+void FF7::FF7WindowInstruction::processMESSAGE(CodeGenerator* codeGen, const std::string& scriptName)
+{
+    // Displays a dialog in the WINDOW that has previously been initialized to display this dialog.
     auto windowId = _params[0]->getUnsigned();
     auto dialogId = _params[1]->getUnsigned();
-    codeGen->addOutputLine((boost::format("-- message:show_text_wait( %1%, %2% )") % windowId % dialogId).str());
+    codeGen->addOutputLine((boost::format("dialog:dialog_set_text( \"%1%\", \"%2%_%3%\" )") % windowId % scriptName % dialogId).str());
+}
+
+void FF7::FF7WindowInstruction::processWCLSE(CodeGenerator* codeGen)
+{
+    // Close a dialog
+    auto windowId = _params[0]->getUnsigned();
+    codeGen->addOutputLine((boost::format("dialog:dialog_close( \"%1%\" )") % windowId).str());
 }
 
 void FF7::FF7WindowInstruction::processMPNAM(CodeGenerator* codeGen)
@@ -1089,15 +1109,9 @@ void FF7::FF7WindowInstruction::processMENU2(CodeGenerator* codeGen)
     codeGen->addOutputLine((boost::format("-- field:menu_lock( %1% )") % FF7CodeGeneratorHelpers::FormatBool(_params[0]->getUnsigned())).str());
 }
 
-void FF7::FF7WindowInstruction::processWINDOW(CodeGenerator* codeGen)
-{
-    auto windowId = _params[0]->getUnsigned();
-    auto x = _params[1]->getUnsigned();
-    auto y = _params[2]->getUnsigned();
-    auto width = _params[3]->getUnsigned();
-    auto height = _params[4]->getUnsigned();
-    codeGen->addOutputLine((boost::format("-- create window ID %1%, x=%2%, y=%3%, width=%4%, height=%5%") % windowId % x % y % width % height).str());
-}
+
+
+// ===========================================================================================================================================================
 
 void FF7::FF7PartyInstruction::processInst(Function& func, ValueStack&, Engine* /*engine*/, CodeGenerator *codeGen)
 {

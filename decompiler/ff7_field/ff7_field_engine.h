@@ -49,8 +49,8 @@ namespace FF7
         FF7FieldEngine(const FF7FieldEngine&) = delete;
         FF7FieldEngine& operator = (const FF7FieldEngine&) = delete;
 
-        FF7FieldEngine(SUDM::IScriptFormatter& formatter)
-            : mFormatter(formatter)
+        FF7FieldEngine(SUDM::IScriptFormatter& formatter, std::string scriptName)
+            : mFormatter(formatter), mScriptName(scriptName)
         {
             setOutputStackEffect(false);
         }
@@ -72,6 +72,7 @@ namespace FF7
             return it->second;
         }
         float ScaleFactor() const { return mScaleFactor; }
+        const std::string& ScriptName() const { return mScriptName; }
     private:
         void RemoveExtraneousReturnStatements(InstVec& insts, Graph g);
         void RemoveTrailingInfiniteLoops(InstVec& insts, Graph g);
@@ -79,6 +80,7 @@ namespace FF7
         SUDM::IScriptFormatter& mFormatter;
         std::map<size_t, Entity> mEntityIndexMap;
         float mScaleFactor = 1.0f;
+        std::string mScriptName;
     };
 
     class FF7UncondJumpInstruction : public UncondJumpInstruction
@@ -150,10 +152,11 @@ namespace FF7
     public:
         virtual void processInst(Function& func, ValueStack &stack, Engine *engine, CodeGenerator *codeGen) override;
     private:
-        void processMESSAGE(CodeGenerator* codeGen);
+        void processMESSAGE(CodeGenerator* codeGen, const std::string& scriptName);
         void processMPNAM(CodeGenerator* codeGen);
         void processMENU2(CodeGenerator* codeGen);
         void processWINDOW(CodeGenerator* codeGen);
+        void processWCLSE(CodeGenerator* codeGen);
     };
 
     class FF7PartyInstruction : public KernelCallInstruction

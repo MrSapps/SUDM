@@ -1508,7 +1508,7 @@ TEST(Parser, ZeroGapIf)
 TEST(FF7Field, Asm)
 {
     DummyFormatter dummy;
-    FF7::FF7FieldEngine eng(dummy);
+    FF7::FF7FieldEngine eng(dummy, "test");
 
     InstVec insts;
     FF7::FF7Disassembler d(dummy, &eng, insts);
